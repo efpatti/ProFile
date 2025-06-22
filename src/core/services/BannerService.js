@@ -13,10 +13,10 @@ export class BannerService {
   });
  }
 
- renderTo(elementId) {
+ renderTo(elementId, paletteName) {
   const element = document.getElementById(elementId);
   if (element) {
-   element.innerHTML = this.formatter.format(this.dev.toJSON());
+   element.innerHTML = this.formatter.format(this.dev.toJSON(), paletteName);
   }
  }
 }

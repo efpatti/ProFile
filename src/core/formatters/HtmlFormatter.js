@@ -1,5 +1,5 @@
 import { DevDataFormatter } from "./DevDataFormatter.js";
-import { accentColor, keyColor } from "../../utils/styleConstants.js";
+import { colorPalettes, defaultPalette } from "../../utils/styleConstants.js";
 
 export class HtmlFormatter extends DevDataFormatter {
  constructor() {
@@ -10,7 +10,7 @@ export class HtmlFormatter extends DevDataFormatter {
   return "&nbsp;".repeat(level * 2);
  }
 
- formatArray(key, array) {
+ formatArray(key, array, accentColor, keyColor) {
   let formatted = `${this.indent(
    1
   )}<span style='color:${keyColor}'>${key}</span>: [<br>`;
@@ -25,12 +25,15 @@ export class HtmlFormatter extends DevDataFormatter {
   return formatted;
  }
 
- format(dev) {
+ format(dev, paletteName = defaultPalette) {
+  const palette = colorPalettes[paletteName] || colorPalettes[defaultPalette];
+  const accentColor = palette.accent;
+  const keyColor = palette.key;
   let formatted = `<span style='color:${accentColor};font-weight:bold;'>const</span> <span style='color:${keyColor};font-weight:bold;'>dev</span> <span style='color:${keyColor}'>=</span> {<br>`;
 
   for (let key in dev) {
    if (Array.isArray(dev[key])) {
-    formatted += this.formatArray(key, dev[key]);
+    formatted += this.formatArray(key, dev[key], accentColor, keyColor);
    } else {
     formatted += `${this.indent(
      1
