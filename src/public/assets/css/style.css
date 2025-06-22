@@ -1,0 +1,219 @@
+.icon-expand-button {
+ transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+ overflow: hidden;
+ position: relative;
+ padding: 0.5rem;
+ width: 40px;
+ height: 40px;
+ display: flex;
+ align-items: center;
+ justify-content: center;
+ border-radius: 9999px;
+ border: 1px solid var(--accent-color);
+ color: var(--accent-color);
+ font-size: 0.875rem;
+ font-weight: 600;
+}
+
+.icon-expand-button:hover {
+ width: 130px;
+ background-color: var(--accent-color) !important;
+ color: white !important;
+ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.icon-expand-button i {
+ transition: all 0.3s ease;
+ position: absolute;
+ left: 50%;
+ transform: translateX(-50%);
+ opacity: 1;
+ width: 20px;
+ display: flex;
+ justify-content: center;
+}
+
+.icon-expand-button:hover i {
+ opacity: 0;
+ transform: translateX(-60px);
+}
+
+.icon-expand-button::after {
+ position: absolute;
+ left: 50%;
+ transform: translateX(30px);
+ transition: all 0.3s ease;
+ white-space: nowrap;
+ opacity: 0;
+}
+
+.icon-expand-button:hover::after {
+ opacity: 1;
+ transform: translateX(-50%);
+}
+
+/* Botão específico de remover */
+#remove-logo::after {
+ content: "Remover Logo";
+}
+
+/* Botão específico de atualizar */
+#update-logo::after {
+ content: "Atualizar Logo";
+}
+
+/* Remove outline azul e substitui por branco suave */
+button:focus,
+button:focus-visible {
+ outline: none;
+ box-shadow: 0 0 0 3px rgba(245, 245, 245, 0.5) !important;
+}
+
+/* Estilo para color-options quando focados */
+.color-option:focus,
+.color-option:focus-visible {
+ outline: none;
+ box-shadow: 0 0 0 3px rgba(245, 245, 245, 0.5), 0 0 0 2px rgba(0, 0, 0, 0.3),
+  0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+/* Estilo para icon-expand-button quando focados */
+.icon-expand-button:focus,
+.icon-expand-button:focus-visible {
+ outline: none;
+ box-shadow: 0 0 0 3px rgba(245, 245, 245, 0.5), 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+/* Estilo para input quando focados */
+input:focus,
+input:focus-visible {
+ outline: none;
+ box-shadow: 0 0 0 3px rgba(245, 245, 245, 0.5),
+  0 0 12px 2px var(--accent-color, #22c55e) !important;
+}
+
+.profile-safe-zone {
+ position: absolute;
+ left: 24px;
+ top: 24px;
+ width: 300px;
+ height: 200px;
+ border: 2px dashed var(--accent-color-30, rgba(34, 197, 94, 0.3));
+ border-radius: 50%;
+ pointer-events: none;
+}
+
+.content-wrapper {
+ margin-left: 240px;
+}
+
+/* Novo design do color-selector */
+.color-selector {
+ position: relative;
+ z-index: 10;
+ background: rgba(20, 20, 20, 0.8);
+ backdrop-filter: blur(12px);
+ border-radius: 9999px;
+ padding: 6px;
+ box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05);
+ border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.color-selector span {
+ color: #e2e2e2;
+ font-size: 0.8rem;
+ font-weight: 500;
+ margin-left: 10px;
+ margin-right: 8px;
+ text-shadow: 0 1px 1px rgba(0, 0, 0, 0.3);
+}
+
+.color-option {
+ transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+ cursor: pointer;
+ width: 28px;
+ height: 28px;
+ border-radius: 50%;
+ border: 2px solid rgba(0, 0, 0, 0.3);
+ position: relative;
+ box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.2),
+  0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.color-option:hover {
+ transform: scale(1.15);
+ box-shadow: inset 0 1px 2px rgba(255, 255, 255, 0.3),
+  0 3px 6px rgba(0, 0, 0, 0.3);
+}
+
+.color-option.active {
+ transform: scale(1.2);
+ box-shadow: 0 0 0 2px rgba(245, 245, 245, 0.8), 0 0 0 4px var(--accent-color),
+  0 4px 8px rgba(0, 0, 0, 0.3) !important;
+ z-index: 2;
+}
+
+/* Efeito de brilho sutil nos botões */
+.color-option::after {
+ content: "";
+ position: absolute;
+ top: 0;
+ left: 0;
+ right: 0;
+ bottom: 0;
+ border-radius: 50%;
+ background: radial-gradient(
+  circle at 30% 30%,
+  rgba(255, 255, 255, 0.3) 0%,
+  rgba(255, 255, 255, 0) 70%
+ );
+ pointer-events: none;
+}
+
+.highlight-bg {
+ background-color: var(--highlight-bg, rgba(34, 197, 94, 0.1));
+}
+
+.text-accent {
+ color: var(--accent-color, #22c55e);
+}
+
+.border-accent {
+ border-color: var(--secondary-color, #22c55e);
+}
+
+.shadow-accent {
+ --tw-shadow-color: var(--accent-color, #22c55e);
+ box-shadow: 0 0 10px 0 var(--tw-shadow-color);
+}
+
+.text-secondary {
+ color: var(--secondary-color, #4ade80) !important;
+}
+
+.text-secondary-soft {
+ color: var(--secondary-soft-color, #bbf7d0) !important;
+}
+
+.bg-secondary {
+ background-color: var(--secondary-color, #4ade80) !important;
+}
+
+.bg-secondary-soft {
+ background-color: var(--secondary-soft-color, #bbf7d0) !important;
+}
+
+.bg-accent {
+ background-color: var(--accent-color, #22c55e) !important;
+}
+
+/* Placeholder com shadow accent */
+input::placeholder {
+ color: #bdbdbd;
+ opacity: 1;
+}
+
+/* Sombra destacada no input com a cor accent */
+input#company-domain {
+ box-shadow: 0 0 12px 2px var(--accent-color, #22c55e) !important;
+}

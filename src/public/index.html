@@ -13,56 +13,10 @@
    rel="stylesheet"
   />
   <script src="https://cdn.tailwindcss.com"></script>
-  <style>
-   .profile-safe-zone {
-    position: absolute;
-    left: 24px;
-    top: 24px;
-    width: 300px;
-    height: 200px;
-    border: 2px dashed var(--accent-color-30, rgba(34, 197, 94, 0.3));
-    border-radius: 50%;
-    pointer-events: none;
-   }
-   .content-wrapper {
-    margin-left: 240px;
-   }
-   .color-selector {
-    position: relative;
-    z-index: 10;
-   }
-   .color-option {
-    transition: all 0.2s ease;
-    cursor: pointer;
-   }
-   .color-option.active,
-   .color-option.ring-2 {
-    transform: scale(1.15);
-    box-shadow: 0 0 0 2px white, 0 0 0 4px var(--accent-color);
-   }
-   .highlight-bg {
-    background-color: var(--highlight-bg, rgba(34, 197, 94, 0.1));
-   }
-   .text-accent {
-    color: var(--accent-color, #22c55e);
-   }
-   .border-accent {
-    border-color: var(--secondary-color, #22c55e);
-   }
-   .shadow-accent {
-    --tw-shadow-color: var(--accent-color, #22c55e);
-    box-shadow: 0 0 10px 0 var(--tw-shadow-color);
-   }
-   .text-secondary {
-    color: var(--secondary-color, #4ade80) !important;
-   }
-   .text-secondary-soft {
-    color: var(--secondary-soft-color, #bbf7d0) !important;
-   }
-  </style>
+  <link rel="stylesheet" href="./assets/css/style.css" />
  </head>
  <body
-  class="bg-gray-100 font-['Inter'] flex flex-col items-center min-h-screen"
+  class="bg-[#0e1111] font-['Inter'] flex flex-col items-center min-h-screen"
   data-palette="darkGreen"
  >
   <button
@@ -73,35 +27,32 @@
    Download Banner (Puppeteer)
   </button>
 
-  <!-- Color Mode Selector -->
-  <div
-   class="color-selector flex items-center gap-2 mb-4 bg-white/80 backdrop-blur-sm p-2 rounded-full shadow-lg"
-  >
-   <span class="text-xs font-medium text-gray-600 ml-2">Color:</span>
-   <div class="flex gap-2">
+  <div class="color-selector flex items-center gap-1 mb-6">
+   <span>Theme</span>
+   <div class="flex gap-1">
     <button
      data-palette="darkGreen"
-     class="color-option w-6 h-6 rounded-full bg-green-600 border-2 border-white shadow-md hover:scale-110 transition-transform"
+     class="color-option bg-green-600"
      title="Dark Green"
     ></button>
     <button
      data-palette="deepBlue"
-     class="color-option w-6 h-6 rounded-full bg-blue-500 border-2 border-white shadow-md hover:scale-110 transition-transform"
+     class="color-option bg-blue-500"
      title="Deep Blue"
     ></button>
     <button
      data-palette="vibrantPurple"
-     class="color-option w-6 h-6 rounded-full bg-purple-500 border-2 border-white shadow-md hover:scale-110 transition-transform"
+     class="color-option bg-purple-500"
      title="Vibrant Purple"
     ></button>
     <button
      data-palette="sunsetOrange"
-     class="color-option w-6 h-6 rounded-full bg-orange-500 border-2 border-white shadow-md hover:scale-110 transition-transform"
+     class="color-option bg-orange-500"
      title="Sunset Orange"
     ></button>
     <button
      data-palette="teal"
-     class="color-option w-6 h-6 rounded-full bg-teal-500 border-2 border-white shadow-md hover:scale-110 transition-transform"
+     class="color-option bg-teal-500"
      title="Teal"
     ></button>
    </div>
@@ -112,30 +63,30 @@
    id="banner"
   >
    <div class="content-wrapper w-full flex justify-between">
-    <!-- Left Side -->
     <div class="w-4/5 flex flex-col justify-center ml-[100px]">
      <div class="flex justify-start items-center space-x-4">
       <h1 class="text-4xl font-bold text-white mb-2">Enzo Ferracini Patti</h1>
-      <img
-       src="./img/mottu.jpg"
-       alt="Mottu logo"
-       class="h-10 w-10 rounded-full bg-white shadow"
-      />
+      <div id="company-logo-wrapper">
+       <img
+        id="company-logo"
+        src="./img/mottu.jpg"
+        alt="Mottu logo"
+        class="h-10 w-10 rounded-full bg-white shadow"
+       />
+      </div>
      </div>
 
      <p class="italic text-gray-300 mb-3 text-lg">
       Driven by curiosity and continuous learning
      </p>
 
-     <!-- 1. Badges (lado a lado) -->
      <div
       class="flex items-center flex-wrap gap-2 mb-4 w-[45rem] text-slate-200"
      >
       <span
        class="px-3 py-1 rounded-full border text-xs border-gray-700 bg-gray-900"
+       >Intern at <span class="font-bold text-accent">Mottu</span></span
       >
-       Intern at <span class="font-bold text-accent">Mottu</span>
-      </span>
       <span
        class="px-3 py-1 rounded-full border text-xs border-gray-700 bg-gray-900"
        >Web Developer</span
@@ -150,42 +101,40 @@
       >
      </div>
 
-     <!-- 2. Premiação (linha única, isolada abaixo) -->
      <div
       class="highlight-bg p-3 rounded-lg border-l-4 border-accent mb-4 w-[40.5rem] flex items-center gap-2 text-base"
      >
       <i class="bx bx-trophy align-middle mr-1 text-slate-200"></i>
-      <span class="truncate whitespace-normal text-slate-200">
-       Recognized as the top graduate in Systems Development at SENAI
-      </span>
+      <span class="truncate whitespace-normal text-slate-200"
+       >Recognized as the top graduate in Systems Development at SENAI</span
+      >
       <span
-       class="ml-2 px-2 py-0.5 rounded-full bg-green-500 text-gray-200 text-xs font-bold"
+       class="ml-2 px-2 py-0.5 rounded-full bg-secondary text-gray-300 text-xs font-bold"
+       style="text-shadow: 1px 1px 2px rgb(0, 0, 0), 0 0 1px #fff"
        >2024</span
       >
      </div>
 
-     <!-- 3. Contatos (lado a lado, abaixo da premiação) -->
      <div class="flex flex-wrap gap-8 text-secondary text-base items-center">
-      <span>
-       <i class="bx bx-envelope align-middle mr-1 text-secondary"></i>
-       <span class="text-slate-200">efpatti.dev@gmail.com</span>
-      </span>
-      <span>
-       <i class="bx bx-phone align-middle mr-1 text-secondary"></i>
-       <span class="text-slate-200">+55 (11) 97883-3101</span>
-      </span>
-      <span>
-       <i class="bx bxl-github align-middle mr-1 text-secondary"></i>
-       <span class="text-slate-200">github.com/efpatti</span>
-      </span>
+      <span
+       ><i class="bx bx-envelope align-middle mr-1 text-secondary"></i
+       ><span class="text-slate-200">efpatti.dev@gmail.com</span></span
+      >
+      <span
+       ><i class="bx bx-phone align-middle mr-1 text-secondary"></i
+       ><span class="text-slate-200">+55 (11) 97883-3101</span></span
+      >
+      <span
+       ><i class="bx bxl-github align-middle mr-1 text-secondary"></i
+       ><span class="text-slate-200">github.com/efpatti</span></span
+      >
      </div>
     </div>
 
-    <!-- Right Side -->
     <div class="w-3/5 flex flex-col justify-start items-end">
      <pre
       id="code"
-      class="bg-gray-900 p-6 shadow-md shadow-accent rounded-lg text-sm font-['Fira_Code'] text-gray-50 mb-4 w-9/12 border border-accent mx-auto"
+      class="bg-gray-900 p-6 shadow-accent rounded-lg text-sm font-['Fira_Code'] text-gray-50 mb-4 w-9/12 mx-auto"
      ></pre>
      <div class="w-9/12 flex justify-center mb-4 mx-auto">
       <div
@@ -204,157 +153,49 @@
      </div>
     </div>
    </div>
-
-   <script type="module" src="./assets/js/app.js"></script>
-   <script src="./assets/js/puppeteerDownload.js"></script>
-   <script>
-    // Color palette logic
-    const colorPalettes = {
-     darkGreen: {
-      accent: "#22c55e",
-      key: "#f7fafc",
-      highlightBg: "rgba(34, 197, 94, 0.1)",
-      accent30: "rgba(34, 197, 94, 0.3)",
-      btn: ["bg-green-600", "hover:bg-green-700"],
-      secondary: "#4ade80", // text-green-400
-      secondarySoft: "#bbf7d0", // text-green-200
-     },
-     deepBlue: {
-      accent: "#3b82f6",
-      key: "#f8fafc",
-      highlightBg: "rgba(59, 130, 246, 0.1)",
-      accent30: "rgba(59, 130, 246, 0.3)",
-      btn: ["bg-blue-500", "hover:bg-blue-600"],
-      secondary: "#60a5fa", // blue-400
-      secondarySoft: "#dbeafe", // blue-200
-     },
-     vibrantPurple: {
-      accent: "#a855f7",
-      key: "#faf5ff",
-      highlightBg: "rgba(168, 85, 247, 0.1)",
-      accent30: "rgba(168, 85, 247, 0.3)",
-      btn: ["bg-purple-500", "hover:bg-purple-600"],
-      secondary: "#c084fc", // purple-400
-      secondarySoft: "#ede9fe", // purple-200
-     },
-     sunsetOrange: {
-      accent: "#f97316",
-      key: "#fff7ed",
-      highlightBg: "rgba(249, 115, 22, 0.1)",
-      accent30: "rgba(249, 115, 22, 0.3)",
-      btn: ["bg-orange-500", "hover:bg-orange-600"],
-      secondary: "#fdba74", // orange-400
-      secondarySoft: "#ffedd5", // orange-200
-     },
-     teal: {
-      accent: "#14b8a6",
-      key: "#f0fdfa",
-      highlightBg: "rgba(20, 184, 166, 0.1)",
-      accent30: "rgba(20, 184, 166, 0.3)",
-      btn: ["bg-teal-500", "hover:bg-teal-600"],
-      secondary: "#2dd4bf", // teal-400
-      secondarySoft: "#ccfbf1", // teal-200
-     },
-    };
-    function setPaletteVars(palette) {
-     const root = document.documentElement;
-     root.style.setProperty("--accent-color", colorPalettes[palette].accent);
-     root.style.setProperty("--key-color", colorPalettes[palette].key);
-     root.style.setProperty(
-      "--highlight-bg",
-      colorPalettes[palette].highlightBg
-     );
-     root.style.setProperty(
-      "--accent-color-30",
-      colorPalettes[palette].accent30
-     );
-     root.style.setProperty(
-      "--secondary-color",
-      colorPalettes[palette].secondary
-     );
-     root.style.setProperty(
-      "--secondary-soft-color",
-      colorPalettes[palette].secondarySoft
-     );
-     document.body.setAttribute("data-palette", palette);
-    }
-    function updateDownloadBtn(palette) {
-     const btn = document.getElementById("download-banner-puppeteer");
-     btn.classList.remove(
-      "bg-green-600",
-      "hover:bg-green-700",
-      "bg-blue-500",
-      "hover:bg-blue-600",
-      "bg-purple-500",
-      "hover:bg-purple-600",
-      "bg-orange-500",
-      "hover:bg-orange-600",
-      "bg-teal-500",
-      "hover:bg-teal-600"
-     );
-     btn.classList.add(...colorPalettes[palette].btn);
-    }
-    function updateCodeColors(palette) {
-     const codeElement = document.getElementById("code");
-     if (!codeElement) return;
-     const dev = {
-      name: "Enzo Ferracini Patti",
-      role: "Fullstack Developer",
-      stack: ["React", "Node.js", "TypeScript"],
-      company: "Mottu",
-      position: "Development Intern",
-     };
-     const accentColor = colorPalettes[palette].accent;
-     const secondaryColor = colorPalettes[palette].secondary;
-     const keyColor = colorPalettes[palette].key;
-     const indent = (level) => "&nbsp;".repeat(level * 2);
-     let formatted = `<span style='color:${secondaryColor};font-weight:bold;'>const</span> <span style='color:${keyColor};font-weight:bold;'>dev</span> <span style='color:${keyColor}'>=</span> {<br>`;
-     for (let key in dev) {
-      if (Array.isArray(dev[key])) {
-       formatted += `${indent(
-        1
-       )}<span style='color:${keyColor}'>${key}</span>: [<br>`;
-       dev[key].forEach((item, i) => {
-        formatted += `${indent(
-         2
-        )}<span style='color:${accentColor}'>&quot;${item}&quot;</span>${
-         i < dev[key].length - 1 ? "," : ""
-        }<br>`;
-       });
-       formatted += `${indent(1)}],<br>`;
-      } else {
-       formatted += `${indent(
-        1
-       )}<span style='color:${keyColor}'>${key}</span>: <span style='color:${accentColor}'>&quot;${
-        dev[key]
-       }&quot;</span>,<br>`;
-      }
-     }
-     formatted += "};";
-     codeElement.innerHTML = formatted;
-    }
-    document.addEventListener("DOMContentLoaded", function () {
-     // Inicializa com a paleta padrão
-     setPaletteVars("darkGreen");
-     updateDownloadBtn("darkGreen");
-     updateCodeColors("darkGreen");
-     document
-      .querySelector('[data-palette="darkGreen"]')
-      .classList.add("ring-2", "ring-offset-2", "ring-gray-800");
-     document.querySelectorAll(".color-option").forEach((button) => {
-      button.addEventListener("click", function () {
-       const palette = this.getAttribute("data-palette");
-       document.querySelectorAll(".color-option").forEach((btn) => {
-        btn.classList.remove("ring-2", "ring-offset-2", "ring-gray-800");
-       });
-       this.classList.add("ring-2", "ring-offset-2", "ring-gray-800");
-       setPaletteVars(palette);
-       updateDownloadBtn(palette);
-       updateCodeColors(palette);
-      });
-     });
-    });
-   </script>
   </div>
+
+  <!-- Campo de logo dinâmica -->
+  <div class="mt-6 flex items-center gap-3">
+   <input
+    id="company-domain"
+    type="text"
+    placeholder="Digite o domínio (ex: google.com)"
+    class="px-4 py-2 rounded-xl shadow-xl shadow-accent focus:outline-none focus:ring focus:border-green-500 w-80"
+   />
+   <button id="update-logo" class="icon-expand-button rounded-2xl">
+    <i class="bx bxs-edit"></i>
+   </button>
+   <button id="remove-logo" class="icon-expand-button rounded-2xl">
+    <i class="bx bxs-trash"></i>
+   </button>
+  </div>
+
+  <script>
+   const input = document.getElementById("company-domain");
+   const updateBtn = document.getElementById("update-logo");
+   const removeBtn = document.getElementById("remove-logo");
+   const logoEl = document.getElementById("company-logo");
+   const TOKEN = "pk_fnCdcveMSlWxQcDxxOsXhQ";
+
+   updateBtn.addEventListener("click", () => {
+    const domain = input.value.trim().toLowerCase();
+    if (!domain || !domain.includes(".")) {
+     alert("Digite um domínio válido, ex: google.com");
+     return;
+    }
+    logoEl.src = `https://img.logo.dev/${domain}?token=${TOKEN}`;
+    logoEl.alt = `Logo de ${domain}`;
+   });
+
+   removeBtn.addEventListener("click", () => {
+    logoEl.src = "./img/mottu.jpg";
+    logoEl.alt = "Logo da Mottu";
+    input.value = "";
+   });
+  </script>
+
+  <script type="module" src="./assets/js/app.js"></script>
+  <script src="./assets/js/puppeteerDownload.js"></script>
  </body>
 </html>

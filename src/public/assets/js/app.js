@@ -88,12 +88,66 @@ function setActivePaletteButton(palette) {
   }
  });
 }
+function updateLogoBtnColor(palette) {
+ const updateBtn = document.getElementById("update-logo");
+ if (!updateBtn) return;
+
+ // Remove todas as classes de cor possíveis
+ updateBtn.classList.remove(
+  "bg-green-600",
+  "hover:bg-green-700",
+  "text-white",
+  "bg-secondary",
+  "text-accent",
+  "bg-blue-500",
+  "hover:bg-blue-600",
+  "bg-purple-500",
+  "hover:bg-purple-600",
+  "bg-orange-500",
+  "hover:bg-orange-600",
+  "bg-teal-500",
+  "hover:bg-teal-600"
+ );
+
+ // Adiciona apenas a classe de texto
+ updateBtn.classList.add("text-accent");
+}
+
+function updateRemoveLogoBtnColor(palette) {
+ const removeBtn = document.getElementById("remove-logo");
+ if (!removeBtn) return;
+ removeBtn.classList.remove(
+  "bg-red-500",
+  "hover:bg-red-600",
+  "text-white",
+  "bg-accent",
+  "text-accent"
+ );
+ removeBtn.classList.add(
+  "text-accent",
+  "border",
+  "border-accent",
+  "hover:bg-gray-200"
+ );
+}
+
+function setupRemoveLogoBtnHover() {
+ // Remove os event listeners antigos pois a animação agora é puramente CSS
+ const removeBtn = document.getElementById("remove-logo");
+ if (!removeBtn) return;
+
+ // Limpa qualquer conteúdo dinâmico que possa ter sido adicionado
+ removeBtn.innerHTML = '<i class="bx bxs-trash"></i>';
+}
 
 document.addEventListener("DOMContentLoaded", () => {
  setPaletteVars(currentPalette);
  updateDownloadBtn(currentPalette);
  renderBannerCode(currentPalette);
  setActivePaletteButton(currentPalette);
+ updateLogoBtnColor(currentPalette);
+ updateRemoveLogoBtnColor(currentPalette);
+ setupRemoveLogoBtnHover();
 
  document.querySelectorAll(".color-option").forEach((btn) => {
   btn.addEventListener("click", () => {
@@ -104,6 +158,8 @@ document.addEventListener("DOMContentLoaded", () => {
     updateDownloadBtn(palette);
     renderBannerCode(palette);
     setActivePaletteButton(palette);
+    updateLogoBtnColor(palette);
+    updateRemoveLogoBtnColor(palette);
    }
   });
  });
