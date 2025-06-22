@@ -14,6 +14,9 @@
   />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="./assets/css/style.css" />
+  <style>
+   /* All style rules have been moved to style.css */
+  </style>
  </head>
  <body
   class="bg-[#0e1111] font-['Inter'] flex flex-col items-center min-h-screen"
@@ -21,7 +24,7 @@
  >
   <button
    id="download-banner-puppeteer"
-   class="no-export mt-8 mb-4 px-6 py-2 rounded-lg text-black font-semibold transition"
+   class="no-export mt-8 mb-4 px-6 py-2 rounded-lg text-slate-200 font-semibold transition"
    style="z-index: 10"
   >
    Download Banner (Puppeteer)
@@ -170,7 +173,7 @@
       for="company-domain"
       class="absolute left-3 top-3 px-1 text-gray-400 pointer-events-none transition-all duration-200 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-accent bg-gray-800 peer-focus:bg-gray-900"
      >
-      Digite o domínio (ex: google.com)
+      Digite o nome ou domínio (ex: Google ou google.com)
      </label>
      <div
       class="absolute inset-x-0 bottom-0 h-0.5 bg-accent scale-x-0 peer-focus:scale-x-100 transition-transform duration-300 origin-left"
@@ -187,37 +190,14 @@
    </button>
   </div>
   <script>
-   // Elementos DOM
    const input = document.getElementById("company-domain");
    const updateBtn = document.getElementById("update-logo");
    const removeBtn = document.getElementById("remove-logo");
    const logoEl = document.getElementById("company-logo");
    const suggestionsContainer = document.getElementById("suggestions");
-   const TOKEN = "pk_fnCdcveMSlWxQcDxxOsXhQ";
+   const TOKEN = "pk_fnCdcveMSlWxQcDxxOsXhQ"; // for logo image
+   const API_KEY = "sk_YNP0Kih5QnqisbIQftwkiA"; // for search API
 
-   // Lista de empresas populares para sugestões
-   const popularCompanies = [
-    "google.com",
-    "microsoft.com",
-    "apple.com",
-    "amazon.com",
-    "facebook.com",
-    "netflix.com",
-    "twitter.com",
-    "instagram.com",
-    "linkedin.com",
-    "youtube.com",
-    "spotify.com",
-    "airbnb.com",
-    "uber.com",
-    "dropbox.com",
-    "slack.com",
-    "github.com",
-    "gitlab.com",
-    "mottu.com.br",
-   ];
-
-   // Debounce para evitar muitas chamadas
    function debounce(func, wait) {
     let timeout;
     return function (...args) {
@@ -226,68 +206,67 @@
     };
    }
 
-   // Mostrar sugestões
    function showSuggestions(suggestions) {
     suggestionsContainer.innerHTML = "";
-
-    if (suggestions.length === 0) {
-     suggestionsContainer.style.display = "none";
-     return;
-    }
-
-    suggestions.forEach((domain, index) => {
+    if (!suggestions || suggestions.length === 0) {
      const div = document.createElement("div");
      div.className = "suggestion-item";
-     div.textContent = domain;
+     div.textContent = "No results found";
+     suggestionsContainer.appendChild(div);
+     suggestionsContainer.style.display = "block";
+     return;
+    }
+    suggestions.forEach((brand) => {
+     const div = document.createElement("div");
+     div.className = "suggestion-item";
+     div.innerHTML = `
+      <div class="flex items-center">
+        <img src="https://img.logo.dev/${brand.domain}?token=${TOKEN}&size=24" 
+             alt="${brand.name}" 
+             class="w-6 h-6 rounded-full mr-2 bg-white p-1">
+        <div>
+          <div class="font-medium">${brand.name}</div>
+          <div class="text-xs text-gray-400">${brand.domain}</div>
+        </div>
+      </div>
+     `;
      div.addEventListener("click", () => {
-      input.value = domain;
+      input.value = brand.domain;
       suggestionsContainer.style.display = "none";
-      updateLogo(domain);
+      updateLogo(brand.domain);
      });
      suggestionsContainer.appendChild(div);
     });
-
     suggestionsContainer.style.display = "block";
    }
 
-   // Atualizar logo
-   function updateLogo(domain) {
-    if (!domain || !domain.includes(".")) {
-     return;
-    }
-    logoEl.src = `https://img.logo.dev/${domain}?token=${TOKEN}`;
-    logoEl.alt = `Logo de ${domain}`;
-   }
-
-   // Buscar sugestões
    async function fetchSuggestions(query) {
-    if (query.length < 2) {
-     // Mostra empresas populares quando há poucos caracteres
-     const filtered = popularCompanies.filter((company) =>
-      company.includes(query.toLowerCase())
-     );
-     showSuggestions(filtered);
+    if (!query || query.length < 2) {
+     suggestionsContainer.style.display = "none";
      return;
     }
-
     try {
-     // Filtra na lista local (poderia ser substituído por chamada à API)
-     const filtered = popularCompanies.filter((company) =>
-      company.includes(query.toLowerCase())
+     const response = await fetch(
+      `/brand-search?q=${encodeURIComponent(query)}`
      );
-
-     showSuggestions(filtered);
+     if (!response.ok) throw new Error("API error");
+     const data = await response.json();
+     showSuggestions(data.results || []);
     } catch (error) {
-     console.error("Error fetching suggestions:", error);
      showSuggestions([]);
     }
    }
 
-   // Event listeners
+   function updateLogo(domain) {
+    if (!domain || !domain.includes(".")) return;
+    logoEl.src = `https://img.logo.dev/${domain}?token=${TOKEN}`;
+    logoEl.alt = `Logo de ${domain}`;
+   }
+
    input.addEventListener(
     "input",
     debounce(() => {
-     const query = input.value.trim().toLowerCase();
+     const query = input.value.trim();
      fetchSuggestions(query);
     }, 300)
    );
@@ -320,40 +299,6 @@
     logoEl.alt = "Logo da Mottu";
     input.value = "";
     suggestionsContainer.style.display = "none";
-   });
-
-   // Navegação por teclado nas sugestões
-   let highlightedIndex = -1;
-
-   input.addEventListener("keydown", (e) => {
-    const items = suggestionsContainer.querySelectorAll(".suggestion-item");
-
-    if (e.key === "ArrowDown") {
-     e.preventDefault();
-     highlightedIndex = (highlightedIndex + 1) % items.length;
-     updateHighlight();
-    } else if (e.key === "ArrowUp") {
-     e.preventDefault();
-     highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
-     updateHighlight();
-    } else if (e.key === "Enter" && highlightedIndex >= 0) {
-     e.preventDefault();
-     items[highlightedIndex].click();
-    }
-
-    function updateHighlight() {
-     items.forEach((item, index) => {
-      item.classList.toggle("highlighted", index === highlightedIndex);
-      if (index === highlightedIndex) {
-       item.scrollIntoView({ block: "nearest" });
-      }
-     });
-    }
-   });
-
-   // Inicialização do tema
-   document.addEventListener("DOMContentLoaded", () => {
-    // Seu código de inicialização de tema aqui
    });
   </script>
 

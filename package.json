@@ -8,6 +8,7 @@
  "description": "- `index.html`: Página principal do banner. - `banner.js`: Responsável por exibir e formatar as informações do desenvolvedor no banner. - `exportBanner.js`: Responsável por exportar o banner como imagem. - `img/`: Imagens utilizadas no projeto. - `js/`: (Reservado para scripts futuros, atualmente vazio)",
  "main": "banner.js",
  "devDependencies": {
+  "node-fetch": "^3.3.2",
   "nodemon": "^3.1.10"
  },
  "scripts": {

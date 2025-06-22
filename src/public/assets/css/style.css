@@ -1,31 +1,27 @@
-/* Adicione ao seu arquivo style.css */
+/* Estilos gerais */
 .icon-expand-button {
  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
  overflow: hidden;
  position: relative;
- padding: 0.75rem;
- width: 48px;
- height: 48px;
+ padding: 0.5rem;
+ width: 40px;
+ height: 40px;
  display: flex;
  align-items: center;
  justify-content: center;
- border-radius: 12px;
+ border-radius: 9999px;
  border: 1px solid var(--accent-color);
  color: var(--accent-color);
  font-size: 0.875rem;
  font-weight: 600;
- background: rgba(30, 30, 30, 0.7);
- backdrop-filter: blur(8px);
 }
 
 .icon-expand-button:hover {
- width: 140px;
+ width: 130px;
  background-color: var(--accent-color) !important;
  color: white !important;
- box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+ box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
-
-/* Restante do CSS do icon-expand-button permanece igual */
 
 .icon-expand-button i {
  transition: all 0.3s ease;
@@ -57,36 +53,12 @@
  transform: translateX(-50%);
 }
 
-/* Botão específico de remover */
 #remove-logo::after {
  content: "Remover Logo";
 }
 
-/* Botão específico de atualizar */
 #update-logo::after {
  content: "Atualizar Logo";
-}
-
-/* Remove outline azul e substitui por branco suave */
-button:focus,
-button:focus-visible {
- outline: none;
- box-shadow: 0 0 0 3px rgba(245, 245, 245, 0.5) !important;
-}
-
-/* Estilo para color-options quando focados */
-.color-option:focus,
-.color-option:focus-visible {
- outline: none;
- box-shadow: 0 0 0 3px rgba(245, 245, 245, 0.5), 0 0 0 2px rgba(0, 0, 0, 0.3),
-  0 2px 4px rgba(0, 0, 0, 0.2) !important;
-}
-
-/* Estilo para icon-expand-button quando focados */
-.icon-expand-button:focus,
-.icon-expand-button:focus-visible {
- outline: none;
- box-shadow: 0 0 0 3px rgba(245, 245, 245, 0.5), 0 4px 12px rgba(0, 0, 0, 0.15) !important;
 }
 
 .profile-safe-zone {
@@ -104,7 +76,6 @@ button:focus-visible {
  margin-left: 240px;
 }
 
-/* Novo design do color-selector */
 .color-selector {
  position: relative;
  z-index: 10;
@@ -146,11 +117,10 @@ button:focus-visible {
 .color-option.active {
  transform: scale(1.2);
  box-shadow: 0 0 0 2px rgba(245, 245, 245, 0.8), 0 0 0 4px var(--accent-color),
-  0 4px 8px rgba(0, 0, 0, 0.3) !important;
+  0 4px 8px rgba(0, 0, 0, 0.3);
  z-index: 2;
 }
 
-/* Efeito de brilho sutil nos botões */
 .color-option::after {
  content: "";
  position: absolute;
@@ -204,12 +174,13 @@ button:focus-visible {
  background-color: var(--accent-color, #22c55e) !important;
 }
 
-/* Sombra destacada no input com a cor accent */
-input#company-domain {
- box-shadow: 0 0 12px 2px var(#ffffff) !important;
+input::placeholder {
+ color: #bdbdbd;
+ opacity: 1;
 }
-#download-banner-puppeteer {
- background-color: aliceblue !important;
+
+input#company-domain {
+ box-shadow: 0 0 12px 2px var(--accent-color, #22c55e) !important;
 }
 
 .suggestions-container {
@@ -241,4 +212,31 @@ input#company-domain {
 .search-container {
  position: relative;
  flex: 1;
+}
+
+/* Remove outline azul e substitui por branco suave */
+button:focus,
+button:focus-visible {
+ outline: none;
+ box-shadow: 0 0 0 3px rgba(245, 245, 245, 0.5) !important;
+}
+
+.color-option:focus,
+.color-option:focus-visible {
+ outline: none;
+ box-shadow: 0 0 0 3px rgba(245, 245, 245, 0.5), 0 0 0 2px rgba(0, 0, 0, 0.3),
+  0 2px 4px rgba(0, 0, 0, 0.2) !important;
+}
+
+.icon-expand-button:focus,
+.icon-expand-button:focus-visible {
+ outline: none;
+ box-shadow: 0 0 0 3px rgba(245, 245, 245, 0.5), 0 4px 12px rgba(0, 0, 0, 0.15) !important;
+}
+
+input:focus,
+input:focus-visible {
+ outline: none;
+ box-shadow: 0 0 0 3px rgba(245, 245, 245, 0.5),
+  0 0 12px 2px var(--accent-color, #22c55e) !important;
 }
