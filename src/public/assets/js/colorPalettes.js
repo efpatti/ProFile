@@ -2,7 +2,7 @@ import {
  colorPalettes,
  defaultPalette,
  bannerDimensions,
-} from "../../public/assets/js/sharedStyleConstants.js";
+} from "./sharedStyleConstants.js";
 
 export const colorPalettes = {
  darkGreen: {
@@ -50,10 +50,4 @@ export const colorPalettes = {
   secondary: "#2dd4bf", // teal-400
   secondarySoft: "#ccfbf1", // teal-200
  },
-};
-
-export const defaultPalette = "darkGreen";
-export const bannerDimensions = {
- width: 1584,
- height: 396,
 };
