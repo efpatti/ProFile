@@ -4,7 +4,8 @@ export class BannerController {
  static async download(req, res) {
   try {
    const palette = req.query.palette || "darkGreen";
-   const buffer = await PuppeteerService.captureBanner(palette);
+   const logo = req.query.logo || "";
+   const buffer = await PuppeteerService.captureBanner(palette, logo);
    res.setHeader("Content-Type", "image/png");
    res.setHeader(
     "Content-Disposition",

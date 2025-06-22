@@ -6,11 +6,19 @@ import {
 
 let currentPalette = "darkGreen";
 
-// Detect palette from URL (for Puppeteer screenshot)
+// Detect palette and logo from URL (for Puppeteer screenshot)
 const urlParams = new URLSearchParams(window.location.search);
-const paletteFromUrl = urlParams.get("palette");
+const paletteFromUrl = urlParams.get('palette');
 if (paletteFromUrl && colorPalettes[paletteFromUrl]) {
- currentPalette = paletteFromUrl;
+  currentPalette = paletteFromUrl;
+}
+const logoFromUrl = urlParams.get('logo');
+if (logoFromUrl) {
+  const logoEl = document.getElementById("company-logo");
+  if (logoEl) {
+    logoEl.src = `https://img.logo.dev/${logoFromUrl}?token=pk_fnCdcveMSlWxQcDxxOsXhQ`;
+    logoEl.alt = `Logo de ${logoFromUrl}`;
+  }
 }
 
 function renderBannerCode(paletteName) {

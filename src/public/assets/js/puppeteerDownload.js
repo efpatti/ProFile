@@ -5,9 +5,12 @@ document.addEventListener("DOMContentLoaded", () => {
  const puppeteerBtn = document.getElementById("download-banner-puppeteer");
  if (puppeteerBtn) {
   puppeteerBtn.addEventListener("click", () => {
-   // Pegue a paleta atual do body
    const palette = document.body.getAttribute("data-palette") || "darkGreen";
-   fetch(`/download-banner?palette=${palette}`)
+   const logoInput = document.getElementById("company-domain");
+   const logoDomain = logoInput ? logoInput.value.trim() : "";
+   const params = new URLSearchParams({ palette });
+   if (logoDomain) params.append("logo", logoDomain);
+   fetch(`/download-banner?${params.toString()}`)
     .then((response) => response.blob())
     .then((blob) => {
      const url = window.URL.createObjectURL(blob);
