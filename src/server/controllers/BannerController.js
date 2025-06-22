@@ -3,7 +3,8 @@ import { PuppeteerService } from "../services/PuppeteerService.js";
 export class BannerController {
  static async download(req, res) {
   try {
-   const buffer = await PuppeteerService.captureBanner();
+   const palette = req.query.palette || "darkGreen";
+   const buffer = await PuppeteerService.captureBanner(palette);
    res.setHeader("Content-Type", "image/png");
    res.setHeader(
     "Content-Disposition",

@@ -6,6 +6,13 @@ import {
 
 let currentPalette = "darkGreen";
 
+// Detect palette from URL (for Puppeteer screenshot)
+const urlParams = new URLSearchParams(window.location.search);
+const paletteFromUrl = urlParams.get("palette");
+if (paletteFromUrl && colorPalettes[paletteFromUrl]) {
+ currentPalette = paletteFromUrl;
+}
+
 function renderBannerCode(paletteName) {
  const codeElement = document.getElementById("code");
  if (!codeElement) return;

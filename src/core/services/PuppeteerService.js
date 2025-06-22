@@ -2,18 +2,24 @@ import puppeteer from "puppeteer";
 import path from "path";
 
 export class PuppeteerService {
- static async captureBanner() {
+ static async captureBanner(palette = "darkGreen") {
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
   // Define o viewport para o tamanho exato do banner LinkedIn
   await page.setViewport({ width: 1584, height: 396, deviceScaleFactor: 3 }); // Qualidade máxima (retina)
-  const pageUrl = "http://localhost:3000";
+  const pageUrl = `http://localhost:3000?palette=${palette}`;
   await page.goto(pageUrl);
 
   // Aguarda o banner aparecer
   await page.waitForSelector("#banner");
   // Aguarda as fontes carregarem
   await page.evaluateHandle("document.fonts.ready");
+
+  // Força a paleta no DOM antes do screenshot
+  await page.evaluate((palette) => {
+   document.body.setAttribute("data-palette", palette);
+   if (window.setPaletteVars) window.setPaletteVars(palette);
+  }, palette);
 
   // Aguarda o código estilizado ser renderizado
   await page.waitForFunction(() => {

@@ -5,7 +5,9 @@ document.addEventListener("DOMContentLoaded", () => {
  const puppeteerBtn = document.getElementById("download-banner-puppeteer");
  if (puppeteerBtn) {
   puppeteerBtn.addEventListener("click", () => {
-   fetch("/download-banner")
+   // Pegue a paleta atual do body
+   const palette = document.body.getAttribute("data-palette") || "darkGreen";
+   fetch(`/download-banner?palette=${palette}`)
     .then((response) => response.blob())
     .then((blob) => {
      const url = window.URL.createObjectURL(blob);
