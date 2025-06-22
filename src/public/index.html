@@ -21,7 +21,7 @@
  >
   <button
    id="download-banner-puppeteer"
-   class="no-export mt-8 mb-4 px-6 py-2 rounded-lg bg-green-600 text-white font-semibold shadow hover:bg-green-700 transition"
+   class="no-export mt-8 mb-4 px-6 py-2 rounded-lg text-black font-semibold transition"
    style="z-index: 10"
   >
    Download Banner (Puppeteer)
@@ -156,27 +156,154 @@
   </div>
 
   <!-- Campo de logo dinâmica -->
-  <div class="mt-6 flex items-center gap-3">
-   <input
-    id="company-domain"
-    type="text"
-    placeholder="Digite o domínio (ex: google.com)"
-    class="px-4 py-2 rounded-xl shadow-xl shadow-accent focus:outline-none focus:ring focus:border-green-500 w-80"
-   />
-   <button id="update-logo" class="icon-expand-button rounded-2xl">
+  <div class="mt-6 flex items-center gap-3 w-full max-w-2xl">
+   <div class="search-container">
+    <div class="relative flex-1">
+     <input
+      id="company-domain"
+      type="text"
+      placeholder=" "
+      autocomplete="off"
+      class="peer px-4 py-3 w-full bg-gray-800 border border-gray-700 rounded-lg text-gray-200 focus:border-accent focus:ring-0 transition-all duration-200"
+     />
+     <label
+      for="company-domain"
+      class="absolute left-3 top-3 px-1 text-gray-400 pointer-events-none transition-all duration-200 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-accent bg-gray-800 peer-focus:bg-gray-900"
+     >
+      Digite o domínio (ex: google.com)
+     </label>
+     <div
+      class="absolute inset-x-0 bottom-0 h-0.5 bg-accent scale-x-0 peer-focus:scale-x-100 transition-transform duration-300 origin-left"
+     ></div>
+    </div>
+    <div id="suggestions" class="suggestions-container"></div>
+   </div>
+
+   <button id="update-logo" class="icon-expand-button rounded-lg">
     <i class="bx bxs-edit"></i>
    </button>
-   <button id="remove-logo" class="icon-expand-button rounded-2xl">
+   <button id="remove-logo" class="icon-expand-button rounded-lg">
     <i class="bx bxs-trash"></i>
    </button>
   </div>
-
   <script>
+   // Elementos DOM
    const input = document.getElementById("company-domain");
    const updateBtn = document.getElementById("update-logo");
    const removeBtn = document.getElementById("remove-logo");
    const logoEl = document.getElementById("company-logo");
+   const suggestionsContainer = document.getElementById("suggestions");
    const TOKEN = "pk_fnCdcveMSlWxQcDxxOsXhQ";
+
+   // Lista de empresas populares para sugestões
+   const popularCompanies = [
+    "google.com",
+    "microsoft.com",
+    "apple.com",
+    "amazon.com",
+    "facebook.com",
+    "netflix.com",
+    "twitter.com",
+    "instagram.com",
+    "linkedin.com",
+    "youtube.com",
+    "spotify.com",
+    "airbnb.com",
+    "uber.com",
+    "dropbox.com",
+    "slack.com",
+    "github.com",
+    "gitlab.com",
+    "mottu.com.br",
+   ];
+
+   // Debounce para evitar muitas chamadas
+   function debounce(func, wait) {
+    let timeout;
+    return function (...args) {
+     clearTimeout(timeout);
+     timeout = setTimeout(() => func.apply(this, args), wait);
+    };
+   }
+
+   // Mostrar sugestões
+   function showSuggestions(suggestions) {
+    suggestionsContainer.innerHTML = "";
+
+    if (suggestions.length === 0) {
+     suggestionsContainer.style.display = "none";
+     return;
+    }
+
+    suggestions.forEach((domain, index) => {
+     const div = document.createElement("div");
+     div.className = "suggestion-item";
+     div.textContent = domain;
+     div.addEventListener("click", () => {
+      input.value = domain;
+      suggestionsContainer.style.display = "none";
+      updateLogo(domain);
+     });
+     suggestionsContainer.appendChild(div);
+    });
+
+    suggestionsContainer.style.display = "block";
+   }
+
+   // Atualizar logo
+   function updateLogo(domain) {
+    if (!domain || !domain.includes(".")) {
+     return;
+    }
+    logoEl.src = `https://img.logo.dev/${domain}?token=${TOKEN}`;
+    logoEl.alt = `Logo de ${domain}`;
+   }
+
+   // Buscar sugestões
+   async function fetchSuggestions(query) {
+    if (query.length < 2) {
+     // Mostra empresas populares quando há poucos caracteres
+     const filtered = popularCompanies.filter((company) =>
+      company.includes(query.toLowerCase())
+     );
+     showSuggestions(filtered);
+     return;
+    }
+
+    try {
+     // Filtra na lista local (poderia ser substituído por chamada à API)
+     const filtered = popularCompanies.filter((company) =>
+      company.includes(query.toLowerCase())
+     );
+
+     showSuggestions(filtered);
+    } catch (error) {
+     console.error("Error fetching suggestions:", error);
+     showSuggestions([]);
+    }
+   }
+
+   // Event listeners
+   input.addEventListener(
+    "input",
+    debounce(() => {
+     const query = input.value.trim().toLowerCase();
+     fetchSuggestions(query);
+    }, 300)
+   );
+
+   input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") {
+     updateLogo(input.value.trim());
+     suggestionsContainer.style.display = "none";
+    }
+   });
+
+   document.addEventListener("click", (e) => {
+    if (!input.contains(e.target) && !suggestionsContainer.contains(e.target)) {
+     suggestionsContainer.style.display = "none";
+    }
+   });
 
    updateBtn.addEventListener("click", () => {
     const domain = input.value.trim().toLowerCase();
@@ -184,14 +311,49 @@
      alert("Digite um domínio válido, ex: google.com");
      return;
     }
-    logoEl.src = `https://img.logo.dev/${domain}?token=${TOKEN}`;
-    logoEl.alt = `Logo de ${domain}`;
+    updateLogo(domain);
+    suggestionsContainer.style.display = "none";
    });
 
    removeBtn.addEventListener("click", () => {
     logoEl.src = "./img/mottu.jpg";
     logoEl.alt = "Logo da Mottu";
     input.value = "";
+    suggestionsContainer.style.display = "none";
+   });
+
+   // Navegação por teclado nas sugestões
+   let highlightedIndex = -1;
+
+   input.addEventListener("keydown", (e) => {
+    const items = suggestionsContainer.querySelectorAll(".suggestion-item");
+
+    if (e.key === "ArrowDown") {
+     e.preventDefault();
+     highlightedIndex = (highlightedIndex + 1) % items.length;
+     updateHighlight();
+    } else if (e.key === "ArrowUp") {
+     e.preventDefault();
+     highlightedIndex = (highlightedIndex - 1 + items.length) % items.length;
+     updateHighlight();
+    } else if (e.key === "Enter" && highlightedIndex >= 0) {
+     e.preventDefault();
+     items[highlightedIndex].click();
+    }
+
+    function updateHighlight() {
+     items.forEach((item, index) => {
+      item.classList.toggle("highlighted", index === highlightedIndex);
+      if (index === highlightedIndex) {
+       item.scrollIntoView({ block: "nearest" });
+      }
+     });
+    }
+   });
+
+   // Inicialização do tema
+   document.addEventListener("DOMContentLoaded", () => {
+    // Seu código de inicialização de tema aqui
    });
   </script>
 
