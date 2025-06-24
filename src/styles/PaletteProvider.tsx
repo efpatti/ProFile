@@ -73,10 +73,11 @@ export const usePalette = () => {
  return ctx;
 };
 
-export const PaletteProvider: React.FC<{ children: React.ReactNode }> = ({
- children,
-}) => {
- const [palette, setPalette] = useState<PaletteName>("darkGreen");
+export const PaletteProvider: React.FC<{
+ children: React.ReactNode;
+ initialPalette?: PaletteName;
+}> = ({ children, initialPalette = "darkGreen" }) => {
+ const [palette, setPalette] = useState<PaletteName>(initialPalette);
  useEffect(() => {
   paletteActiveState.value = palette;
   const tokens = paletteTokens[palette];
