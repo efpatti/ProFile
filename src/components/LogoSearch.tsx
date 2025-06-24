@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import { FaEdit, FaTrash } from "react-icons/fa";
 
@@ -18,16 +18,31 @@ export const LogoSearch: React.FC<LogoSearchProps> = ({ onLogoSelect }) => {
  const [loading, setLoading] = useState(false);
  const [showSuggestions, setShowSuggestions] = useState(false);
  const inputRef = useRef<HTMLInputElement>(null);
+ const debounceTimeout = useRef<NodeJS.Timeout | null>(null);
 
- const handleSearch = async () => {
-  if (query.length < 2) return;
+ // Busca automática com debounce
+ useEffect(() => {
+  if (query.length < 2) {
+   setResults([]);
+   setShowSuggestions(false);
+   return;
+  }
   setLoading(true);
-  const res = await fetch(`/api/brand-search?q=${encodeURIComponent(query)}`);
-  const data = await res.json();
-  setResults(data.results?.results || []);
-  setShowSuggestions(true);
-  setLoading(false);
- };
+  if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+  debounceTimeout.current = setTimeout(async () => {
+   const res = await fetch(`/api/brand-search?q=${encodeURIComponent(query)}`);
+   const data = await res.json();
+   setResults(data.results || []);
+   setShowSuggestions(true);
+   setLoading(false);
+  }, 400); // 400ms debounce
+  return () => {
+   if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
+  };
+ }, [query]);
+
+ // Fecha sugestões ao perder o foco
+ const handleBlur = () => setTimeout(() => setShowSuggestions(false), 150);
 
  const handleSelect = (logo: LogoResult) => {
   onLogoSelect(logo.logo_url);
@@ -48,11 +63,9 @@ export const LogoSearch: React.FC<LogoSearchProps> = ({ onLogoSelect }) => {
      ref={inputRef}
      type="text"
      value={query}
-     onChange={(e) => {
-      setQuery(e.target.value);
-      setShowSuggestions(false);
-     }}
+     onChange={(e) => setQuery(e.target.value)}
      onFocus={() => query.length >= 2 && setShowSuggestions(true)}
+     onBlur={handleBlur}
      placeholder=" "
      autoComplete="off"
      className="peer px-4 py-3 w-full bg-gray-800 border border-gray-700 rounded-lg text-gray-200 focus:border-accent focus:ring-0 transition-all duration-200"
@@ -64,28 +77,31 @@ export const LogoSearch: React.FC<LogoSearchProps> = ({ onLogoSelect }) => {
      Digite o nome ou domínio (ex: Google ou google.com)
     </label>
     <div className="absolute inset-x-0 bottom-0 h-0.5 bg-accent scale-x-0 peer-focus:scale-x-100 transition-transform duration-300 origin-left" />
-    {showSuggestions && results.length > 0 && (
+    {showSuggestions && (
      <div className="absolute z-10 w-full bg-gray-900 border border-gray-700 rounded-b shadow-lg mt-1 max-h-56 overflow-y-auto suggestions-container">
-      {results.map((brand) => (
-       <div
-        key={brand.domain}
-        className="suggestion-item flex items-center px-3 py-2 hover:bg-gray-800 cursor-pointer"
-        onClick={() => handleSelect(brand)}
-       >
-        <Image
-         src={brand.logo_url}
-         alt={brand.name || brand.domain}
-         width={24}
-         height={24}
-         className="w-6 h-6 rounded-full mr-2 bg-white p-1"
-        />
-        <div>
-         <div className="font-medium">{brand.name || brand.domain}</div>
-         <div className="text-xs text-gray-400">{brand.domain}</div>
+      {loading ? (
+       <div className="suggestion-item px-3 py-2 text-gray-400">Loading...</div>
+      ) : results.length > 0 ? (
+       results.map((brand) => (
+        <div
+         key={brand.domain}
+         className="suggestion-item flex items-center px-3 py-2 hover:bg-gray-800 cursor-pointer"
+         onClick={() => handleSelect(brand)}
+        >
+         <Image
+          src={brand.logo_url}
+          alt={brand.name || brand.domain}
+          width={24}
+          height={24}
+          className="w-6 h-6 rounded-full mr-2 bg-white p-1"
+         />
+         <div>
+          <div className="font-medium">{brand.name || brand.domain}</div>
+          <div className="text-xs text-gray-400">{brand.domain}</div>
+         </div>
         </div>
-       </div>
-      ))}
-      {results.length === 0 && (
+       ))
+      ) : (
        <div className="suggestion-item px-3 py-2 text-gray-400">
         No results found
        </div>
@@ -93,14 +109,6 @@ export const LogoSearch: React.FC<LogoSearchProps> = ({ onLogoSelect }) => {
      </div>
     )}
    </div>
-   <button
-    onClick={handleSearch}
-    className="icon-expand-button rounded-lg px-3 py-2 bg-accent text-white ml-2"
-    disabled={loading || query.length < 2}
-    title="Buscar"
-   >
-    <FaEdit />
-   </button>
    <button
     onClick={handleRemove}
     className="icon-expand-button rounded-lg px-3 py-2 bg-gray-700 text-white ml-1"
