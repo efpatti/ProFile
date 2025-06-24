@@ -1,16 +1,33 @@
-# LinkedIn Profile Banner
+# linkedin-profile-banner (Next.js)
 
-## Organização do Projeto
+Este projeto foi migrado para Next.js com TypeScript, TailwindCSS, Puppeteer e React Icons.
 
-- `index.html`: Página principal do banner.
-- `banner.js`: Responsável por exibir e formatar as informações do desenvolvedor no banner.
-- `exportBanner.js`: Responsável por exportar o banner como imagem.
-- `img/`: Imagens utilizadas no projeto.
-- `js/`: (Reservado para scripts futuros, atualmente vazio)
+## Scripts principais
 
-## Scripts
-- Todos os scripts estão organizados por responsabilidade, seguindo boas práticas de Clean Code.
-- O script de formatação do objeto `dev` é necessário para exibir o código formatado no banner.
+- `npm run dev` — inicia o servidor de desenvolvimento
+- `npm run build` — build de produção
+- `npm run start` — inicia o servidor em produção
 
-## Como usar
-Abra o `index.html` em seu navegador. Para exportar o banner, utilize a função de download disponível na interface.
+## Estrutura
+
+- `src/` — código-fonte principal
+- `public/` — arquivos estáticos
+
+## Dependências principais
+
+- next
+- react
+- tailwindcss
+- puppeteer
+- react-icons
+
+## Como rodar
+
+```bash
+npm install
+npm run dev
+```
+
+---
+
+Para dúvidas ou sugestões, abra uma issue.
