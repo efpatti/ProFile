@@ -4,14 +4,14 @@ import { Banner } from "@/components/Banner";
 import { PaletteSelector } from "@/components/PaletteSelector";
 import { LogoSearch } from "@/components/LogoSearch";
 import { DownloadBannerButton } from "@/components/DownloadBannerButton";
-import React, { useState } from "react";
+import React, { useState, use } from "react";
 
 export default function Home({
  searchParams,
 }: {
  searchParams: { [key: string]: string };
 }) {
- const palette = (searchParams.palette as PaletteName) || "darkGreen";
+ const palette = (use(searchParams).palette as PaletteName) || "darkGreen";
  const [logoUrl, setLogoUrl] = useState<string | undefined>(undefined);
  return (
   <PaletteProvider initialPalette={palette}>
