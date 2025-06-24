@@ -14,6 +14,7 @@ export const DownloadBannerButton: React.FC<DownloadBannerButtonProps> = ({
  const handleDownload = async () => {
   setLoading(true);
   const params = new URLSearchParams({ palette });
+  // Envie a URL completa da logo para a API
   if (logoUrl) params.append("logo", logoUrl);
   const res = await fetch(`/api/download-banner?${params.toString()}`);
   const blob = await res.blob();

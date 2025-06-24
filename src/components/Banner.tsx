@@ -36,15 +36,14 @@ export const Banner: React.FC<BannerProps> = ({ logoUrl }) => {
    <div className="w-[900px] flex flex-col justify-center">
     <div className="flex justify-start items-center space-x-4">
      <h1 className="text-4xl font-bold text-white mb-2">{dev.name}</h1>
-     {logoUrl && (
-      <Image
-       src={logoUrl}
-       alt="Logo"
-       width={40}
-       height={40}
-       className="h-10 w-10 rounded-full bg-white shadow"
-      />
-     )}
+     <Image
+      id="company-logo"
+      src={logoUrl || "/wood1.jpg"}
+      alt="Logo"
+      width={40}
+      height={40}
+      className="h-10 w-10 rounded-full bg-white shadow"
+     />
     </div>
     <p className="italic text-gray-300 mb-3 text-lg">
      Driven by curiosity and continuous learning
