@@ -11,8 +11,10 @@ export default function Home({
 }: {
  searchParams: { [key: string]: string };
 }) {
- const palette = (use(searchParams).palette as PaletteName) || "darkGreen";
- const [logoUrl, setLogoUrl] = useState<string | undefined>(undefined);
+ const palette = (searchParams.palette as PaletteName) || "darkGreen";
+ const [logoUrl, setLogoUrl] = useState<string | undefined>(
+  searchParams.logo || "/mottu.jpg"
+ );
  return (
   <PaletteProvider initialPalette={palette}>
    <div className="flex flex-col items-center min-h-screen p-8 gap-8">
