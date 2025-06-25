@@ -5,7 +5,12 @@ import { Developer } from "@/core/models/Developer";
 import { MdEmail } from "react-icons/md";
 import { FaPhoneAlt, FaGithub } from "react-icons/fa";
 import { FaAward as AwardIcon } from "react-icons/fa";
-import { bgBannerColor } from "@/styles/sharedStyleConstants";
+import { DownloadBannerButton } from "./DownloadBannerButton";
+import {
+ bgBannerColor,
+ BgBannerColorName,
+} from "@/styles/sharedStyleConstants";
+import { SettingsBanner } from "./SettingsBanner";
 
 const dev = new Developer({
  name: "Enzo Ferracini Patti",
@@ -18,11 +23,15 @@ const dev = new Developer({
 interface BannerProps {
  logoUrl?: string;
  bgColor?: { bg: string; text: string };
+ selectedBg?: BgBannerColorName;
+ onSelectBg?: (color: BgBannerColorName) => void;
 }
 
 export const Banner: React.FC<BannerProps> = ({
  logoUrl,
  bgColor = bgBannerColor.midnightSlate,
+ selectedBg,
+ onSelectBg,
 }) => {
  return (
   <section
@@ -37,6 +46,14 @@ export const Banner: React.FC<BannerProps> = ({
    }}
    className="shadow-sm shadow-[color:var(--secondary)] flex flex-row gap-0 w-full relative"
   >
+   {/* Settings Banner no canto superior esquerdo */}
+   {selectedBg && onSelectBg && (
+    <div className="absolute top-4 left-4 z-50 flex flex-row gap-2 items-center">
+     <SettingsBanner selectedBg={selectedBg} onSelectBg={onSelectBg} />
+     <DownloadBannerButton logoUrl={logoUrl} />
+    </div>
+   )}
+
    {/* Left content - shifted right */}
    <div className="w-[900px] flex flex-col justify-center">
     <div className="flex justify-start items-center space-x-4">

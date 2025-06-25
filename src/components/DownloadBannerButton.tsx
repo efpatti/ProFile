@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 import { usePalette } from "@/styles/PaletteProvider";
+import { FaDownload } from "react-icons/fa";
+import { motion } from "framer-motion";
 
 interface DownloadBannerButtonProps {
  logoUrl?: string;
@@ -30,12 +32,17 @@ export const DownloadBannerButton: React.FC<DownloadBannerButtonProps> = ({
  };
 
  return (
-  <button
+  <motion.button
    onClick={handleDownload}
-   className="mt-4 mb-2 px-6 py-2 rounded-lg bg-accent text-white font-semibold transition disabled:opacity-50"
    disabled={loading}
+   className="relative p-2 rounded-full bg-white shadow-lg hover:shadow-xl focus:outline-none"
+   whileHover={{ scale: 1.1 }}
+   whileTap={{ scale: 0.95 }}
+   initial={{ opacity: 0.7 }}
+   animate={{ opacity: 1 }}
+   transition={{ type: "spring", stiffness: 300 }}
   >
-   {loading ? "Gerando..." : "Download Banner (Puppeteer)"}
-  </button>
+   <FaDownload className="w-6 h-6 text-gray-800" />
+  </motion.button>
  );
 };

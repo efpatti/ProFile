@@ -25,7 +25,7 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
    {/* Floating Settings Button */}
    <motion.button
     onClick={() => setIsOpen(true)}
-    className="fixed top-4 right-4 z-50 p-2 rounded-full bg-white shadow-lg hover:shadow-xl focus:outline-none"
+    className="relative p-2 rounded-full bg-white shadow-lg hover:shadow-xl focus:outline-none"
     whileHover={{ scale: 1.1, rotate: 30 }}
     whileTap={{ scale: 0.95 }}
     initial={{ opacity: 0.7 }}

@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import Image from "next/image";
-import { FaEdit, FaTrash } from "react-icons/fa";
+import { FaTrash } from "react-icons/fa";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface LogoSearchProps {
  onLogoSelect: (logoUrl: string) => void;
@@ -35,13 +36,12 @@ export const LogoSearch: React.FC<LogoSearchProps> = ({ onLogoSelect }) => {
    setResults(data.results || []);
    setShowSuggestions(true);
    setLoading(false);
-  }, 400); // 400ms debounce
+  }, 400);
   return () => {
    if (debounceTimeout.current) clearTimeout(debounceTimeout.current);
   };
  }, [query]);
 
- // Fecha sugestões ao perder o foco
  const handleBlur = () => setTimeout(() => setShowSuggestions(false), 150);
 
  const handleSelect = (logo: LogoResult) => {
@@ -56,66 +56,179 @@ export const LogoSearch: React.FC<LogoSearchProps> = ({ onLogoSelect }) => {
   setShowSuggestions(false);
  };
 
+ // Variantes de animação
+ const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: {
+   opacity: 1,
+   transition: {
+    staggerChildren: 0.1,
+   },
+  },
+ };
+
+ const itemVariants = {
+  hidden: { y: 20, opacity: 0 },
+  visible: {
+   y: 0,
+   opacity: 1,
+   transition: {
+    type: "spring" as const,
+    stiffness: 300,
+   },
+  },
+  pulse: {
+   scale: [1, 1.1, 1],
+   transition: {
+    duration: 1,
+    repeat: Infinity,
+    ease: "easeInOut" as const,
+   },
+  },
+ };
+
  return (
   <div className="mt-6 flex items-center gap-3 w-full max-w-2xl">
    <div className="relative flex-1">
-    <input
-     ref={inputRef}
-     type="text"
-     value={query}
-     onChange={(e) => setQuery(e.target.value)}
-     onFocus={() => query.length >= 2 && setShowSuggestions(true)}
-     onBlur={handleBlur}
-     placeholder=" "
-     autoComplete="off"
-     className="peer px-4 py-3 w-full bg-gray-800 border border-gray-700 rounded-lg text-gray-200 focus:border-accent focus:ring-0 transition-all duration-200"
-    />
-    <label
-     htmlFor="company-domain"
-     className="absolute left-3 top-3 px-1 text-gray-400 pointer-events-none transition-all duration-200 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-gray-500 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-accent bg-gray-800 peer-focus:bg-gray-900"
+    {/* Input com veias luminosas */}
+    <motion.div
+     initial={false}
+     animate={{
+      boxShadow:
+       query.length > 0
+        ? "0 0 10px rgba(74, 222, 128, 0.5)"
+        : "0 0 5px rgba(74, 222, 128, 0.2)",
+     }}
+     className="relative"
     >
-     Digite o nome ou domínio (ex: Google ou google.com)
-    </label>
-    <div className="absolute inset-x-0 bottom-0 h-0.5 bg-accent scale-x-0 peer-focus:scale-x-100 transition-transform duration-300 origin-left" />
-    {showSuggestions && (
-     <div className="absolute z-10 w-full bg-gray-900 border border-gray-700 rounded-b shadow-lg mt-1 max-h-56 overflow-y-auto suggestions-container">
-      {loading ? (
-       <div className="suggestion-item px-3 py-2 text-gray-400">Loading...</div>
-      ) : results.length > 0 ? (
-       results.map((brand) => (
-        <div
-         key={brand.domain}
-         className="suggestion-item flex items-center px-3 py-2 hover:bg-gray-800 cursor-pointer"
-         onClick={() => handleSelect(brand)}
-        >
-         <Image
-          src={brand.logo_url}
-          alt={brand.name || brand.domain}
-          width={24}
-          height={24}
-          className="w-6 h-6 rounded-full mr-2 bg-white p-1"
-         />
-         <div>
-          <div className="font-medium">{brand.name || brand.domain}</div>
-          <div className="text-xs text-gray-400">{brand.domain}</div>
-         </div>
+     <input
+      ref={inputRef}
+      type="text"
+      value={query}
+      onChange={(e) => setQuery(e.target.value)}
+      onFocus={() => query.length >= 2 && setShowSuggestions(true)}
+      onBlur={handleBlur}
+      placeholder=" "
+      autoComplete="off"
+      className="peer px-4 py-3 w-full bg-gray-900 border-2 border-green-800/30 rounded-lg text-gray-200 focus:border-green-500 focus:ring-0 transition-all duration-300"
+     />
+
+     {/* Efeito de veias luminosas */}
+     <motion.div
+      initial={{ opacity: 0 }}
+      animate={{
+       opacity: query.length > 0 ? 0.7 : 0.3,
+       backgroundImage:
+        query.length > 0
+         ? "radial-gradient(circle, rgba(74,222,128,0.3) 0%, transparent 70%)"
+         : "radial-gradient(circle, rgba(74,222,128,0.1) 0%, transparent 70%)",
+      }}
+      className="absolute inset-0 rounded-lg pointer-events-none"
+     />
+
+     <label
+      htmlFor="company-domain"
+      className="absolute left-3 top-3 px-1 text-green-300 pointer-events-none transition-all duration-200 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-green-400/60 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-400 bg-gray-900 peer-focus:bg-gray-900/90 z-10"
+     >
+      Digite o nome ou domínio (ex: Google ou google.com)
+     </label>
+
+     {/* Micélio animado (fungo) */}
+     <motion.div
+      initial={{ width: 0 }}
+      animate={{
+       width: query.length > 0 ? "100%" : "0%",
+      }}
+      className="absolute bottom-0 left-0 h-0.5 bg-green-400 origin-left"
+     />
+    </motion.div>
+
+    {/* Sugestões com efeito orgânico e scroll personalizado */}
+    <AnimatePresence>
+     {showSuggestions && (
+      <motion.div
+       initial={{ opacity: 0, y: -10 }}
+       animate={{ opacity: 1, y: 0 }}
+       exit={{ opacity: 0, y: -10 }}
+       transition={{ duration: 0.2 }}
+       className="absolute z-10 w-full mt-1 overflow-hidden"
+      >
+       <motion.div
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="bg-gray-900/95 backdrop-blur-sm border-2 border-green-800/30 rounded-lg shadow-xl overflow-y-auto max-h-56 custom-organic-scroll"
+       >
+        <div className="pr-2">
+         {" "}
+         {/* Espaço para a barra de scroll */}
+         {loading ? (
+          <motion.div
+           variants={itemVariants}
+           className="px-4 py-3 text-green-300 flex items-center gap-2"
+          >
+           <motion.div
+            animate={{ rotate: 360 }}
+            transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+            className="w-5 h-5 border-2 border-green-400 border-t-transparent rounded-full"
+           />
+           Carregando redes orgânicas...
+          </motion.div>
+         ) : results.length > 0 ? (
+          results.map((brand) => (
+           <motion.div
+            key={brand.domain}
+            variants={itemVariants}
+            whileHover={{ backgroundColor: "rgba(74, 222, 128, 0.1)" }}
+            className="flex items-center px-4 py-3 cursor-pointer border-b border-green-900/30 last:border-b-0"
+            onClick={() => handleSelect(brand)}
+           >
+            <motion.div
+             variants={itemVariants}
+             animate="pulse"
+             className="relative w-8 h-8 rounded-full bg-white/10 p-1 mr-3"
+            >
+             <Image
+              src={brand.logo_url}
+              alt={brand.name || brand.domain}
+              width={32}
+              height={32}
+              className="rounded-full"
+             />
+            </motion.div>
+            <div>
+             <div className="font-medium text-green-100">
+              {brand.name || brand.domain}
+             </div>
+             <div className="text-xs text-green-300/70">{brand.domain}</div>
+            </div>
+           </motion.div>
+          ))
+         ) : (
+          <motion.div
+           variants={itemVariants}
+           className="px-4 py-3 text-green-300/70"
+          >
+           Nenhum organismo encontrado
+          </motion.div>
+         )}
         </div>
-       ))
-      ) : (
-       <div className="suggestion-item px-3 py-2 text-gray-400">
-        No results found
-       </div>
-      )}
-     </div>
-    )}
+       </motion.div>
+      </motion.div>
+     )}
+    </AnimatePresence>
    </div>
-   <button
+
+   {/* Botão de remover com efeito orgânico */}
+   <motion.button
     onClick={handleRemove}
-    className="icon-expand-button rounded-lg px-3 py-2 bg-gray-700 text-white ml-1"
+    whileHover={{ scale: 1.1, backgroundColor: "rgba(239, 68, 68, 0.3)" }}
+    whileTap={{ scale: 0.95 }}
+    className="rounded-lg p-3 bg-red-900/30 text-red-400 ml-1 border-2 border-red-800/30"
     title="Remover logo"
    >
     <FaTrash />
-   </button>
+   </motion.button>
   </div>
  );
 };
