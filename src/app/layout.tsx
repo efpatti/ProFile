@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Inter, Manrope, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
+import { PaletteProvider, PaletteName } from "@/styles/PaletteProvider";
+import { bgBannerColor } from "@/styles/sharedStyleConstants";
 
 const inter = Inter({
  variable: "--font-inter",
@@ -28,13 +30,24 @@ export default function RootLayout({
 }: Readonly<{
  children: React.ReactNode;
 }>) {
+ // Get palette from query string (on client only)
+ let initialPalette: PaletteName = "darkGreen";
+ if (typeof window !== "undefined") {
+  const params = new URLSearchParams(window.location.search);
+  const paletteParam = params.get("palette");
+  if (paletteParam && Object.keys(bgBannerColor).includes(paletteParam)) {
+   initialPalette = paletteParam as PaletteName;
+  }
+ }
  return (
   <html lang="en">
    <body
     className={`${inter.variable} ${manrope.variable} ${jetbrains.variable} font-sans antialiased`}
     suppressHydrationWarning
    >
-    {children}
+    <PaletteProvider initialPalette={initialPalette}>
+     {children}
+    </PaletteProvider>
    </body>
   </html>
  );
