@@ -1,4 +1,3 @@
-// Arquivo convertido de JS para TS para uso em componentes React/Next.js
 export const colorPalettes = {
  darkGreen: {
   accent: "#22c55e",
@@ -47,9 +46,21 @@ export const colorPalettes = {
  },
 } as const;
 
+export const bgBannerColor = {
+ // Brancos e variações
+ pureWhite: { bg: "#ffffff", text: "#000000" }, // texto preto
+ snowWhite: { bg: "#f8fafc", text: "#1a1a1a" }, // texto quase preto
+ lightAsh: { bg: "#e5e7eb", text: "#23272f" }, // texto grafite
+ // Pretos e variações
+ graphite: { bg: "#23272f", text: "#f3f4f6" }, // texto cinza bem claro
+ midnightSlate: { bg: "#181e29", text: "#f8fafc" }, // texto branco neve
+ onyx: { bg: "#101014", text: "#f8fafc" }, // texto branco neve
+};
+
 export type PaletteName = keyof typeof colorPalettes;
 export const defaultPalette: PaletteName = "darkGreen";
 export const bannerDimensions = {
  width: 1584,
  height: 396,
 };
+export type BgBannerColorName = keyof typeof bgBannerColor;
