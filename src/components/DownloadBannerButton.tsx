@@ -1,14 +1,18 @@
-import React, { useState } from "react";
+// components/DownloadBannerButton.tsx
+"use client";
+
+import { useState } from "react";
 import { usePalette } from "@/styles/PaletteProvider";
-import { FaDownload } from "react-icons/fa";
-import { motion } from "framer-motion";
+import { BgBannerColorName } from "@/styles/sharedStyleConstants";
+import { FloatingActionButton } from "./FloatingActionButton";
+import { GoDownload as DownloadIcon } from "react-icons/go";
 
-interface DownloadBannerButtonProps {
- logoUrl?: string;
-}
-
-export const DownloadBannerButton: React.FC<DownloadBannerButtonProps> = ({
+export const DownloadBannerButton = ({
  logoUrl,
+ selectedBg,
+}: {
+ logoUrl?: string;
+ selectedBg: BgBannerColorName;
 }) => {
  const { palette } = usePalette();
  const [loading, setLoading] = useState(false);
@@ -16,7 +20,6 @@ export const DownloadBannerButton: React.FC<DownloadBannerButtonProps> = ({
  const handleDownload = async () => {
   setLoading(true);
   const params = new URLSearchParams({ palette });
-  // Envie a URL completa da logo para a API
   if (logoUrl) params.append("logo", logoUrl);
   const res = await fetch(`/api/download-banner?${params.toString()}`);
   const blob = await res.blob();
@@ -32,17 +35,12 @@ export const DownloadBannerButton: React.FC<DownloadBannerButtonProps> = ({
  };
 
  return (
-  <motion.button
+  <FloatingActionButton
+   icon={<DownloadIcon />}
+   selectedBg={selectedBg}
    onClick={handleDownload}
-   disabled={loading}
-   className="relative p-2 rounded-full bg-white shadow-lg hover:shadow-xl focus:outline-none"
-   whileHover={{ scale: 1.1 }}
-   whileTap={{ scale: 0.95 }}
-   initial={{ opacity: 0.7 }}
-   animate={{ opacity: 1 }}
-   transition={{ type: "spring", stiffness: 300 }}
-  >
-   <FaDownload className="w-6 h-6 text-gray-800" />
-  </motion.button>
+   tooltipText="Download"
+   className={loading ? "opacity-50 cursor-not-allowed" : ""}
+  />
  );
 };

@@ -50,7 +50,7 @@ export const Banner: React.FC<BannerProps> = ({
    {selectedBg && onSelectBg && (
     <div className="absolute top-4 left-4 z-50 flex flex-row gap-2 items-center">
      <SettingsBanner selectedBg={selectedBg} onSelectBg={onSelectBg} />
-     <DownloadBannerButton logoUrl={logoUrl} />
+     <DownloadBannerButton logoUrl={logoUrl} selectedBg={selectedBg} />
     </div>
    )}
 
