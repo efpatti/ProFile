@@ -6,8 +6,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PaletteSelector } from "./PaletteSelector";
 import { BgBannerSelector } from "./BgBannerSelector";
 import { BgBannerColorName } from "@/styles/sharedStyleConstants";
-import { FiSettings } from "react-icons/fi";
 import { Dialog } from "@headlessui/react";
+import { FiSettings } from "react-icons/fi";
+import { FaBaseballBatBall } from "react-icons/fa6";
 
 interface SettingsBannerProps {
  selectedBg: BgBannerColorName;
@@ -23,19 +24,29 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
  return (
   <>
    {/* Floating Settings Button */}
-   <motion.button
-    onClick={() => setIsOpen(true)}
-    className="relative p-2 rounded-full bg-white shadow-lg hover:shadow-xl focus:outline-none"
-    whileHover={{ scale: 1.1, rotate: 30 }}
+   <motion.a
+    href="#"
+    onClick={(e) => {
+     e.preventDefault();
+     setIsOpen(true);
+    }}
+    className="btn-settings btn"
     whileTap={{ scale: 0.95 }}
     initial={{ opacity: 0.7 }}
     animate={{ opacity: 1 }}
     transition={{ type: "spring", stiffness: 300 }}
+    data-tooltip="Configurações"
    >
-    <FiSettings className="w-6 h-6 text-gray-800" />
-   </motion.button>
+    <span className="btn__inner">
+     <span className="btn__icons">
+      <FiSettings className="btn__icon btn__icon--default" />
+      <FaBaseballBatBall className="btn__icon btn__icon--hover" />
+     </span>
+    </span>
+    <span className="btn__background"></span>
+   </motion.a>
 
-   {/* Dialog */}
+   {/* Dialog (mantido igual) */}
    <AnimatePresence>
     {isOpen && (
      <Dialog
