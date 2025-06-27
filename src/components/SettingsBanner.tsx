@@ -8,7 +8,6 @@ import { BgBannerSelector } from "./BgBannerSelector";
 import { BgBannerColorName } from "@/styles/sharedStyleConstants";
 import { Dialog } from "@headlessui/react";
 import { FiSettings } from "react-icons/fi";
-import { FaBaseballBatBall } from "react-icons/fa6";
 
 interface SettingsBannerProps {
  selectedBg: BgBannerColorName;
@@ -20,33 +19,77 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
  onSelectBg,
 }) => {
  const [isOpen, setIsOpen] = useState(false);
+ const isDarkBackground = ["midnightSlate", "graphite", "onyx"].includes(
+  selectedBg
+ );
 
  return (
   <>
    {/* Floating Settings Button */}
-   <motion.a
-    href="#"
-    onClick={(e) => {
-     e.preventDefault();
-     setIsOpen(true);
-    }}
-    className="btn-settings btn"
+   <motion.button
+    onClick={() => setIsOpen(true)}
+    className="relative inline-flex justify-center items-center 
+          aspect-square rounded-full outline-none overflow-hidden 
+          cursor-pointer group"
     whileTap={{ scale: 0.95 }}
     initial={{ opacity: 0.7 }}
     animate={{ opacity: 1 }}
     transition={{ type: "spring", stiffness: 300 }}
     data-tooltip="Configurações"
    >
-    <span className="btn__inner">
-     <span className="btn__icons">
-      <FiSettings className="btn__icon btn__icon--default" />
-      <FaBaseballBatBall className="btn__icon btn__icon--hover" />
+    {/* Inner container */}
+    <span className="relative z-10 block p-3 overflow-hidden rounded-full">
+     {/* Icons container */}
+     <span className="relative block w-6 h-6 overflow-hidden">
+      {/* Default icon */}
+      <FiSettings
+       className={`absolute top-0 left-0 w-full h-full 
+                transition-transform duration-600 ease-[cubic-bezier(1,-0.6,0,1.6)] 
+                group-hover:translate-y-full
+                ${isDarkBackground ? "text-black" : "text-white"}`}
+      />
+      {/* Hover icon */}
+      <FiSettings
+       className={`absolute top-0 left-0 w-full h-full 
+                transition-transform duration-600 ease-[cubic-bezier(1,-0.6,0,1.6)] 
+                group-hover:translate-y-0 -translate-y-full
+                ${isDarkBackground ? "text-white" : "text-black"}`}
+      />
      </span>
     </span>
-    <span className="btn__background"></span>
-   </motion.a>
 
-   {/* Dialog (mantido igual) */}
+    {/* Background elements */}
+    <span
+     className={`absolute top-0 left-0 z-0 w-full h-full rounded-full 
+            before:absolute before:inset-0 before:block before:rounded-full 
+            before:transition-colors before:duration-300 before:ease-linear 
+            ${
+             isDarkBackground
+              ? "before:bg-white group-hover:before:bg-[#101419]"
+              : "before:bg-[#101419] group-hover:before:bg-white"
+            }
+            after:absolute after:inset-0 after:block after:rounded-full 
+            after:blur-[5px] after:transition-opacity after:duration-400 
+            after:ease-[cubic-bezier(0.55,0.085,0.68,0.53)] 
+            ${
+             isDarkBackground
+              ? "after:bg-[#101419] group-hover:after:opacity-100"
+              : "after:bg-white group-hover:after:opacity-100"
+            } 
+            after:opacity-0`}
+    ></span>
+
+    {/* Tooltip (mantido igual) */}
+    <span
+     className="absolute left-1/2 -top-11 -translate-x-1/2 z-[-1] 
+            px-3 py-1 text-sm text-white bg-[#070707] rounded opacity-0 
+            invisible pointer-events-none transition-all duration-400 
+            ease-[cubic-bezier(0.47,2,0.41,1.5)] group-hover:top-0 
+            group-hover:opacity-100 group-hover:visible"
+    >
+     Configurações
+    </span>
+   </motion.button>
    <AnimatePresence>
     {isOpen && (
      <Dialog
