@@ -4,6 +4,7 @@
 import { usePalette, paletteTokens } from "@/styles/PaletteProvider";
 import { ColorSelector } from "./ColorSelector";
 import type { PaletteName } from "@/styles/PaletteProvider";
+import { BgBannerColorName } from "@/styles/sharedStyleConstants";
 
 const PALETTE_OPTIONS = [
  { value: "darkGreen", label: "Verde Floresta" },
@@ -16,7 +17,11 @@ const PALETTE_OPTIONS = [
  color: paletteTokens[opt.value as PaletteName].accent,
 })) as { value: PaletteName; label: string; color: string }[];
 
-export const PaletteSelector = () => {
+interface PaletteSelectorProps {
+ bgName: BgBannerColorName;
+}
+
+export const PaletteSelector = ({ bgName }: PaletteSelectorProps) => {
  const { palette, setPalette } = usePalette();
 
  return (
@@ -24,6 +29,7 @@ export const PaletteSelector = () => {
    options={PALETTE_OPTIONS}
    selected={palette}
    onSelect={setPalette}
+   selectedBg={bgName}
   />
  );
 };

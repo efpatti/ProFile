@@ -4,6 +4,7 @@
 import { motion } from "framer-motion";
 import { BgBannerColorName } from "@/styles/sharedStyleConstants";
 import { ReactNode } from "react";
+import { isDarkBackground } from "@/utils/color"; // Import the utility function
 
 interface FloatingActionButtonProps {
  icon: ReactNode;
@@ -22,10 +23,6 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
  tooltipText,
  className = "",
 }) => {
- const isDarkBackground = ["midnightSlate", "graphite", "onyx"].includes(
-  selectedBg
- );
-
  return (
   <motion.button
    onClick={onClick}
@@ -47,7 +44,9 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
       className={`absolute flex items-center justify-center w-full h-full 
               transition-transform duration-600 ease-[cubic-bezier(1,-0.6,0,1.6)] 
               group-hover:translate-y-full
-              ${isDarkBackground ? "text-black" : "text-white"} text-2xl`}
+              ${
+               isDarkBackground(selectedBg) ? "text-black" : "text-white"
+              } text-2xl`}
      >
       {icon}
      </span>
@@ -56,7 +55,9 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
       className={`absolute flex items-center justify-center w-full h-full 
               transition-transform duration-600 ease-[cubic-bezier(1,-0.6,0,1.6)] 
               group-hover:translate-y-0 -translate-y-full
-              ${isDarkBackground ? "text-white" : "text-black"} text-2xl`}
+              ${
+               isDarkBackground(selectedBg) ? "text-white" : "text-black"
+              } text-2xl`}
      >
       {hoverIcon}
      </span>
@@ -69,7 +70,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
           before:absolute before:inset-0 before:block before:rounded-full 
           before:transition-colors before:duration-300 before:ease-linear 
           ${
-           isDarkBackground
+           isDarkBackground(selectedBg)
             ? "before:bg-white group-hover:before:bg-[#101419]"
             : "before:bg-[#101419] group-hover:before:bg-white"
           }
@@ -77,7 +78,7 @@ export const FloatingActionButton: React.FC<FloatingActionButtonProps> = ({
           after:blur-[5px] after:transition-opacity after:duration-400 
           after:ease-[cubic-bezier(0.55,0.085,0.68,0.53)] 
           ${
-           isDarkBackground
+           isDarkBackground(selectedBg)
             ? "after:bg-[#101419] group-hover:after:opacity-100"
             : "after:bg-white group-hover:after:opacity-100"
           } 

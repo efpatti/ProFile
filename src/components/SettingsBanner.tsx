@@ -19,6 +19,7 @@ import {
 import { FloatingActionButton } from "./FloatingActionButton";
 import { GoGear as SettingsIcon } from "react-icons/go";
 import clsx from "clsx";
+import { isDarkBackground } from "@/utils/color";
 
 interface SettingsBannerProps {
  selectedBg: BgBannerColorName;
@@ -55,7 +56,9 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className="fixed inset-0 bg-black/30 backdrop-blur-sm"
+        className={`fixed inset-0 ${
+         isDarkBackground(selectedBg) ? "bg-black/30" : "bg-white/30"
+        }  backdrop-blur-sm`}
        />
 
        <motion.div
@@ -63,9 +66,15 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
         transition={{ type: "spring", damping: 25 }}
-        className="relative bg-white rounded-xl max-w-2xl w-full mx-4 p-6 shadow-2xl h-[600px]"
+        className={`relative ${
+         isDarkBackground(selectedBg) ? "bg-black" : "bg-white"
+        } rounded-xl max-w-2xl w-full mx-4 p-6 shadow-2xl h-[600px]`}
        >
-        <DialogTitle className="text-2xl font-bold text-gray-900 mb-4">
+        <DialogTitle
+         className={`text-2xl font-bold ${
+          isDarkBackground(selectedBg) ? "text-gray-100" : "text-gray-900"
+         } mb-4`}
+        >
          Configurações
         </DialogTitle>
 
@@ -76,10 +85,14 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
             key={label}
             className={({ selected }) =>
              clsx(
-              "px-4 py-2 text-sm font-medium rounded-t-lg outline-none transition-colors",
+              "px-4 py-2 text-sm font-medium rounded-t-lg outline-none transition-colors ease-in-out duration-200 cursor-pointer",
               selected
-               ? "bg-gray-100 text-gray-900"
-               : "text-gray-500 hover:text-gray-800"
+               ? isDarkBackground(selectedBg)
+                 ? "bg-gray-100 text-gray-900"
+                 : "bg-gray-900 text-gray-100"
+               : isDarkBackground(selectedBg)
+               ? "text-gray-300 hover:bg-gray-100 hover:text-gray-900"
+               : "text-gray-600 hover:bg-gray-900 hover:text-gray-100"
              )
             }
            >
@@ -92,27 +105,27 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
           {/* Your Information */}
           <TabPanel className="space-y-6">
            <div>
-            <h3 className="text-lg font-medium text-gray-800 mb-3">
+            <DialogItemTitle selectedBg={selectedBg}>
              Logo da Marca
-            </h3>
+            </DialogItemTitle>
             <LogoSearch onLogoSelect={onLogoSelect} />
            </div>
           </TabPanel>
 
           {/* Appearance */}
-          <TabPanel className="space-y-8">
-           <div>
-            <h3 className="text-lg font-medium text-gray-800 mb-3">
-             Cor do Banner
-            </h3>
-            <BgBannerSelector selected={selectedBg} onSelect={onSelectBg} />
-           </div>
+          <TabPanel className="flex justify-center">
+           <div className="flex justify-between space-x-5">
+            <div>
+             <DialogItemTitle selectedBg={selectedBg}>
+              Banner Color
+             </DialogItemTitle>
+             <BgBannerSelector selected={selectedBg} onSelect={onSelectBg} />
+            </div>
 
-           <div>
-            <h3 className="text-lg font-medium text-gray-800 mb-3">
-             Paleta de Cores
-            </h3>
-            <PaletteSelector />
+            <div>
+             <DialogItemTitle selectedBg={selectedBg}>Pallete</DialogItemTitle>
+             <PaletteSelector bgName={selectedBg} />
+            </div>
            </div>
           </TabPanel>
          </TabPanels>
@@ -132,5 +145,25 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
     )}
    </AnimatePresence>
   </>
+ );
+};
+
+interface DialogItemTitleProps {
+ children: React.ReactNode;
+ selectedBg: BgBannerColorName;
+}
+
+const DialogItemTitle: React.FC<DialogItemTitleProps> = ({
+ children,
+ selectedBg,
+}) => {
+ return (
+  <h3
+   className={`text-lg font-medium $text-gray-800 mb-3 ${
+    isDarkBackground(selectedBg) ? "text-gray-100" : "text-gray-900"
+   }`}
+  >
+   {children}
+  </h3>
  );
 };

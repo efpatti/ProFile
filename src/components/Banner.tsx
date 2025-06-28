@@ -33,6 +33,8 @@ export const Banner: React.FC<BannerProps> = ({
  selectedBg,
  onSelectBg,
 }) => {
+ const [currentLogoUrl, setCurrentLogoUrl] = React.useState(logoUrl);
+
  return (
   <section
    id="banner"
@@ -49,8 +51,12 @@ export const Banner: React.FC<BannerProps> = ({
    {/* Settings Banner no canto superior esquerdo */}
    {selectedBg && onSelectBg && (
     <div className="absolute top-4 left-4 z-50 flex flex-row gap-2 items-center">
-     <SettingsBanner selectedBg={selectedBg} onSelectBg={onSelectBg} />
-     <DownloadBannerButton logoUrl={logoUrl} selectedBg={selectedBg} />
+     <SettingsBanner
+      selectedBg={selectedBg}
+      onSelectBg={onSelectBg}
+      onLogoSelect={setCurrentLogoUrl}
+     />
+     <DownloadBannerButton logoUrl={currentLogoUrl} selectedBg={selectedBg} />
     </div>
    )}
 
@@ -65,7 +71,7 @@ export const Banner: React.FC<BannerProps> = ({
      </h1>
      <Image
       id="company-logo"
-      src={logoUrl || "/wood1.jpg"}
+      src={currentLogoUrl || "/wood1.jpg"}
       alt="Logo"
       width={40}
       height={40}

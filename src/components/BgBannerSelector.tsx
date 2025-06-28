@@ -24,6 +24,7 @@ export const BgBannerSelector = ({
    options={colorOptions}
    selected={selected}
    onSelect={onSelect}
+   selectedBg={selected}
   />
  );
 };
