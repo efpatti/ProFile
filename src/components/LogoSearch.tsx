@@ -96,7 +96,7 @@ export const LogoSearch: React.FC<LogoSearchProps> = ({ onLogoSelect }) => {
      animate={{
       boxShadow:
        query.length > 0
-        ? "0 0 10px rgba(74, 222, 128, 0.5)"
+        ? "0 0 10px rgb(255, 255, 255)"
         : "0 0 5px rgba(74, 222, 128, 0.2)",
      }}
      className="relative"
@@ -110,7 +110,7 @@ export const LogoSearch: React.FC<LogoSearchProps> = ({ onLogoSelect }) => {
       onBlur={handleBlur}
       placeholder=" "
       autoComplete="off"
-      className="peer px-4 py-3 w-full bg-gray-900 border-2 border-green-800/30 rounded-lg text-gray-200 focus:border-green-500 focus:ring-0 transition-all duration-300"
+      className="peer px-4 py-3 w-full bg-zinc-900 border-2 border-zinc-800/30 rounded-lg text-gray-200 focus:border-zinc-500 focus:ring-0 transition-all duration-300"
      />
 
      {/* Efeito de veias luminosas */}
@@ -120,15 +120,15 @@ export const LogoSearch: React.FC<LogoSearchProps> = ({ onLogoSelect }) => {
        opacity: query.length > 0 ? 0.7 : 0.3,
        backgroundImage:
         query.length > 0
-         ? "radial-gradient(circle, rgba(74,222,128,0.3) 0%, transparent 70%)"
-         : "radial-gradient(circle, rgba(74,222,128,0.1) 0%, transparent 70%)",
+         ? "radial-gradient(circle, rgba(255, 255, 255, 0.3) 0%, transparent 70%)"
+         : "radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%)",
       }}
-      className="absolute inset-0 rounded-lg pointer-events-none"
+      className="absolute inset-0 rounded-6xl pointer-events-none"
      />
 
      <label
       htmlFor="company-domain"
-      className="absolute left-3 top-3 px-1 text-green-300 pointer-events-none transition-all duration-200 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-green-400/60 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-green-400 bg-gray-900 peer-focus:bg-gray-900/90 z-10"
+      className="absolute left-3 top-3 px-1 text-zinc-300 pointer-events-none transition-all duration-200 peer-placeholder-shown:top-3 peer-placeholder-shown:text-base peer-placeholder-shown:text-zinc-400/60 peer-focus:-top-2 peer-focus:text-xs peer-focus:text-zinc-400 peer-focus:bg-zinc-900/90 z-10"
      >
       Digite o nome ou domínio (ex: Google ou google.com)
      </label>
@@ -139,7 +139,7 @@ export const LogoSearch: React.FC<LogoSearchProps> = ({ onLogoSelect }) => {
       animate={{
        width: query.length > 0 ? "100%" : "0%",
       }}
-      className="absolute bottom-0 left-0 h-0.5 bg-green-400 origin-left"
+      className="absolute bottom-0 left-0 h-0.5 bg-zinc-400 origin-left"
      />
     </motion.div>
 
@@ -157,7 +157,7 @@ export const LogoSearch: React.FC<LogoSearchProps> = ({ onLogoSelect }) => {
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="bg-gray-900/95 backdrop-blur-sm border-2 border-green-800/30 rounded-lg shadow-xl overflow-y-auto max-h-56 custom-organic-scroll"
+        className="bg-zinc-950/95 backdrop-blur-sm border-2 border-zinc-800/30 rounded-lg shadow-xl overflow-y-auto max-h-56 custom-organic-scroll"
        >
         <div className="pr-2">
          {" "}
@@ -165,12 +165,12 @@ export const LogoSearch: React.FC<LogoSearchProps> = ({ onLogoSelect }) => {
          {loading ? (
           <motion.div
            variants={itemVariants}
-           className="px-4 py-3 text-green-300 flex items-center gap-2"
+           className="px-4 py-3 text-zinc-300 flex items-center gap-2"
           >
            <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
-            className="w-5 h-5 border-2 border-green-400 border-t-transparent rounded-full"
+            className="w-5 h-5 border-2 border-zinc-400 border-t-transparent rounded-full"
            />
            Carregando redes orgânicas...
           </motion.div>
@@ -179,8 +179,8 @@ export const LogoSearch: React.FC<LogoSearchProps> = ({ onLogoSelect }) => {
            <motion.div
             key={brand.domain}
             variants={itemVariants}
-            whileHover={{ backgroundColor: "rgba(74, 222, 128, 0.1)" }}
-            className="flex items-center px-4 py-3 cursor-pointer border-b border-green-900/30 last:border-b-0"
+            whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.48)" }}
+            className="flex items-center px-4 py-3 cursor-pointer border-b border-zinc-900/30 last:border-b-0"
             onClick={() => handleSelect(brand)}
            >
             <motion.div
@@ -197,17 +197,17 @@ export const LogoSearch: React.FC<LogoSearchProps> = ({ onLogoSelect }) => {
              />
             </motion.div>
             <div>
-             <div className="font-medium text-green-100">
+             <div className="font-medium text-zinc-100">
               {brand.name || brand.domain}
              </div>
-             <div className="text-xs text-green-300/70">{brand.domain}</div>
+             <div className="text-xs text-zinc-300/70">{brand.domain}</div>
             </div>
            </motion.div>
           ))
          ) : (
           <motion.div
            variants={itemVariants}
-           className="px-4 py-3 text-green-300/70"
+           className="px-4 py-3 text-zinc-300/70"
           >
            Nenhum organismo encontrado
           </motion.div>

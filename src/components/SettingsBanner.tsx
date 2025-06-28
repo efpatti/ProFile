@@ -105,9 +105,7 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
           {/* Your Information */}
           <TabPanel className="space-y-6">
            <div>
-            <DialogItemTitle selectedBg={selectedBg}>
-             Logo da Marca
-            </DialogItemTitle>
+            <DialogItemTitle selectedBg={selectedBg}>Company</DialogItemTitle>
             <LogoSearch onLogoSelect={onLogoSelect} />
            </div>
           </TabPanel>
