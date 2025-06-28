@@ -8,9 +8,8 @@ import {
  ListboxOption,
  ListboxOptions,
 } from "@headlessui/react";
-
-import { isLightColor } from "@/utils/color";
 import { isDarkBackground } from "@/utils/color";
+import { FiChevronDown } from "react-icons/fi";
 
 interface ColorOption<T extends string> {
  value: T;
@@ -35,67 +34,83 @@ export const ColorSelector = <T extends string>({
 }: ColorSelectorProps<T>) => {
  const selectedOption =
   options.find((option) => option.value === selected) || options[0];
- const selectedIsLight = isLightColor(selectedOption.color);
+ const isDark = isDarkBackground(selectedBg);
 
  return (
   <div className={className}>
    <Listbox value={selected} onChange={onSelect}>
     {({ open }) => (
-     <div>
+     <div className="relative">
       <ListboxButton
-       className={`relative flex items-center gap-2 w-full rounded-lg py-2 pl-3 pr-8 text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-white/75 ${
-        selectedIsLight ? "bg-black/10 text-black" : "bg-white/10 text-white"
-       }`}
-       style={{
-        backgroundColor: isDarkBackground(selectedBg) ? "white" : "black",
-       }}
+       className={`relative w-full rounded-lg py-2 pl-3 pr-10 text-left transition-all duration-200 ${
+        isDark
+         ? "bg-gray-700/50 hover:bg-gray-700 text-white"
+         : "bg-gray-100 hover:bg-gray-200 text-gray-900"
+       } shadow-sm border ${isDark ? "border-gray-700" : "border-gray-200"}`}
       >
-       <span
-        className="block truncate rounded-full h-6 w-6"
-        style={{ backgroundColor: selectedOption.color }}
-       ></span>
-       <span
-        className={`pointer-events-none absolute right-2 h-5 w-5 ${
-         isDarkBackground(selectedBg) ? "text-black/70" : "text-white/70"
-        } ${open ? "rotate-180" : ""}`}
-       >
-        ▼
+       <span className="flex items-center gap-3">
+        <span
+         className="block h-5 w-5 rounded-full border border-white/30"
+         style={{ backgroundColor: selectedOption.color }}
+        />
+        {selectedOption.label && (
+         <span className="block truncate">{selectedOption.label}</span>
+        )}
+       </span>
+       <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
+        <FiChevronDown
+         className={`h-5 w-5 transition-transform ${open ? "rotate-180" : ""} ${
+          isDark ? "text-gray-300" : "text-gray-500"
+         }`}
+        />
        </span>
       </ListboxButton>
-      <ListboxOptions className="absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-md bg-gray-800 py-1 shadow-lg ring-1 ring-black/5 focus:outline-none">
-       {options.map((option) => {
-        const textColor = isDarkBackground(selectedBg)
-         ? "text-white"
-         : "text-black";
-        const hoverBg = isDarkBackground(selectedBg)
-         ? "bg-white/10"
-         : "bg-black/10";
-        return (
-         <ListboxOption
-          key={option.value}
-          value={option.value}
-          className={({ active, selected }) =>
-           `relative cursor-default select-none py-2 pl-10 pr-4 flex items-center gap-2 ${textColor} ${
-            active && hoverBg
-           } ${selected ? "font-medium" : "font-normal"}`
-          }
-         >
-          {({ selected }) => (
-           <div>
+
+      <ListboxOptions
+       className={`absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg py-1 shadow-lg ring-1 focus:outline-none ${
+        isDark ? "bg-gray-800 ring-gray-700" : "bg-white ring-gray-200"
+       }`}
+      >
+       {options.map((option) => (
+        <ListboxOption
+         key={option.value}
+         value={option.value}
+         className={({ active }) =>
+          `relative cursor-default select-none py-2 pl-10 pr-4 ${
+           isDark ? "text-gray-100" : "text-gray-900"
+          } ${active ? (isDark ? "bg-gray-700" : "bg-gray-100") : ""}`
+         }
+        >
+         {({ selected }) => (
+          <div className="flex items-center gap-3">
+           <span
+            className="block h-5 w-5 rounded-full border border-white/30"
+            style={{ backgroundColor: option.color }}
+           />
+           {option.label && (
             <span
-             className="block truncate rounded-full h-6 w-6"
-             style={{ backgroundColor: option.color }}
-            ></span>
-            {selected ? (
-             <span className="absolute inset-y-0 left-0 flex items-center pl-3">
-              ✔
-             </span>
-            ) : null}
-           </div>
-          )}
-         </ListboxOption>
-        );
-       })}
+             className={`block truncate ${
+              selected ? "font-medium" : "font-normal"
+             }`}
+            >
+             {option.label}
+            </span>
+           )}
+           {selected ? (
+            <span className="absolute inset-y-0 left-0 flex items-center pl-3">
+             <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+              <path
+               fillRule="evenodd"
+               d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z"
+               clipRule="evenodd"
+              />
+             </svg>
+            </span>
+           ) : null}
+          </div>
+         )}
+        </ListboxOption>
+       ))}
       </ListboxOptions>
      </div>
     )}

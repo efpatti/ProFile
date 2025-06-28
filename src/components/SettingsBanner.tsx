@@ -20,6 +20,8 @@ import { FloatingActionButton } from "./FloatingActionButton";
 import { GoGear as SettingsIcon } from "react-icons/go";
 import clsx from "clsx";
 import { isDarkBackground } from "@/utils/color";
+import { FiImage as ImageIcon } from "react-icons/fi";
+import { FaPaintRoller as PaintIcon } from "react-icons/fa";
 
 interface SettingsBannerProps {
  selectedBg: BgBannerColorName;
@@ -56,9 +58,8 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
-        className={`fixed inset-0 ${
-         isDarkBackground(selectedBg) ? "bg-black/30" : "bg-white/30"
-        }  backdrop-blur-sm`}
+        className={`fixed inset-0 
+        backdrop-blur-sm bg-black/30`}
        />
 
        <motion.div
@@ -66,42 +67,41 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 20 }}
         transition={{ type: "spring", damping: 25 }}
-        className={`relative ${
-         isDarkBackground(selectedBg) ? "bg-black" : "bg-white"
-        } rounded-xl max-w-2xl w-full mx-4 p-6 shadow-2xl h-[600px]`}
+        className={`relative
+        bg-zinc-950
+        rounded-xl max-w-2xl w-full mx-4 p-6 shadow-2xl h-[600px]`}
        >
         <DialogTitle
-         className={`text-2xl font-bold ${
-          isDarkBackground(selectedBg) ? "text-gray-100" : "text-gray-900"
-         } mb-4`}
+         className={`text-2xl font-bold text-gray-100
+         mb-6`}
         >
          Configurações
         </DialogTitle>
 
         <TabGroup>
-         <TabList className="flex space-x-2 border-b border-gray-200 mb-4">
-          {["Your Information", "Appearance"].map((label) => (
+         <TabList className="flex space-x-1 mb-6">
+          {[
+           { label: "Your Information", icon: <ImageIcon /> },
+           { label: "Appearance", icon: <PaintIcon /> },
+          ].map(({ label, icon }) => (
            <Tab
             key={label}
             className={({ selected }) =>
              clsx(
-              "px-4 py-2 text-sm font-medium rounded-t-lg outline-none transition-colors ease-in-out duration-200 cursor-pointer",
+              "flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg outline-none transition-all duration-200",
               selected
-               ? isDarkBackground(selectedBg)
-                 ? "bg-gray-100 text-gray-900"
-                 : "bg-gray-900 text-gray-100"
-               : isDarkBackground(selectedBg)
-               ? "text-gray-300 hover:bg-gray-100 hover:text-gray-900"
-               : "text-gray-600 hover:bg-gray-900 hover:text-gray-100"
+               ? "bg-zinc-800 text-white"
+               : "text-gray-300 hover:bg-zinc-800/50"
              )
             }
            >
+            {icon}
             {label}
            </Tab>
           ))}
          </TabList>
 
-         <TabPanels className="overflow-y-auto h-[410px]">
+         <TabPanels className="overflow-y-auto h-[410px] pr-2">
           {/* Your Information */}
           <TabPanel className="space-y-6">
            <div>
@@ -113,17 +113,25 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
           </TabPanel>
 
           {/* Appearance */}
-          <TabPanel className="flex justify-center">
-           <div className="flex justify-between space-x-5">
-            <div>
+          <TabPanel>
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="bg-white/5 p-4 rounded-xl border border-gray-800/10">
              <DialogItemTitle selectedBg={selectedBg}>
               Banner Color
              </DialogItemTitle>
+             <p className="text-sm text-gray-400 mb-3">
+              Choose your header background
+             </p>
              <BgBannerSelector selected={selectedBg} onSelect={onSelectBg} />
             </div>
 
-            <div>
-             <DialogItemTitle selectedBg={selectedBg}>Pallete</DialogItemTitle>
+            <div className="bg-white/5 p-4 rounded-xl border border-gray-800/10">
+             <DialogItemTitle selectedBg={selectedBg}>
+              Color Palette
+             </DialogItemTitle>
+             <p className="text-sm text-gray-400 mb-3">
+              Select application theme
+             </p>
              <PaletteSelector bgName={selectedBg} />
             </div>
            </div>
@@ -134,9 +142,11 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
         <div className="mt-6 flex justify-end">
          <button
           onClick={() => setIsOpen(false)}
-          className="px-4 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
+          className={`px-4 py-2 rounded-lg transition-colors 
+            bg-zinc-800 hover:bg-zinc-800/50 hover:text-gray-300 text-white cursor-pointer
+          `}
          >
-          Aplicar
+          Apply Changes
          </button>
         </div>
        </motion.div>
@@ -159,7 +169,7 @@ const DialogItemTitle: React.FC<DialogItemTitleProps> = ({
 }) => {
  return (
   <h3
-   className={`text-lg font-medium $text-gray-800 mb-3 ${
+   className={`text-lg font-semibold mb-1 ${
     isDarkBackground(selectedBg) ? "text-gray-100" : "text-gray-900"
    }`}
   >

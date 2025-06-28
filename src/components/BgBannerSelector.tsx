@@ -17,6 +17,7 @@ export const BgBannerSelector = ({
  const colorOptions = Object.entries(bgBannerColor).map(([name, colorObj]) => ({
   value: name as BgBannerColorName,
   color: colorObj.bg,
+  label: name.replace(/([A-Z])/g, " $1").trim(),
  }));
 
  return (
