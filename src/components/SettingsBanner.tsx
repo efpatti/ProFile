@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PaletteSelector } from "./PaletteSelector";
 import { BgBannerSelector } from "./BgBannerSelector";
 import { BgBannerColorName } from "@/styles/sharedStyleConstants";
-import { Dialog } from "@headlessui/react";
+import { Dialog, DialogTitle } from "@headlessui/react";
 import { FloatingActionButton } from "./FloatingActionButton";
 import { GoGear as SettingsIcon } from "react-icons/go";
 
@@ -55,9 +55,9 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
         transition={{ type: "spring", damping: 25 }}
         className="relative bg-white rounded-xl max-w-md w-full mx-4 p-6 shadow-2xl"
        >
-        <Dialog.Title className="text-2xl font-bold text-gray-900 mb-6">
+        <DialogTitle className="text-2xl font-bold text-gray-900 mb-6">
          Configurações de Aparência
-        </Dialog.Title>
+        </DialogTitle>
 
         <div className="space-y-8">
          <div>

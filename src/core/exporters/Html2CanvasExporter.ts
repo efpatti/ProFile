@@ -21,7 +21,6 @@ export class Html2CanvasExporter extends BannerExporter {
  async export(): Promise<HTMLCanvasElement> {
   await this.loadLibrary();
   await new Promise((r) => setTimeout(r, 200));
-  // @ts-expect-error html2canvas is loaded globally
   return new Promise((resolve, reject) => {
    // @ts-expect-error html2canvas is loaded globally
    html2canvas(this.bannerElement, {

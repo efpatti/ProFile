@@ -1,42 +1,29 @@
 // components/BgBannerSelector.tsx
 "use client";
 
-import { motion } from "framer-motion";
 import {
  bgBannerColor,
  BgBannerColorName,
 } from "@/styles/sharedStyleConstants";
+import { ColorSelector } from "./ColorSelector";
 
-interface BgBannerSelectorProps {
- selected: BgBannerColorName;
- onSelect: (color: BgBannerColorName) => void;
-}
-
-const COLORS = Object.entries(bgBannerColor) as [
- BgBannerColorName,
- { bg: string; text: string }
-][];
-
-export const BgBannerSelector: React.FC<BgBannerSelectorProps> = ({
+export const BgBannerSelector = ({
  selected,
  onSelect,
+}: {
+ selected: BgBannerColorName;
+ onSelect: (color: BgBannerColorName) => void;
 }) => {
+ const colorOptions = Object.entries(bgBannerColor).map(([name, colorObj]) => ({
+  value: name as BgBannerColorName,
+  color: colorObj.bg,
+ }));
+
  return (
-  <div className="flex flex-wrap gap-4">
-   {COLORS.map(([name, colorObj]) => (
-    <motion.button
-     key={name}
-     onClick={() => onSelect(name)}
-     className="relative rounded-full w-10 h-10 focus:outline-none"
-     whileHover={{ scale: 1.1 }}
-     animate={{ borderWidth: selected === name ? 4 : 0 }}
-     transition={{ type: "spring", stiffness: 300 }}
-     style={{
-      backgroundColor: colorObj.bg,
-      borderColor: selected === name ? "var(--accent)" : undefined,
-     }}
-    ></motion.button>
-   ))}
-  </div>
+  <ColorSelector
+   options={colorOptions}
+   selected={selected}
+   onSelect={onSelect}
+  />
  );
 };

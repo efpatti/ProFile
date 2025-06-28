@@ -1,42 +1,29 @@
 // components/PaletteSelector.tsx
 "use client";
 
-import { motion } from "framer-motion";
 import { usePalette, paletteTokens } from "@/styles/PaletteProvider";
+import { ColorSelector } from "./ColorSelector";
+import type { PaletteName } from "@/styles/PaletteProvider";
 
-type PaletteOption = {
- name: keyof typeof paletteTokens;
- label: string;
-};
+const PALETTE_OPTIONS = [
+ { value: "darkGreen", label: "Verde Floresta" },
+ { value: "deepBlue", label: "Azul Profundo" },
+ { value: "vibrantPurple", label: "Lavanda" },
+ { value: "sunsetOrange", label: "Pôr do Sol" },
+ { value: "teal", label: "Turquesa" },
+].map((opt) => ({
+ ...opt,
+ color: paletteTokens[opt.value as PaletteName].accent,
+})) as { value: PaletteName; label: string; color: string }[];
 
-const PALETTE_OPTIONS: PaletteOption[] = [
- { name: "darkGreen", label: "Verde Floresta" },
- { name: "deepBlue", label: "Azul Profundo" },
- { name: "vibrantPurple", label: "Lavanda" },
- { name: "sunsetOrange", label: "Pôr do Sol" },
- { name: "teal", label: "Turquesa" },
-];
-
-export const PaletteSelector: React.FC = () => {
+export const PaletteSelector = () => {
  const { palette, setPalette } = usePalette();
 
  return (
-  <div className="flex flex-wrap gap-4">
-   {PALETTE_OPTIONS.map((option) => (
-    <motion.button
-     key={option.name}
-     onClick={() => setPalette(option.name)}
-     className="relative rounded-full w-10 h-10 focus:outline-none"
-     whileHover={{ scale: 1.1 }}
-     animate={{ borderWidth: palette === option.name ? 4 : 0 }}
-     transition={{ type: "spring", stiffness: 300 }}
-     style={{
-      backgroundColor: paletteTokens[option.name].accent,
-      borderColor: palette === option.name ? "var(--accent)" : undefined,
-     }}
-     title={option.label}
-    ></motion.button>
-   ))}
-  </div>
+  <ColorSelector
+   options={PALETTE_OPTIONS}
+   selected={palette}
+   onSelect={setPalette}
+  />
  );
 };
