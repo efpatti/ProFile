@@ -7,7 +7,15 @@ import { PaletteSelector } from "./PaletteSelector";
 import { BgBannerSelector } from "./BgBannerSelector";
 import { LogoSearch } from "./LogoSearch";
 import { BgBannerColorName } from "@/styles/sharedStyleConstants";
-import { Dialog, DialogTitle, Tab } from "@headlessui/react";
+import {
+ Dialog,
+ DialogTitle,
+ Tab,
+ TabGroup,
+ TabList,
+ TabPanel,
+ TabPanels,
+} from "@headlessui/react";
 import { FloatingActionButton } from "./FloatingActionButton";
 import { GoGear as SettingsIcon } from "react-icons/go";
 import clsx from "clsx";
@@ -61,8 +69,8 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
          Configurações
         </DialogTitle>
 
-        <Tab.Group>
-         <Tab.List className="flex space-x-2 border-b border-gray-200 mb-4">
+        <TabGroup>
+         <TabList className="flex space-x-2 border-b border-gray-200 mb-4">
           {["Your Information", "Appearance"].map((label) => (
            <Tab
             key={label}
@@ -78,21 +86,21 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
             {label}
            </Tab>
           ))}
-         </Tab.List>
+         </TabList>
 
-         <Tab.Panels className="overflow-y-auto h-[410px]">
+         <TabPanels className="overflow-y-auto h-[410px]">
           {/* Your Information */}
-          <Tab.Panel className="space-y-6">
+          <TabPanel className="space-y-6">
            <div>
             <h3 className="text-lg font-medium text-gray-800 mb-3">
              Logo da Marca
             </h3>
             <LogoSearch onLogoSelect={onLogoSelect} />
            </div>
-          </Tab.Panel>
+          </TabPanel>
 
           {/* Appearance */}
-          <Tab.Panel className="space-y-8">
+          <TabPanel className="space-y-8">
            <div>
             <h3 className="text-lg font-medium text-gray-800 mb-3">
              Cor do Banner
@@ -106,9 +114,9 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
             </h3>
             <PaletteSelector />
            </div>
-          </Tab.Panel>
-         </Tab.Panels>
-        </Tab.Group>
+          </TabPanel>
+         </TabPanels>
+        </TabGroup>
 
         <div className="mt-6 flex justify-end">
          <button
