@@ -8,7 +8,6 @@ import {
  ListboxOption,
  ListboxOptions,
 } from "@headlessui/react";
-import { isDarkBackground } from "@/utils/color";
 import { FiChevronDown } from "react-icons/fi";
 
 interface ColorOption<T extends string> {
@@ -30,11 +29,9 @@ export const ColorSelector = <T extends string>({
  selected,
  onSelect,
  className = "",
- selectedBg,
 }: ColorSelectorProps<T>) => {
  const selectedOption =
   options.find((option) => option.value === selected) || options[0];
- const isDark = isDarkBackground(selectedBg);
 
  return (
   <div className={className}>
@@ -42,11 +39,8 @@ export const ColorSelector = <T extends string>({
     {({ open }) => (
      <div className="relative">
       <ListboxButton
-       className={`relative w-full rounded-lg py-2 pl-3 pr-10 text-left transition-all duration-200 ${
-        isDark
-         ? "bg-gray-700/50 hover:bg-gray-700 text-white"
-         : "bg-gray-100 hover:bg-gray-200 text-gray-900"
-       } shadow-sm border ${isDark ? "border-gray-700" : "border-gray-200"}`}
+       className={`relative w-full rounded-lg py-2 pl-3 pr-10 text-left transition-all duration-200 bg-gray-700/50 hover:bg-gray-700 text-white
+       shadow-sm border border-gray-700`}
       >
        <span className="flex items-center gap-3">
         <span
@@ -59,26 +53,26 @@ export const ColorSelector = <T extends string>({
        </span>
        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
         <FiChevronDown
-         className={`h-5 w-5 transition-transform ${open ? "rotate-180" : ""} ${
-          isDark ? "text-gray-300" : "text-gray-500"
+         className={`h-5 w-5 transition-transform ${
+          open && "rotate-180"
+         } text-gray-300
          }`}
         />
        </span>
       </ListboxButton>
 
       <ListboxOptions
-       className={`absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg py-1 shadow-lg ring-1 focus:outline-none ${
-        isDark ? "bg-gray-800 ring-gray-700" : "bg-white ring-gray-200"
-       }`}
+       className={`absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg py-1 shadow-lg ring-1 bg-gray-800 focus:outline-none ring-gray-700 custom-organic-scroll
+       `}
       >
        {options.map((option) => (
         <ListboxOption
          key={option.value}
          value={option.value}
          className={({ active }) =>
-          `relative cursor-default select-none py-2 pl-10 pr-4 ${
-           isDark ? "text-gray-100" : "text-gray-900"
-          } ${active ? (isDark ? "bg-gray-700" : "bg-gray-100") : ""}`
+          `relative cursor-default select-none py-2 pl-10 pr-4
+           text-gray-100
+          ${active ? "bg-gray-700" : ""}`
          }
         >
          {({ selected }) => (

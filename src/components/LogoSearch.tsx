@@ -179,8 +179,8 @@ export const LogoSearch: React.FC<LogoSearchProps> = ({ onLogoSelect }) => {
            <motion.div
             key={brand.domain}
             variants={itemVariants}
-            whileHover={{ backgroundColor: "rgba(255, 255, 255, 0.48)" }}
-            className="flex items-center px-4 py-3 cursor-pointer border-b border-zinc-900/30 last:border-b-0"
+            whileHover={{ backgroundColor: "rgb(54, 65, 83)" }}
+            className="flex items-center px-4 py-3 cursor-pointer border-b border-zinc-900/30 last:border-b-0 bg-gray-700/50 transition-colors duration-200"
             onClick={() => handleSelect(brand)}
            >
             <motion.div
