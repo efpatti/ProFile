@@ -62,7 +62,7 @@ export const ColorSelector = <T extends string>({
       </ListboxButton>
 
       <ListboxOptions
-       className={`absolute z-10 mt-1 max-h-60 w-full overflow-auto rounded-lg py-1 shadow-lg ring-1 bg-gray-800 focus:outline-none ring-gray-700 custom-organic-scroll
+       className={`absolute z-10 mt-1 max-h-60 w-full overflow-y-auto rounded-lg py-1 shadow-lg ring-1 bg-gray-800 focus:outline-none ring-gray-700 custom-organic-scroll
        `}
       >
        {options.map((option) => (

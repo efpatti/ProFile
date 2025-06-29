@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { PaletteSelector } from "./PaletteSelector";
 import { BgBannerSelector } from "./BgBannerSelector";
 import { LogoSearch } from "./LogoSearch";
+import { FiX as CloseIcon } from "react-icons/fi";
 import { BgBannerColorName } from "@/styles/sharedStyleConstants";
 import {
  Dialog,
@@ -70,6 +71,13 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
         bg-zinc-950
         rounded-xl max-w-2xl w-full mx-4 p-6 shadow-2xl h-[600px]`}
        >
+        <button
+         onClick={() => setIsOpen(false)}
+         className="absolute right-4 top-4 p-1 rounded-full text-gray-300 hover:text-white hover:bg-zinc-800 transition-colors focus:outline-none cursor-pointer"
+         aria-label="Fechar configurações"
+        >
+         <CloseIcon size={20} />
+        </button>
         <DialogTitle
          className={`text-2xl font-bold text-gray-100
          mb-6`}
