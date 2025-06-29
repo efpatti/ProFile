@@ -100,7 +100,7 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
           ))}
          </TabList>
 
-         <TabPanels className="overflow-y-auto h-[410px] pr-2">
+         <TabPanels className="h-[410px] pr-2">
           {/* Your Information */}
           <TabPanel className="space-y-6">
            <div>
