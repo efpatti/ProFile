@@ -1,3 +1,4 @@
+"use client";
 import React from "react";
 import Image from "next/image";
 import { CodeBlock } from "./CodeBlock";
@@ -11,23 +12,17 @@ import {
  BgBannerColorName,
 } from "@/styles/sharedStyleConstants";
 import { SettingsBanner } from "./SettingsBanner";
-
-const dev = new Developer({
- name: "Enzo Ferracini Patti",
- role: "Fullstack Developer",
- stack: ["React", "Node.js", "TypeScript"],
- company: "Mottu",
- position: "Development Intern",
-});
+import type { User } from "firebase/auth";
 
 interface BannerProps {
  logoUrl?: string;
  bgColor?: { bg: string; text: string };
  selectedBg?: BgBannerColorName;
  onSelectBg?: (color: BgBannerColorName) => void;
+ user?: User | null;
 }
 
-function getBgColorObj(bgName: BgBannerColorName) {
+export function getBgColorObj(bgName: BgBannerColorName) {
  const bgObj = bgBannerColor[bgName];
  const colorsArr = bgObj.colors;
  const bg = (
@@ -48,8 +43,17 @@ export const Banner: React.FC<BannerProps> = ({
  bgColor,
  selectedBg,
  onSelectBg,
+ user,
 }) => {
  const [currentLogoUrl, setCurrentLogoUrl] = React.useState(logoUrl);
+
+ const dev = new Developer({
+  name: user?.displayName || "Your Name",
+  role: "Fullstack Developer",
+  stack: ["React", "Node.js", "TypeScript"],
+  company: "Mottu",
+  position: "Development Intern",
+ });
 
  // Se selectedBg estiver definido, sobrescreve bgColor pelo padrão novo
  const effectiveBgColor = selectedBg
