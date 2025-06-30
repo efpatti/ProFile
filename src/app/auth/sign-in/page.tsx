@@ -4,6 +4,11 @@ import { motion } from "framer-motion";
 import { FaGithub, FaGoogle, FaEnvelope, FaLock } from "react-icons/fa";
 import { FiArrowRight } from "react-icons/fi";
 import LogoSVG from "@/components/LogoSVG"; // Componente SVG extraído
+import { useState, useEffect } from "react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/core/services/AuthProvider";
 
 const containerVariants = {
  hidden: { opacity: 0 },
@@ -86,6 +91,8 @@ const InputField = ({
    <input
     id={id}
     type={type}
+    defaultValue=""
+    autoComplete="off"
     className="w-full pl-10 pr-3 py-3 bg-zinc-700/50 border border-zinc-600 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
     placeholder={placeholder}
    />
@@ -93,68 +100,132 @@ const InputField = ({
  </motion.div>
 );
 
-const Form = () => (
- <motion.form variants={containerVariants} className="px-8 pb-8 space-y-6">
-  <InputField
-   id="email"
-   label="Email address"
-   type="email"
-   Icon={FaEnvelope}
-   placeholder="you@example.com"
-  />
+const Form = () => {
+ const [loading, setLoading] = useState(false);
+ const [error, setError] = useState("");
+ const [authLoading, setAuthLoading] = useState(true);
+ const [userLogged, setUserLogged] = useState(false);
+ const router = useRouter();
+ const { user, loading: globalAuthLoading } = useAuth();
 
-  <motion.div variants={itemVariants}>
-   <div className="flex justify-between items-center mb-1">
-    <label
-     htmlFor="password"
-     className="block text-sm font-medium text-zinc-300"
-    >
-     Password
-    </label>
-    <a
-     href="#"
-     className="text-sm text-blue-500 hover:text-blue-400 transition-colors"
-    >
-     Forgot?
-    </a>
+ useEffect(() => {
+  setAuthLoading(globalAuthLoading);
+  setUserLogged(!!user);
+ }, [globalAuthLoading, user]);
+
+ useEffect(() => {
+  if (!authLoading && userLogged) {
+   router.replace("/");
+  }
+ }, [authLoading, userLogged, router]);
+
+ if (authLoading) {
+  return (
+   <div className="flex justify-center items-center py-16">
+    <span className="text-zinc-400 text-lg animate-pulse">Loading...</span>
    </div>
-   <div className="relative">
-    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-     <FaLock className="text-zinc-500" />
-    </div>
-    <input
-     id="password"
-     type="password"
-     className="w-full pl-10 pr-3 py-3 bg-zinc-700/50 border border-zinc-600 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-     placeholder="••••••••"
-    />
-   </div>
-  </motion.div>
+  );
+ }
 
-  <motion.div variants={itemVariants}>
-   <button
-    type="submit"
-    className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium rounded-lg shadow-lg hover:shadow-blue-500/20 transition-all duration-300 flex items-center justify-center"
-   >
-    Log in
-    <FiArrowRight className="ml-2" />
-   </button>
-  </motion.div>
+ const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setError("");
+  setLoading(true);
+  const form = e.currentTarget;
+  const email = (form.elements.namedItem("email") as HTMLInputElement)?.value;
+  const password = (form.elements.namedItem("password") as HTMLInputElement)
+   ?.value;
+  try {
+   await signInWithEmailAndPassword(auth, email, password);
+   // TODO: redirect or show success
+  } catch (err) {
+   const errorMsg = err instanceof Error ? err.message : String(err);
+   setError(errorMsg || "Failed to sign in");
+  } finally {
+   setLoading(false);
+  }
+ };
 
-  <motion.div
-   variants={itemVariants}
-   className="text-center text-zinc-400 text-sm"
+ return (
+  <motion.form
+   variants={containerVariants}
+   className="px-8 pb-8 space-y-6"
+   onSubmit={handleSubmit}
   >
-   Don&apos;t have an account?{" "}
-   <a
-    href="/auth/sign-up"
-    className="text-blue-500 hover:text-blue-400 font-medium transition-colors"
+   <InputField
+    id="email"
+    label="Email address"
+    type="email"
+    Icon={FaEnvelope}
+    placeholder="you@example.com"
+   />
+   <motion.div variants={itemVariants}>
+    <div className="flex justify-between items-center mb-1">
+     <label
+      htmlFor="password"
+      className="block text-sm font-medium text-zinc-300"
+     >
+      Password
+     </label>
+     <a
+      href="#"
+      className="text-sm text-blue-500 hover:text-blue-400 transition-colors"
+     >
+      Forgot?
+     </a>
+    </div>
+    <div className="relative">
+     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+      <FaLock className="text-zinc-500" />
+     </div>
+     <input
+      id="password"
+      type="password"
+      defaultValue=""
+      autoComplete="off"
+      className="w-full pl-10 pr-3 py-3 bg-zinc-700/50 border border-zinc-600 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+      placeholder="••••••••"
+     />
+    </div>
+   </motion.div>
+   <motion.div variants={itemVariants}>
+    <button
+     type="submit"
+     className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium rounded-lg shadow-lg hover:shadow-blue-500/20 transition-all duration-300 flex items-center justify-center"
+     disabled={loading}
+    >
+     {loading ? (
+      "Logging in..."
+     ) : (
+      <>
+       Log in <FiArrowRight className="ml-2" />
+      </>
+     )}
+    </button>
+   </motion.div>
+   {error && (
+    <motion.div
+     variants={itemVariants}
+     className="text-center text-red-400 text-sm"
+    >
+     {error}
+    </motion.div>
+   )}
+   <motion.div
+    variants={itemVariants}
+    className="text-center text-zinc-400 text-sm"
    >
-    Sign up
-   </a>
-  </motion.div>
- </motion.form>
-);
+    Don&apos;t have an account?{" "}
+    <a
+     href="/auth/sign-up"
+     className="text-blue-500 hover:text-blue-400 font-medium transition-colors"
+    >
+     Sign up
+    </a>
+   </motion.div>
+  </motion.form>
+ );
+};
 
 const Footer = () => (
  <motion.div

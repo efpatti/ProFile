@@ -3,6 +3,8 @@ import { Inter, Manrope, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { PaletteProvider, PaletteName } from "@/styles/PaletteProvider";
 import { bgBannerColor } from "@/styles/sharedStyleConstants";
+import { AuthProvider } from "@/core/services/AuthProvider";
+import Navbar from "@/components/Navbar";
 
 const inter = Inter({
  variable: "--font-inter",
@@ -45,9 +47,12 @@ export default function RootLayout({
     className={`${inter.variable} ${manrope.variable} ${jetbrains.variable} font-sans antialiased`}
     suppressHydrationWarning
    >
-    <PaletteProvider initialPalette={initialPalette}>
-     {children}
-    </PaletteProvider>
+    <AuthProvider>
+     <PaletteProvider initialPalette={initialPalette}>
+      <Navbar />
+      {children}
+     </PaletteProvider>
+    </AuthProvider>
    </body>
   </html>
  );
