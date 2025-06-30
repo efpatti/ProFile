@@ -13,6 +13,7 @@ import {
 } from "@/styles/sharedStyleConstants";
 import { SettingsBanner } from "./SettingsBanner";
 import type { User } from "firebase/auth";
+import { usePalette } from "@/styles/PaletteProvider";
 
 interface BannerProps {
  logoUrl?: string;
@@ -45,6 +46,7 @@ export const Banner: React.FC<BannerProps> = ({
  onSelectBg,
  user,
 }) => {
+ const { bannerColor } = usePalette();
  const [currentLogoUrl, setCurrentLogoUrl] = React.useState(logoUrl);
 
  const dev = new Developer({
@@ -55,8 +57,10 @@ export const Banner: React.FC<BannerProps> = ({
   position: "Development Intern",
  });
 
- // Se selectedBg estiver definido, sobrescreve bgColor pelo padrão novo
- const effectiveBgColor = selectedBg
+ // Prioriza o valor do contexto global (bannerColor)
+ const effectiveBgColor = bannerColor
+  ? getBgColorObj(bannerColor)
+  : selectedBg
   ? getBgColorObj(selectedBg)
   : bgColor || getBgColorObj("midnightSlate");
 

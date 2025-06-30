@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { Inter, Manrope, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
-import { PaletteProvider, PaletteName } from "@/styles/PaletteProvider";
-import { bgBannerColor } from "@/styles/sharedStyleConstants";
+import { PaletteProvider } from "@/styles/PaletteProvider";
 import { AuthProvider } from "@/core/services/AuthProvider";
 import Navbar from "@/components/Navbar";
 import { PaletteSyncWrapper } from "@/components/PaletteSyncWrapper";
+import { BannerColorSyncWrapper } from "@/components/BannerColorSyncWrapper";
 
 const inter = Inter({
  variable: "--font-inter",
@@ -33,15 +33,6 @@ export default function RootLayout({
 }: Readonly<{
  children: React.ReactNode;
 }>) {
- // Get palette from query string (on client only)
- let initialPalette: PaletteName = "darkGreen";
- if (typeof window !== "undefined") {
-  const params = new URLSearchParams(window.location.search);
-  const paletteParam = params.get("palette");
-  if (paletteParam && Object.keys(bgBannerColor).includes(paletteParam)) {
-   initialPalette = paletteParam as PaletteName;
-  }
- }
  return (
   <html lang="en">
    <body
@@ -49,7 +40,8 @@ export default function RootLayout({
     suppressHydrationWarning
    >
     <AuthProvider>
-     <PaletteProvider initialPalette={initialPalette}>
+     <PaletteProvider>
+      <BannerColorSyncWrapper />
       <PaletteSyncWrapper />
       <Navbar />
       {children}

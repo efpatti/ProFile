@@ -3,6 +3,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import {
  colorPalettes,
  type PaletteName as SharedPaletteName,
+ bgBannerColor,
 } from "./sharedStyleConstants";
 import { useAuth } from "@/core/services/AuthProvider";
 import { db } from "@/lib/firebase";
@@ -10,10 +11,13 @@ import { doc, getDoc } from "firebase/firestore";
 
 // Adaptando os tipos para manter compatibilidade
 export type PaletteName = SharedPaletteName;
+export type BannerColorName = keyof typeof bgBannerColor;
 
 interface PaletteContextProps {
  palette: PaletteName;
  setPalette: (p: PaletteName) => void;
+ bannerColor: BannerColorName;
+ setBannerColor: (b: BannerColorName) => void;
  paletteTokens: typeof colorPalettes;
 }
 
@@ -25,6 +29,13 @@ export const paletteActiveState = {
  value: "darkGreen" as PaletteName,
  set(newPalette: PaletteName) {
   this.value = newPalette;
+ },
+};
+
+export const bannerColorActiveState = {
+ value: "pureWhite" as BannerColorName,
+ set(newBannerColor: BannerColorName) {
+  this.value = newBannerColor;
  },
 };
 
@@ -42,6 +53,9 @@ export const PaletteProvider: React.FC<{
 }> = ({ children }) => {
  const { user } = useAuth();
  const [palette, setPalette] = useState<PaletteName | undefined>(undefined);
+ const [bannerColor, setBannerColor] = useState<BannerColorName | undefined>(
+  undefined
+ );
  const [loading, setLoading] = useState(true);
 
  useEffect(() => {
@@ -53,7 +67,13 @@ export const PaletteProvider: React.FC<{
     const data = userDoc.data();
     if (data.palette && !ignore) setPalette(data.palette as PaletteName);
     else if (!ignore) setPalette("darkGreen");
-   } else if (!ignore) setPalette("darkGreen");
+    if (data.bannerColor && !ignore)
+     setBannerColor(data.bannerColor as BannerColorName);
+    else if (!ignore) setBannerColor("pureWhite");
+   } else {
+    if (!ignore) setPalette("darkGreen");
+    if (!ignore) setBannerColor("pureWhite");
+   }
    setLoading(false);
   };
   fetchPalette();
@@ -96,13 +116,20 @@ export const PaletteProvider: React.FC<{
   }
  }, [palette]);
 
- if (loading || !palette) return null;
+ useEffect(() => {
+  if (!bannerColor) return;
+  bannerColorActiveState.value = bannerColor;
+ }, [bannerColor]);
+
+ if (loading || !palette || !bannerColor) return null;
 
  return (
   <PaletteContext.Provider
    value={{
     palette,
     setPalette,
+    bannerColor,
+    setBannerColor,
     paletteTokens: colorPalettes,
    }}
   >
