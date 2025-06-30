@@ -1,59 +1,17 @@
 "use client";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import {
+ colorPalettes,
+ type PaletteName as SharedPaletteName,
+} from "./sharedStyleConstants";
 
-export const paletteTokens = {
- darkGreen: {
-  accent: "#22c55e",
-  key: "#f7fafc",
-  highlightBg: "rgba(34, 197, 94, 0.1)",
-  accent30: "rgba(34, 197, 94, 0.3)",
-  btn: "#16a34a",
-  secondary: "#4ade80",
-  secondarySoft: "#bbf7d0",
- },
- deepBlue: {
-  accent: "#3b82f6",
-  key: "#f8fafc",
-  highlightBg: "rgba(59, 130, 246, 0.1)",
-  accent30: "rgba(59, 130, 246, 0.3)",
-  btn: "#2563eb",
-  secondary: "#60a5fa",
-  secondarySoft: "#dbeafe",
- },
- vibrantPurple: {
-  accent: "#a855f7",
-  key: "#faf5ff",
-  highlightBg: "rgba(168, 85, 247, 0.1)",
-  accent30: "rgba(168, 85, 247, 0.3)",
-  btn: "#9333ea",
-  secondary: "#c084fc",
-  secondarySoft: "#ede9fe",
- },
- sunsetOrange: {
-  accent: "#f97316",
-  key: "#fff7ed",
-  highlightBg: "rgba(249, 115, 22, 0.1)",
-  accent30: "rgba(249, 115, 22, 0.3)",
-  btn: "#ea580c",
-  secondary: "#fdba74",
-  secondarySoft: "#ffedd5",
- },
- teal: {
-  accent: "#14b8a6",
-  key: "#f0fdfa",
-  highlightBg: "rgba(20, 184, 166, 0.1)",
-  accent30: "rgba(20, 184, 166, 0.3)",
-  btn: "#0d9488",
-  secondary: "#2dd4bf",
-  secondarySoft: "#ccfbf1",
- },
-};
-
-export type PaletteName = keyof typeof paletteTokens;
+// Adaptando os tipos para manter compatibilidade
+export type PaletteName = SharedPaletteName;
 
 interface PaletteContextProps {
  palette: PaletteName;
  setPalette: (p: PaletteName) => void;
+ paletteTokens: typeof colorPalettes;
 }
 
 const PaletteContext = createContext<PaletteContextProps | undefined>(
@@ -61,11 +19,14 @@ const PaletteContext = createContext<PaletteContextProps | undefined>(
 );
 
 export const paletteActiveState = {
- value: "darkGreen",
+ value: "darkGreen" as PaletteName,
  set(newPalette: PaletteName) {
   this.value = newPalette;
  },
 };
+
+// Exporta os tokens para uso fora do contexto React
+export const paletteTokens = colorPalettes;
 
 export const usePalette = () => {
  const ctx = useContext(PaletteContext);
@@ -78,15 +39,48 @@ export const PaletteProvider: React.FC<{
  initialPalette?: PaletteName;
 }> = ({ children, initialPalette = "darkGreen" }) => {
  const [palette, setPalette] = useState<PaletteName>(initialPalette);
+
  useEffect(() => {
   paletteActiveState.value = palette;
-  const tokens = paletteTokens[palette];
-  for (const [key, value] of Object.entries(tokens)) {
-   document.documentElement.style.setProperty(`--${key}`, value);
+  const tokensArr = colorPalettes[palette].colors;
+  // Utilitário para pegar valor pelo nome (corrigido para tipagem)
+  function getColor<T extends string>(name: T): string | undefined {
+   const found = tokensArr.find((c) =>
+    Object.prototype.hasOwnProperty.call(c, name)
+   );
+   return found ? (found as Record<T, string>)[name] : undefined;
+  }
+
+  // Aplicando as cores como variáveis CSS
+  const accent = getColor("accent") ?? null;
+  document.documentElement.style.setProperty("--accent", accent);
+  const key = getColor("key") ?? null;
+  document.documentElement.style.setProperty("--key", key);
+  const secondary = getColor("secondary") ?? null;
+  document.documentElement.style.setProperty("--secondary", secondary);
+  const secondarySoft = getColor("secondarySoft") ?? null;
+  document.documentElement.style.setProperty("--secondary-soft", secondarySoft);
+
+  // Para cores com opacidade (convertendo para rgba)
+  const highlightBg = getColor("highlightBg")?.match(/rgba?\(([^)]+)\)/)?.[1];
+  if (highlightBg) {
+   document.documentElement.style.setProperty("--highlight-bg", highlightBg);
+  }
+
+  const accent30 = getColor("accent30")?.match(/rgba?\(([^)]+)\)/)?.[1];
+  if (accent30) {
+   document.documentElement.style.setProperty("--accent-30", accent30);
   }
  }, [palette]);
+
  return (
-  <PaletteContext.Provider value={{ palette, setPalette }}>
+  <PaletteContext.Provider
+   value={{
+    palette,
+    setPalette,
+    paletteTokens: colorPalettes,
+   }}
+  >
    {children}
   </PaletteContext.Provider>
  );

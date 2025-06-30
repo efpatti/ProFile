@@ -38,9 +38,17 @@ export class HtmlFormatter extends DevDataFormatter {
   textColor?: string
  ): string {
   const palette = colorPalettes[paletteName] || colorPalettes[defaultPalette];
-  const accentColor = palette.accent;
-  const keyColor = palette.key;
-  const secondaryColor = palette.secondary;
+  const colorsArr = palette.colors;
+  // Utilitário para buscar cor pelo nome
+  function getColor<T extends string>(name: T): string | undefined {
+   const found = colorsArr.find((c) =>
+    Object.prototype.hasOwnProperty.call(c, name)
+   );
+   return found ? (found as Record<T, string>)[name] : undefined;
+  }
+  const accentColor = getColor("accent") ?? "#22c55e";
+  const keyColor = getColor("key") ?? "#f7fafc";
+  const secondaryColor = getColor("secondary") ?? "#4ade80";
   const devTextColor = textColor || keyColor;
   let formatted = `<span style='color:${secondaryColor};font-weight:bold;text-shadow:0 0 1px ${secondaryColor},0 0 12px ${secondaryColor}99;'>const</span> <span style='color:${devTextColor};font-weight:bold;'>dev</span> <span style='color:${devTextColor}'>=</span> {<br>`;
   for (const key in dev) {

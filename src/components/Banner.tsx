@@ -27,20 +27,41 @@ interface BannerProps {
  onSelectBg?: (color: BgBannerColorName) => void;
 }
 
+function getBgColorObj(bgName: BgBannerColorName) {
+ const bgObj = bgBannerColor[bgName];
+ const colorsArr = bgObj.colors;
+ const bg = (
+  colorsArr.find((c) => Object.prototype.hasOwnProperty.call(c, "bg")) as {
+   bg: string;
+  }
+ ).bg;
+ const text = (
+  colorsArr.find((c) => Object.prototype.hasOwnProperty.call(c, "text")) as {
+   text: string;
+  }
+ ).text;
+ return { bg, text };
+}
+
 export const Banner: React.FC<BannerProps> = ({
  logoUrl,
- bgColor = bgBannerColor.midnightSlate,
+ bgColor,
  selectedBg,
  onSelectBg,
 }) => {
  const [currentLogoUrl, setCurrentLogoUrl] = React.useState(logoUrl);
 
+ // Se selectedBg estiver definido, sobrescreve bgColor pelo padrão novo
+ const effectiveBgColor = selectedBg
+  ? getBgColorObj(selectedBg)
+  : bgColor || getBgColorObj("midnightSlate");
+
  return (
   <section
    id="banner"
    style={{
-    background: bgColor.bg,
-    color: bgColor.text,
+    background: effectiveBgColor.bg,
+    color: effectiveBgColor.text,
     borderColor: "var(--accent)",
     width: "1584px",
     height: "396px",
@@ -65,7 +86,7 @@ export const Banner: React.FC<BannerProps> = ({
     <div className="flex justify-start items-center space-x-4">
      <h1
       className="text-4xl font-bold mb-2 font-inter"
-      style={{ color: bgColor.text }}
+      style={{ color: effectiveBgColor.text }}
      >
       {dev.name}
      </h1>
@@ -78,7 +99,7 @@ export const Banner: React.FC<BannerProps> = ({
       className="h-10 w-10 rounded-full bg-white shadow"
      />
     </div>
-    <p className="italic mb-3 text-lg" style={{ color: bgColor.text }}>
+    <p className="italic mb-3 text-lg" style={{ color: effectiveBgColor.text }}>
      Driven by curiosity and continuous learning
     </p>
     <div className="flex items-center flex-wrap gap-2 mb-4 text-slate-200">
@@ -101,11 +122,11 @@ export const Banner: React.FC<BannerProps> = ({
      }}
     >
      <span className="text-slate-200 mr-2">
-      <AwardIcon color={bgColor.text} />
+      <AwardIcon color={effectiveBgColor.text} />
      </span>
      <span
       className="truncate whitespace-normal"
-      style={{ color: bgColor.text }}
+      style={{ color: effectiveBgColor.text }}
      >
       Recognized as the top graduate in Systems Development at SENAI
      </span>
@@ -116,15 +137,17 @@ export const Banner: React.FC<BannerProps> = ({
     <div className="flex flex-wrap gap-8 text-lg items-center">
      <span className="flex items-center gap-3">
       <MdEmail className="mr-1" style={{ color: "var(--accent)" }} />
-      <span style={{ color: bgColor.text }}>efpatti.dev@gmail.com</span>
+      <span style={{ color: effectiveBgColor.text }}>
+       efpatti.dev@gmail.com
+      </span>
      </span>
      <span className="flex items-center gap-3">
       <FaPhoneAlt className="mr-1" style={{ color: "var(--accent)" }} />
-      <span style={{ color: bgColor.text }}>+55 (11) 97883-3101</span>
+      <span style={{ color: effectiveBgColor.text }}>+55 (11) 97883-3101</span>
      </span>
      <span className="flex items-center gap-3">
       <FaGithub className="mr-1" style={{ color: "var(--accent)" }} />
-      <span style={{ color: bgColor.text }}>github.com/efpatti</span>
+      <span style={{ color: effectiveBgColor.text }}>github.com/efpatti</span>
      </span>
     </div>
    </div>
@@ -134,7 +157,7 @@ export const Banner: React.FC<BannerProps> = ({
     <div className="flex flex-col items-center justify-center gap-3">
      <div style={{ transform: "scale(0.9)" }}>
       <div className="font-jetbrains">
-       <CodeBlock dev={dev} bgColor={bgColor} />
+       <CodeBlock dev={dev} bgColor={effectiveBgColor} />
       </div>
      </div>
     </div>

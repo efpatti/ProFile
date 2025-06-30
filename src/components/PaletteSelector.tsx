@@ -6,16 +6,24 @@ import { ColorSelector } from "./ColorSelector";
 import type { PaletteName } from "@/styles/PaletteProvider";
 import { BgBannerColorName } from "@/styles/sharedStyleConstants";
 
-const PALETTE_OPTIONS = [
- { value: "darkGreen", label: "Verde Floresta" },
- { value: "deepBlue", label: "Azul Profundo" },
- { value: "vibrantPurple", label: "Lavanda" },
- { value: "sunsetOrange", label: "Pôr do Sol" },
- { value: "teal", label: "Turquesa" },
-].map((opt) => ({
- ...opt,
- color: paletteTokens[opt.value as PaletteName].accent,
-})) as { value: PaletteName; label: string; color: string }[];
+const PALETTE_OPTIONS = (Object.keys(paletteTokens) as PaletteName[]).map(
+ (key) => {
+  const palette = paletteTokens[key];
+  // Busca o valor de accent
+  const colorsArr = palette.colors;
+  const accentObj = colorsArr.find((c) =>
+   Object.prototype.hasOwnProperty.call(c, "accent")
+  );
+  const accent = accentObj ? (accentObj as { accent: string }).accent : "#000";
+  // Busca o nome pt-br
+  const colorName = palette.colorName[0]["pt-br"] ?? key;
+  return {
+   value: key,
+   label: colorName,
+   color: accent,
+  };
+ }
+) as { value: PaletteName; label: string; color: string }[];
 
 interface PaletteSelectorProps {
  bgName: BgBannerColorName;
