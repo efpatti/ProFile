@@ -11,6 +11,8 @@ import { db } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/core/services/AuthProvider";
 import { doc, setDoc } from "firebase/firestore";
+import { PaletteSelector } from "@/components/PaletteSelector";
+import type { PaletteName } from "@/styles/PaletteProvider";
 
 const containerVariants = {
  hidden: { opacity: 0 },
@@ -107,6 +109,7 @@ const Form = () => {
  const [error, setError] = useState("");
  const [authLoading, setAuthLoading] = useState(true);
  const [userLogged, setUserLogged] = useState(false);
+ const [palette, setPalette] = useState<PaletteName>("darkGreen");
  const router = useRouter();
  const { user, loading: globalAuthLoading } = useAuth();
 
@@ -155,11 +158,12 @@ const Form = () => {
     password
    );
    await updateProfile(userCredential.user, { displayName: name });
-   // Salva no Firestore
+   // Save to Firestore with palette
    await setDoc(doc(db, "users", userCredential.user.uid), {
     uid: userCredential.user.uid,
     name,
     email,
+    palette, // save palette
     createdAt: new Date().toISOString(),
    });
    router.push("/"); // redirect to home on success
@@ -205,6 +209,16 @@ const Form = () => {
     Icon={FaLock}
     placeholder="••••••••"
    />
+   <motion.div variants={itemVariants}>
+    <label className="block text-sm font-medium text-zinc-300 mb-1">
+     Color palette
+    </label>
+    <PaletteSelector
+     bgName="midnightSlate"
+     selected={palette}
+     onSelect={setPalette}
+    />
+   </motion.div>
    <motion.div variants={itemVariants}>
     <button
      type="submit"

@@ -9,15 +9,30 @@ import { onAuthStateChanged, signOut } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import type { User } from "firebase/auth";
 import Link from "next/link";
+import { doc, getDoc } from "firebase/firestore";
+import { db } from "@/lib/firebase";
 
 const Navbar = () => {
  const [user, setUser] = useState<User | null>(null);
+ const [userPalette, setUserPalette] = useState<string | null>(null);
  const [isMenuOpen, setIsMenuOpen] = useState(false);
  const router = useRouter();
 
  useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+  const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
    setUser(currentUser);
+   if (currentUser) {
+    // Busca a palette do usuário no Firestore
+    const userDoc = await getDoc(doc(db, "users", currentUser.uid));
+    if (userDoc.exists()) {
+     const data = userDoc.data();
+     setUserPalette(data.palette || null);
+    } else {
+     setUserPalette(null);
+    }
+   } else {
+    setUserPalette(null);
+   }
   });
   return () => unsubscribe();
  }, []);
@@ -113,7 +128,7 @@ const Navbar = () => {
          >
           <div className="px-4 py-2 border-b border-zinc-700">
            <p className="text-sm text-white">
-            {user?.displayName || user?.email || "User"}
+            {userPalette || user?.email || "User"}
            </p>
            <p className="text-xs text-zinc-400 truncate">{user?.email}</p>
           </div>

@@ -1,6 +1,6 @@
-// components/ColorSelector.tsx
 "use client";
 
+// components/ColorSelector.tsx
 import { BgBannerColorName } from "@/styles/sharedStyleConstants";
 import {
  Listbox,
@@ -33,8 +33,13 @@ export const ColorSelector = <T extends string>({
  const selectedOption =
   options.find((option) => option.value === selected) || options[0];
 
+ // Exibe o valor da cor selecionada (útil para debug ou UX)
+ // Exemplo: Verde Floresta (darkGreen)
+ // Você pode customizar o estilo abaixo conforme o design desejado
+
  return (
   <div className={className}>
+   {/* Removido o bloco 'Selecionado:' e info extra */}
    <Listbox value={selected} onChange={onSelect}>
     {({ open }) => (
      <div className="relative">
@@ -48,15 +53,19 @@ export const ColorSelector = <T extends string>({
          style={{ backgroundColor: selectedOption.color }}
         />
         {selectedOption.label && (
-         <span className="block truncate">{selectedOption.label}</span>
+         <span className="block truncate">
+          {selectedOption.label}{" "}
+          <span className="text-xs text-gray-500">
+           ({selectedOption.value})
+          </span>
+         </span>
         )}
        </span>
        <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
         <FiChevronDown
          className={`h-5 w-5 transition-transform ${
-          open && "rotate-180"
-         } text-gray-300
-         }`}
+          open ? "rotate-180" : ""
+         } text-gray-300`}
         />
        </span>
       </ListboxButton>

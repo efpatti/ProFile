@@ -5,6 +5,7 @@ import { PaletteProvider, PaletteName } from "@/styles/PaletteProvider";
 import { bgBannerColor } from "@/styles/sharedStyleConstants";
 import { AuthProvider } from "@/core/services/AuthProvider";
 import Navbar from "@/components/Navbar";
+import { PaletteSyncWrapper } from "@/components/PaletteSyncWrapper";
 
 const inter = Inter({
  variable: "--font-inter",
@@ -49,6 +50,7 @@ export default function RootLayout({
    >
     <AuthProvider>
      <PaletteProvider initialPalette={initialPalette}>
+      <PaletteSyncWrapper />
       <Navbar />
       {children}
      </PaletteProvider>

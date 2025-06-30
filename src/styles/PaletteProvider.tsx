@@ -4,6 +4,9 @@ import {
  colorPalettes,
  type PaletteName as SharedPaletteName,
 } from "./sharedStyleConstants";
+import { useAuth } from "@/core/services/AuthProvider";
+import { db } from "@/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 // Adaptando os tipos para manter compatibilidade
 export type PaletteName = SharedPaletteName;
@@ -36,11 +39,31 @@ export const usePalette = () => {
 
 export const PaletteProvider: React.FC<{
  children: React.ReactNode;
- initialPalette?: PaletteName;
-}> = ({ children, initialPalette = "darkGreen" }) => {
- const [palette, setPalette] = useState<PaletteName>(initialPalette);
+}> = ({ children }) => {
+ const { user } = useAuth();
+ const [palette, setPalette] = useState<PaletteName | undefined>(undefined);
+ const [loading, setLoading] = useState(true);
 
  useEffect(() => {
+  if (!user) return;
+  let ignore = false;
+  const fetchPalette = async () => {
+   const userDoc = await getDoc(doc(db, "users", user.uid));
+   if (userDoc.exists()) {
+    const data = userDoc.data();
+    if (data.palette && !ignore) setPalette(data.palette as PaletteName);
+    else if (!ignore) setPalette("darkGreen");
+   } else if (!ignore) setPalette("darkGreen");
+   setLoading(false);
+  };
+  fetchPalette();
+  return () => {
+   ignore = true;
+  };
+ }, [user]);
+
+ useEffect(() => {
+  if (!palette) return;
   paletteActiveState.value = palette;
   const tokensArr = colorPalettes[palette].colors;
   // Utilitário para pegar valor pelo nome (corrigido para tipagem)
@@ -72,6 +95,8 @@ export const PaletteProvider: React.FC<{
    document.documentElement.style.setProperty("--accent-30", accent30);
   }
  }, [palette]);
+
+ if (loading || !palette) return null;
 
  return (
   <PaletteContext.Provider
