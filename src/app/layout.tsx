@@ -44,7 +44,7 @@ export default function RootLayout({
       <BannerColorSyncWrapper />
       <PaletteSyncWrapper />
       <Navbar />
-      {children}
+      <div className="pt-20">{children}</div>
      </PaletteProvider>
     </AuthProvider>
    </body>

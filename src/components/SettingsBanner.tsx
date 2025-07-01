@@ -44,7 +44,13 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
  const { palette, setPalette } = usePalette();
  const { user } = useAuth();
 
+ console.log("[SettingsBanner] render", { selectedBg });
+
  const handleApplyChanges = async () => {
+  console.log("[SettingsBanner] handleApplyChanges start", {
+   user,
+   selectedBg,
+  });
   if (!user) {
    setIsOpen(false);
    return;
@@ -63,11 +69,13 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
     setShowSuccess(false);
     setIsOpen(false);
    }, 1500);
+   console.log("[SettingsBanner] handleApplyChanges success");
   } catch (error) {
-   console.error("Error saving settings:", error);
+   console.error("[SettingsBanner] handleApplyChanges error", error);
    setShowError(true);
    setTimeout(() => setShowError(false), 3000);
   } finally {
+   console.log("[SettingsBanner] handleApplyChanges finally");
    setIsSaving(false);
   }
  };

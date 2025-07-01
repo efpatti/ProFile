@@ -59,7 +59,12 @@ export const PaletteProvider: React.FC<{
  const [loading, setLoading] = useState(true);
 
  useEffect(() => {
-  if (!user) return;
+  if (!user) {
+   setPalette("darkGreen");
+   setBannerColor("pureWhite");
+   setLoading(false);
+   return;
+  }
   let ignore = false;
   const fetchPalette = async () => {
    const userDoc = await getDoc(doc(db, "users", user.uid));
@@ -83,6 +88,7 @@ export const PaletteProvider: React.FC<{
  }, [user]);
 
  useEffect(() => {
+  console.log("[PaletteProvider] useEffect palette", { palette });
   if (!palette) return;
   paletteActiveState.value = palette;
   const tokensArr = colorPalettes[palette].colors;
@@ -117,11 +123,14 @@ export const PaletteProvider: React.FC<{
  }, [palette]);
 
  useEffect(() => {
+  console.log("[PaletteProvider] useEffect bannerColor", { bannerColor });
   if (!bannerColor) return;
   bannerColorActiveState.value = bannerColor;
  }, [bannerColor]);
 
  if (loading || !palette || !bannerColor) return null;
+
+ console.log("[PaletteProvider] render", { loading, palette, bannerColor });
 
  return (
   <PaletteContext.Provider

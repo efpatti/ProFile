@@ -1,3 +1,17 @@
+const colors = [
+ "#ef4444", // 0
+ "#f97316", // 1
+ "#eab308", // 2
+ "#22c55e", // 3
+ "#14b8a6", // 4
+ "#10b981", // 5
+ "#3b82f6", // 6
+ "#06b6d4", // 7
+ "#6366f1", // 8
+ "#a855f7", // 9
+ "#8b5cf6", // 10
+ "#ec4899", // 11
+] as const;
 const LogoSVG = ({ className }: { className?: string }) => (
  <svg
   version="1.0"
@@ -10,32 +24,24 @@ const LogoSVG = ({ className }: { className?: string }) => (
  >
   <defs>
    <linearGradient id="letterFGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="20%" stopColor="#22c55e" /> {/* Verde */}
-    <stop offset="40%" stopColor="#3b82f6" /> {/* Azul */}
-    <stop offset="60%" stopColor="#a855f7" /> {/* Roxo */}
-    <stop offset="100%" stopColor="#f97316" /> {/* Laranja */}
-    <stop offset="80%" stopColor="#14b8a6" /> {/* Turquesa */}
+    <stop offset="20%" stopColor={colors[0]} /> {/* Vermelho */}
+    <stop offset="40%" stopColor={colors[1]} /> {/* Laranja */}
+    <stop offset="60%" stopColor={colors[2]} /> {/* Amarelo */}
    </linearGradient>
    <linearGradient id="letterIGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="20%" stopColor="#22c55e" /> {/* Verde */}
-    <stop offset="40%" stopColor="#3b82f6" /> {/* Azul */}
-    <stop offset="60%" stopColor="#a855f7" /> {/* Roxo */}
-    <stop offset="80%" stopColor="#14b8a6" /> {/* Turquesa */}
-    <stop offset="100%" stopColor="#f97316" /> {/* Laranja */}
+    <stop offset="20%" stopColor={colors[3]} /> {/* Verde */}
+    <stop offset="40%" stopColor={colors[4]} /> {/* Ciano */}
+    <stop offset="60%" stopColor={colors[5]} /> {/* Verde-água */}
    </linearGradient>
    <linearGradient id="letterLGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="20%" stopColor="#22c55e" /> {/* Verde */}
-    <stop offset="40%" stopColor="#3b82f6" /> {/* Azul */}
-    <stop offset="60%" stopColor="#a855f7" /> {/* Roxo */}
-    <stop offset="80%" stopColor="#14b8a6" /> {/* Turquesa */}
-    <stop offset="100%" stopColor="#f97316" /> {/* Laranja */}
+    <stop offset="20%" stopColor={colors[6]} /> {/* Azul */}
+    <stop offset="40%" stopColor={colors[7]} /> {/* Azul claro */}
+    <stop offset="60%" stopColor={colors[8]} /> {/* Roxo claro */}
    </linearGradient>
    <linearGradient id="letterEGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="20%" stopColor="#22c55e" /> {/* Verde */}
-    <stop offset="40%" stopColor="#3b82f6" /> {/* Azul */}
-    <stop offset="60%" stopColor="#a855f7" /> {/* Roxo */}
-    <stop offset="80%" stopColor="#14b8a6" /> {/* Turquesa */}
-    <stop offset="100%" stopColor="#f97316" /> {/* Laranja */}
+    <stop offset="20%" stopColor={colors[9]} /> {/* Roxo */}
+    <stop offset="40%" stopColor={colors[10]} /> {/* Roxo escuro */}
+    <stop offset="60%" stopColor={colors[11]} /> {/* Rosa */}
    </linearGradient>
   </defs>
   <g
@@ -70,7 +76,7 @@ l-132 0 0 134 0 134 128 -130 c70 -71 129 -131 131 -134z"
    <path
     d="M7368 5804 c-15 -8 -35 -28 -43 -44 -44 -84 13 -170 113 -170 34 0
 49 6 79 34 31 28 38 41 38 74 0 22 -6 51 -14 64 -28 53 -114 74 -173 42z"
-    fill="#f8fbff"
+    fill="url(#letterIGradient)"
    />
 
    {/* Letra P */}
@@ -93,7 +99,7 @@ l-117 0 0 210 0 210 143 0 c116 0 149 -4 182 -19z"
    <path
     d="M7880 5700 l0 -80 120 0 120 0 0 -435 0 -435 -110 0 -110 0 0 -80 0
 -80 300 0 300 0 0 80 0 80 -100 0 -100 0 0 515 0 515 -210 0 -210 0 0 -80z"
-    fill="#f8fbff"
+    fill="url(#letterLGradient)"
    />
 
    {/* Letra r */}
@@ -124,7 +130,7 @@ l57 -7 0 89 c0 68 -4 92 -16 101 -18 15 -152 23 -204 11z"
 -155 169 -307 175 -79 3 -107 0 -159 -18z m238 -161 c35 -18 51 -35 73 -77 15
 -30 27 -66 27 -80 l0 -26 -202 3 c-200 2 -203 2 -200 23 11 68 68 146 122 168
 46 18 132 13 180 -11z"
-    fill="#f8fbff"
+    fill="url(#letterEGradient)"
    />
 
    {/* Letra i */}
@@ -132,7 +138,7 @@ l57 -7 0 89 c0 68 -4 92 -16 101 -18 15 -152 23 -204 11z"
     d="M7142 5389 l3 -82 108 2 107 2 0 -280 0 -281 -120 0 -120 0 0 -64 c0
 -35 -3 -71 -6 -80 -6 -14 27 -16 325 -16 l331 0 0 80 0 80 -115 0 -115 0 0
 360 0 360 -200 0 -201 0 3 -81z"
-    fill="#f8fbff"
+    fill="url(#letterIGradient)"
    />
   </g>
  </svg>

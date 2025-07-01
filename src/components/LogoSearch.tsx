@@ -23,6 +23,7 @@ export const LogoSearch: React.FC<LogoSearchProps> = ({ onLogoSelect }) => {
 
  // Busca automática com debounce
  useEffect(() => {
+  console.log("[LogoSearch] useEffect", { query });
   if (query.length < 2) {
    setResults([]);
    setShowSuggestions(false);
@@ -86,6 +87,8 @@ export const LogoSearch: React.FC<LogoSearchProps> = ({ onLogoSelect }) => {
    },
   },
  };
+
+ console.log("[LogoSearch] render", { query, results, loading });
 
  return (
   <div className="mt-6 flex items-center gap-3 w-full max-w-2xl">
