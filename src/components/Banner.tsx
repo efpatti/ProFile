@@ -11,7 +11,7 @@ import {
  bgBannerColor,
  BgBannerColorName,
 } from "@/styles/sharedStyleConstants";
-import { SettingsBanner } from "./SettingsBanner";
+import { SettingsPanel } from "@/components/SettingsPanel";
 import type { User } from "firebase/auth";
 import { usePalette } from "@/styles/PaletteProvider";
 
@@ -79,14 +79,12 @@ export const Banner: React.FC<BannerProps> = ({
   >
    {/* Settings Banner no canto superior esquerdo */}
    {selectedBg && onSelectBg && (
-    <div className="absolute top-4 left-4 z-50 flex flex-row gap-2 items-center">
-     <SettingsBanner
-      selectedBg={selectedBg}
-      onSelectBg={onSelectBg}
-      onLogoSelect={setCurrentLogoUrl}
-     />
-     <DownloadBannerButton logoUrl={currentLogoUrl} selectedBg={selectedBg} />
-    </div>
+    <SettingsPanel
+     selectedBg={selectedBg}
+     onSelectBg={onSelectBg}
+     onLogoSelect={setCurrentLogoUrl}
+     logoUrl={currentLogoUrl}
+    />
    )}
 
    {/* Left content - shifted right */}

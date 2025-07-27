@@ -14,6 +14,8 @@ import {
 } from "@/styles/sharedStyleConstants";
 import { useAuth } from "@/core/services/AuthProvider";
 import { isDarkBackground } from "@/utils/color";
+import { SettingsPanel } from "@/components/SettingsPanel";
+import { usePalette } from "@/styles/PaletteProvider";
 
 const defaultBg: BgBannerColorName = "midnightSlate";
 
@@ -22,8 +24,14 @@ const ResumePage: React.FC = () => {
  const [data, setData] = useState(resumeData["pt-br"]);
  const [isClient, setIsClient] = useState(false);
  const [paletteName] = useState<PaletteName>(defaultPalette);
- const [selectedBg, setSelectedBg] = useState<BgBannerColorName>(defaultBg);
+ const { bannerColor } = usePalette();
+ const [selectedBg, setSelectedBg] = useState<BgBannerColorName>(
+  bannerColor || defaultBg
+ );
  const { user } = useAuth();
+ const [currentLogoUrl, setCurrentLogoUrl] = useState<string | undefined>(
+  undefined
+ );
 
  useEffect(() => {
   setIsClient(true);
@@ -64,9 +72,16 @@ const ResumePage: React.FC = () => {
  }
  const effectiveBgColor = getBgColorObj(selectedBg);
 
+ useEffect(() => {
+  if (bannerColor) setSelectedBg(bannerColor);
+ }, [bannerColor]);
+
  if (!isClient) {
   return null;
  }
+
+ // Add handler for background selection
+ const handleSelectBg = (bg: BgBannerColorName) => setSelectedBg(bg);
 
  return (
   <div className="min-h-screen bg-gray-950 p-4 md:p-8 w-full">
@@ -79,9 +94,18 @@ const ResumePage: React.FC = () => {
     </button>
    </div>
    <div
-    className="max-w-6xl pdf mx-auto overflow-hidden border-4 border-[var(--secondary)]"
+    className="max-w-6xl pdf mx-auto overflow-hidden border-4 border-[var(--secondary)] relative"
     style={{ background: effectiveBgColor.bg }}
    >
+    {/* Shared settings panel for bg/logo/download */}
+    <SettingsPanel
+     selectedBg={selectedBg}
+     onSelectBg={handleSelectBg}
+     logoUrl={currentLogoUrl}
+     onLogoSelect={setCurrentLogoUrl}
+     showDownloadButton={false}
+     position="right"
+    />
     {/* Header */}
     <div className="p-8 bg-[var(--accent)]">
      <h1 className="text-3xl font-bold mb-2">
