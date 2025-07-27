@@ -1,5 +1,6 @@
 import type { NextApiRequest, NextApiResponse } from "next";
 import { PuppeteerService } from "@/core/services/PuppeteerService";
+import { BannerService } from "@/core/services/BannerService";
 
 export default async function handler(
  req: NextApiRequest,

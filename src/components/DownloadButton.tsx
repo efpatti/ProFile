@@ -1,4 +1,4 @@
-// components/DownloadBannerButton.tsx
+// components/DownloadButton.tsx
 "use client";
 
 import { useState } from "react";
@@ -7,12 +7,16 @@ import { BgBannerColorName } from "@/styles/sharedStyleConstants";
 import { FloatingActionButton } from "./FloatingActionButton";
 import { GoDownload as DownloadIcon } from "react-icons/go";
 
-export const DownloadBannerButton = ({
+export const DownloadButton = ({
  logoUrl,
  selectedBg,
+ type = "banner",
+ lang,
 }: {
  logoUrl?: string;
  selectedBg: BgBannerColorName;
+ type?: "banner" | "resume";
+ lang?: string;
 }) => {
  const { palette } = usePalette();
  const [loading, setLoading] = useState(false);
@@ -21,12 +25,20 @@ export const DownloadBannerButton = ({
   setLoading(true);
   const params = new URLSearchParams({ palette });
   if (logoUrl) params.append("logo", logoUrl);
-  const res = await fetch(`/api/download-banner?${params.toString()}`);
+  if (type === "resume" && lang) params.append("lang", lang);
+  const endpoint =
+   type === "resume" ? "/api/download-resume" : "/api/download-banner";
+  const res = await fetch(`${endpoint}?${params.toString()}`);
+  if (!res.ok) {
+   setLoading(false);
+   alert("Download failed: " + (await res.text()));
+   return;
+  }
   const blob = await res.blob();
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "linkedin-banner.png";
+  a.download = type === "resume" ? "resume.pdf" : "linkedin-banner.png";
   document.body.appendChild(a);
   a.click();
   a.remove();

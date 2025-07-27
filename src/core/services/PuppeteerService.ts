@@ -1,5 +1,6 @@
 // Versão TypeScript migrada do PuppeteerService.js
 import puppeteer from "puppeteer";
+import { BannerService } from "@/core/services/BannerService";
 
 export class PuppeteerService {
  static async captureBanner(
@@ -10,10 +11,22 @@ export class PuppeteerService {
   const page = await browser.newPage();
   // Aumenta a resolução para máxima qualidade
   await page.setViewport({ width: 1584, height: 396, deviceScaleFactor: 4 });
-  const pageUrl = `http://localhost:3000?palette=${palette}${
-   logoUrl ? `&logo=${encodeURIComponent(logoUrl)}` : ""
-  }`;
-  await page.goto(pageUrl, { waitUntil: "networkidle0" });
+  // Use BannerService to generate the correct URL
+  const pageUrl = BannerService.getBannerUrl({
+   palette,
+   logo: logoUrl,
+   host: "127.0.0.1",
+   port: 3000,
+  });
+  try {
+   await page.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 60000 }); // 60s timeout
+  } catch (err) {
+   // DEBUG: Take screenshot on navigation error
+   await page.screenshot({ path: "/tmp/banner_debug_goto_error.png" });
+   // eslint-disable-next-line no-console
+   console.error("[PuppeteerService] Error during page.goto:", err);
+   throw err;
+  }
 
   // DEBUG: Take screenshot after goto
   await page.screenshot({ path: "/tmp/banner_debug_after_goto.png" });
@@ -23,7 +36,31 @@ export class PuppeteerService {
   // eslint-disable-next-line no-console
   console.log("[PuppeteerService] HTML after goto:\n", html);
 
-  await page.waitForSelector("#banner");
+  // Espera pelo #banner com timeout maior e debug limpo
+  try {
+   await page.waitForSelector("#banner", { timeout: 60000 });
+  } catch (err) {
+   await page.screenshot({
+    path: "/tmp/banner_debug_waitforselector_error.png",
+   });
+   const html = await page.content();
+   // Tenta extrair só o trecho do #banner ou um resumo do body
+   const bannerMatch = html.match(
+    /<section[^>]*id=["']banner["'][^>]*>([\s\S]*?)<\/section>/i
+   );
+   if (bannerMatch) {
+    console.error("[PuppeteerService] #banner HTML snippet:", bannerMatch[0]);
+   } else {
+    const bodyMatch = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+    console.error(
+     "[PuppeteerService] <body> HTML snippet:",
+     bodyMatch ? bodyMatch[1].slice(0, 1000) : html.slice(0, 1000)
+    );
+   }
+   console.error("[PuppeteerService] Error waiting for #banner:", err);
+   throw err;
+  }
+
   await page.evaluateHandle("document.fonts.ready");
 
   // Aguarda a logo carregar, se existir
@@ -96,6 +133,38 @@ export class PuppeteerService {
    captureBeyondViewport: true,
    omitBackground: false,
   });
+  await browser.close();
+  return buffer;
+ }
+
+ static async captureResumePDF(
+  palette: string = "darkGreen",
+  lang: string = "pt-br"
+ ): Promise<Buffer> {
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1200, height: 1700, deviceScaleFactor: 2 });
+  const pageUrl = `http://127.0.0.1:3000/resume?palette=${palette}&lang=${lang}`;
+  try {
+   await page.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 60000 }); // 60s timeout
+  } catch (err) {
+   await page.screenshot({ path: "/tmp/resume_debug_goto_error.png" });
+   // eslint-disable-next-line no-console
+   console.error("[PuppeteerService] Error during resume page.goto:", err);
+   throw err;
+  }
+  await page.waitForSelector(".pdf");
+  await page.evaluateHandle("document.fonts.ready");
+  // Aguarda renderização completa
+  await new Promise((resolve) => setTimeout(resolve, 1000));
+  // Gera o PDF
+  const buffer = Buffer.from(
+   await page.pdf({
+    printBackground: true,
+    format: "A4",
+    preferCSSPageSize: true,
+   })
+  );
   await browser.close();
   return buffer;
  }

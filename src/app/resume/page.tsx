@@ -103,8 +103,10 @@ const ResumePage: React.FC = () => {
      onSelectBg={handleSelectBg}
      logoUrl={currentLogoUrl}
      onLogoSelect={setCurrentLogoUrl}
-     showDownloadButton={false}
+     showDownloadButton={true}
      position="right"
+     downloadType="resume"
+     lang={currentLang}
     />
     {/* Header */}
     <div className="p-8 bg-[var(--accent)]">

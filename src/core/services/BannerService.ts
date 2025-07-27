@@ -18,6 +18,24 @@ export class BannerService {
   });
  }
 
+ static getBannerUrl({
+  palette = "darkGreen",
+  logo = "",
+  host = "127.0.0.1",
+  port = 3000,
+ }: {
+  palette?: string;
+  logo?: string;
+  host?: string;
+  port?: number;
+ }) {
+  let url = `http://${host}:${port}/?palette=${encodeURIComponent(palette)}`;
+  if (logo) {
+   url += `&logo=${encodeURIComponent(logo)}`;
+  }
+  return url;
+ }
+
  renderTo(elementId: string, paletteName: PaletteName) {
   const element = document.getElementById(elementId);
   if (element) {

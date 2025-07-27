@@ -6,7 +6,6 @@ import { Developer } from "@/core/models/Developer";
 import { MdEmail } from "react-icons/md";
 import { FaPhoneAlt, FaGithub } from "react-icons/fa";
 import { FaAward as AwardIcon } from "react-icons/fa";
-import { DownloadBannerButton } from "./DownloadBannerButton";
 import {
  bgBannerColor,
  BgBannerColorName,
@@ -84,6 +83,9 @@ export const Banner: React.FC<BannerProps> = ({
      onSelectBg={onSelectBg}
      onLogoSelect={setCurrentLogoUrl}
      logoUrl={currentLogoUrl}
+     showDownloadButton={true}
+     position="left"
+     downloadType="banner"
     />
    )}
 

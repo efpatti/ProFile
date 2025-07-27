@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import { SettingsBanner } from "./SettingsBanner";
-import { DownloadBannerButton } from "./DownloadBannerButton";
+import { DownloadButton } from "@/components/DownloadButton";
 import { BgBannerColorName } from "@/styles/sharedStyleConstants";
 
 interface SettingsPanelProps {
@@ -12,7 +12,7 @@ interface SettingsPanelProps {
  onLogoSelect?: (url: string) => void;
  showDownloadButton?: boolean;
  logoUrl?: string;
- position?: "left" | "right"; // nova prop opcional
+ position?: "left" | "right";
 }
 
 export const SettingsPanel = ({
@@ -22,7 +22,12 @@ export const SettingsPanel = ({
  showDownloadButton = true,
  logoUrl,
  position = "left", // padrão é esquerda
-}: SettingsPanelProps) => {
+ downloadType = "banner",
+ lang,
+}: SettingsPanelProps & {
+ downloadType?: "banner" | "resume";
+ lang?: string;
+}) => {
  const [currentLogoUrl, setCurrentLogoUrl] = useState(logoUrl);
 
  const handleLogoSelect = (url: string) => {
@@ -42,11 +47,13 @@ export const SettingsPanel = ({
     onLogoSelect={handleLogoSelect}
    />
    {showDownloadButton && (
-    <DownloadBannerButton logoUrl={currentLogoUrl} selectedBg={selectedBg} />
+    <DownloadButton
+     logoUrl={currentLogoUrl}
+     selectedBg={selectedBg}
+     type={downloadType}
+     lang={lang}
+    />
    )}
   </div>
  );
 };
-
-// SettingsPanel já está implementado corretamente para uso compartilhado.
-// Nenhuma alteração necessária aqui.
