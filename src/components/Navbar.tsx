@@ -1,10 +1,10 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import LogoSVG from "@/components/LogoSVG";
 import { useEffect, useRef, useState } from "react";
-import { FaGithub } from "react-icons/fa";
+import { FaGithub, FaTimes } from "react-icons/fa";
 import { useAuth } from "@/core/services/AuthProvider";
 import {
  mainPublicRoutes,
@@ -17,8 +17,74 @@ import type { UserWithProfile } from "@/core/services/AuthProvider";
 import Image from "next/image";
 import { handleSignOut } from "@/core/services/signOut";
 
-const MainLinks = () => (
- <div className="hidden md:flex bg-gradient-to-r from-zinc-900/30 via-zinc-700/30 to-zinc-900/30 backdrop-blur-sm rounded-full px-8 py-2 space-x-8 border border-white/10 shadow-lg">
+// Mobile Menu component
+interface MobileMenuProps {
+ isOpen: boolean;
+ onClose: () => void;
+ children: React.ReactNode;
+}
+
+const MobileMenu = ({ isOpen, onClose, children }: MobileMenuProps) => (
+ <AnimatePresence>
+  {isOpen && (
+   <motion.div
+    initial={{ opacity: 0 }}
+    animate={{ opacity: 1 }}
+    exit={{ opacity: 0 }}
+    className="fixed inset-0 z-40 bg-zinc-900/95 backdrop-blur-sm pt-16"
+   >
+    <motion.div
+     initial={{ y: -20 }}
+     animate={{ y: 0 }}
+     exit={{ y: -20 }}
+     className="container mx-auto p-6 overflow-y-auto h-full"
+    >
+     {children}
+     <div className="mt-8 flex justify-center">
+      <button
+       onClick={onClose}
+       className="px-6 py-2 text-gray-400 hover:text-white border border-gray-700 rounded-lg flex items-center gap-2"
+      >
+       <FaTimes /> Close
+      </button>
+     </div>
+    </motion.div>
+   </motion.div>
+  )}
+ </AnimatePresence>
+);
+
+// Hamburger Menu Button component
+interface MenuButtonProps {
+ onClick: () => void;
+ isOpen: boolean;
+}
+
+const MenuButton = ({ onClick, isOpen }: MenuButtonProps) => (
+ <button
+  onClick={onClick}
+  className="md:hidden p-2 text-gray-400 hover:text-white"
+  aria-label="Menu"
+ >
+  <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24">
+   <path
+    stroke="currentColor"
+    strokeLinecap="round"
+    strokeWidth={2}
+    d={isOpen ? "M6 18L18 6M6 6l12 12" : "M4 6h16M4 12h16M4 18h16"}
+   />
+  </svg>
+ </button>
+);
+
+const MainLinks = ({ isMobile = false }: { isMobile?: boolean }) => (
+ <div
+  className={`${
+   isMobile ? "flex flex-col space-y-4" : "hidden md:flex"
+  } bg-gradient-to-r from-zinc-900/30 via-zinc-700/30 to-zinc-900/30 backdrop-blur-sm rounded-xl px-6 py-4 ${
+   isMobile ? "space-y-4" : "space-x-8"
+  } border border-white/10 shadow-lg`}
+ >
   {[...mainPublicRoutes, ...bannerAndResumeRoutes]
    .filter(Boolean)
    .map((route) => (
@@ -43,15 +109,15 @@ const MainLinks = () => (
 );
 
 const AuthLinks = () => (
- <div className="flex items-center space-x-3">
+ <div className="flex flex-col space-y-3 md:flex-row md:items-center md:space-y-0 md:space-x-3">
   {authRoutes.map((route) => (
    <Link
     key={route.href}
     href={route.href}
     className={
      route.href.includes("sign-in")
-      ? "text-sm font-medium text-white border border-blue-400/50 px-4 py-1.5 rounded-md hover:bg-blue-500/20 hover:border-blue-400 transition-all"
-      : "text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 px-4 py-1.5 rounded-md transition-all shadow-md hover:shadow-blue-500/20"
+      ? "text-sm font-medium text-white border border-blue-400/50 px-4 py-1.5 rounded-md hover:bg-blue-500/20 hover:border-blue-400 transition-all text-center"
+      : "text-sm font-semibold text-white bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 px-4 py-1.5 rounded-md transition-all shadow-md hover:shadow-blue-500/20 text-center"
     }
    >
     {route.title.en}
@@ -60,13 +126,25 @@ const AuthLinks = () => (
  </div>
 );
 
-const AuthActions = ({ isLogged }: { isLogged: boolean }) => (
- <div className="flex items-center space-x-4">
+const AuthActions = ({
+ isLogged,
+ isMobile = false,
+}: {
+ isLogged: boolean;
+ isMobile?: boolean;
+}) => (
+ <div
+  className={`flex ${
+   isMobile ? "flex-col space-y-4 items-stretch" : "items-center space-x-4"
+  }`}
+ >
   <a
    href="https://github.com/seurepo"
    target="_blank"
    rel="noopener noreferrer"
-   className="text-white/80 hover:text-white transition-all p-2 hover:bg-white/10 rounded-full"
+   className={`text-white/80 hover:text-white transition-all p-2 hover:bg-white/10 rounded-full ${
+    isMobile ? "self-center" : ""
+   }`}
   >
    <FaGithub size={18} />
   </a>
@@ -163,6 +241,7 @@ const ProfileMenu = ({ user }: { user: UserWithProfile | null }) => {
 
 const Navbar = () => {
  const [isScrolled, setIsScrolled] = useState(false);
+ const [menuOpen, setMenuOpen] = useState(false);
  const { isLogged, user } = useAuth();
 
  useEffect(() => {
@@ -174,30 +253,53 @@ const Navbar = () => {
  }, []);
 
  return (
-  <motion.nav
-   initial={{ opacity: 0, y: -20 }}
-   animate={{ opacity: 1, y: 0 }}
-   transition={{ duration: 0.5 }}
-   className={`fixed top-0 w-full z-50 transition-all duration-300 ${
-    isScrolled
-     ? "backdrop-blur-md bg-zinc-900/80 border-b border-zinc-800/50"
-     : "bg-transparent"
-   }`}
-  >
-   <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
-    {/* Logo */}
-    <Link href="/" className="flex items-center">
-     <LogoSVG className="w-36 h-36 hover:opacity-90 transition" />
-    </Link>
+  <>
+   <motion.nav
+    initial={{ opacity: 0, y: -20 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.5 }}
+    className={`fixed top-0 w-full z-50 transition-all duration-300 ${
+     isScrolled
+      ? "backdrop-blur-md bg-zinc-900/80 border-b border-zinc-800/50"
+      : "bg-transparent"
+    }`}
+   >
+    <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
+     {/* Logo */}
+     <Link
+      href="/"
+      className="flex items-center"
+      onClick={() => setMenuOpen(false)}
+     >
+      <LogoSVG className="w-36 h-36 hover:opacity-90 transition" />
+     </Link>
 
-    <MainLinks />
+     <MainLinks />
 
-    <div className="flex items-center space-x-4">
-     {isLogged && <ProfileMenu user={user} />}
-     <AuthActions isLogged={isLogged} />
+     <div className="flex items-center space-x-4">
+      {isLogged && <ProfileMenu user={user} />}
+      <AuthActions isLogged={isLogged} />
+      <MenuButton onClick={() => setMenuOpen(!menuOpen)} isOpen={menuOpen} />
+     </div>
     </div>
-   </div>
-  </motion.nav>
+   </motion.nav>
+
+   <MobileMenu isOpen={menuOpen} onClose={() => setMenuOpen(false)}>
+    <div className="w-full space-y-6">
+     <MainLinks isMobile />
+     {isLogged && (
+      <Link
+       href={profileRoute?.href || "/profile"}
+       className="block w-full text-center px-4 py-3 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-medium transition shadow-md"
+       onClick={() => setMenuOpen(false)}
+      >
+       My Profile
+      </Link>
+     )}
+     <AuthActions isLogged={isLogged} isMobile />
+    </div>
+   </MobileMenu>
+  </>
  );
 };
 
