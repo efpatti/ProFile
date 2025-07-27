@@ -1,17 +1,18 @@
 const colors = [
- "#ef4444", // 0
- "#f97316", // 1
- "#eab308", // 2
- "#22c55e", // 3
- "#14b8a6", // 4
- "#10b981", // 5
- "#3b82f6", // 6
- "#06b6d4", // 7
- "#6366f1", // 8
- "#a855f7", // 9
- "#8b5cf6", // 10
- "#ec4899", // 11
+ "#ef4444", // 0 - vermelho
+ "#f97316", // 1 - laranja
+ "#eab308", // 2 - amarelo
+ "#22c55e", // 3 - verde
+ "#14b8a6", // 4 - ciano
+ "#10b981", // 5 - verde-água
+ "#3b82f6", // 6 - azul
+ "#06b6d4", // 7 - azul claro
+ "#6366f1", // 8 - roxo claro
+ "#a855f7", // 9 - roxo
+ "#8b5cf6", // 10 - roxo escuro
+ "#ec4899", // 11 - rosa
 ] as const;
+
 const LogoSVG = ({ className }: { className?: string }) => (
  <svg
   version="1.0"
@@ -23,32 +24,20 @@ const LogoSVG = ({ className }: { className?: string }) => (
   className={className}
  >
   <defs>
-   <linearGradient id="letterFGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="20%" stopColor={colors[0]} /> {/* Vermelho */}
-    <stop offset="40%" stopColor={colors[1]} /> {/* Laranja */}
-    <stop offset="60%" stopColor={colors[2]} /> {/* Amarelo */}
-   </linearGradient>
-   <linearGradient id="letterIGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="20%" stopColor={colors[3]} /> {/* Verde */}
-    <stop offset="40%" stopColor={colors[4]} /> {/* Ciano */}
-    <stop offset="60%" stopColor={colors[5]} /> {/* Verde-água */}
-   </linearGradient>
-   <linearGradient id="letterLGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="20%" stopColor={colors[6]} /> {/* Azul */}
-    <stop offset="40%" stopColor={colors[7]} /> {/* Azul claro */}
-    <stop offset="60%" stopColor={colors[8]} /> {/* Roxo claro */}
-   </linearGradient>
-   <linearGradient id="letterEGradient" x1="0%" y1="0%" x2="100%" y2="100%">
-    <stop offset="20%" stopColor={colors[9]} /> {/* Roxo */}
-    <stop offset="40%" stopColor={colors[10]} /> {/* Roxo escuro */}
-    <stop offset="60%" stopColor={colors[11]} /> {/* Rosa */}
+   {/* Gradiente para o triângulo com 5 cores */}
+   <linearGradient id="triangleGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+    <stop offset="0%" stopColor={colors[0]} /> {/* Vermelho */}
+    <stop offset="25%" stopColor={colors[3]} /> {/* Verde */}
+    <stop offset="50%" stopColor={colors[6]} /> {/* Azul */}
+    <stop offset="75%" stopColor={colors[9]} /> {/* Roxo */}
+    <stop offset="100%" stopColor={colors[2]} /> {/* Amarelo */}
    </linearGradient>
   </defs>
   <g
    transform="translate(0.000000,1024.000000) scale(0.100000,-0.100000)"
    stroke="none"
   >
-   {/* Primeira parte do logo - mantendo branco */}
+   {/* Triângulo com gradiente de 5 cores */}
    <path
     d="M2012 6523 c-21 -8 -59 -71 -399 -653 -182 -311 -391 -668 -465 -795
 -74 -126 -142 -244 -152 -262 -21 -41 -20 -86 2 -111 15 -18 193 -131 975
@@ -63,7 +52,7 @@ const LogoSVG = ({ className }: { className?: string }) => (
 -437 0 -432z m-719 432 c0 -268 -23 -245 251 -245 l207 0 -1 -265 -2 -265
 -322 0 -323 0 0 490 0 490 95 0 95 0 0 -205z m409 -101 c2 -2 -55 -4 -127 -4
 l-132 0 0 134 0 134 128 -130 c70 -71 129 -131 131 -134z"
-    fill="#f8fbff"
+    fill="url(#triangleGradient)"
    />
    <path
     d="M2185 4995 c-14 -13 -25 -36 -25 -50 0 -14 11 -37 25 -50 23 -24 28
@@ -72,11 +61,11 @@ l-132 0 0 134 0 134 128 -130 c70 -71 129 -131 131 -134z"
     fill="#f8fbff"
    />
 
-   {/* Bolinha do i */}
+   {/* Bolinha do i - agora branca */}
    <path
     d="M7368 5804 c-15 -8 -35 -28 -43 -44 -44 -84 13 -170 113 -170 34 0
 49 6 79 34 31 28 38 41 38 74 0 22 -6 51 -14 64 -28 53 -114 74 -173 42z"
-    fill="url(#letterIGradient)"
+    fill="#f8fbff"
    />
 
    {/* Letra P */}
@@ -88,18 +77,18 @@ l-117 0 0 210 0 210 143 0 c116 0 149 -4 182 -19z"
     fill="#f8fbff"
    />
 
-   {/* Letra F - com gradiente aplicado */}
+   {/* Letra F - agora branca */}
    <path
     d="M6280 5185 l0 -595 90 0 90 0 0 250 0 250 235 0 235 0 0 80 0 80
 -235 0 -235 0 0 180 0 180 265 0 265 0 0 85 0 85 -355 0 -355 0 0 -595z"
-    fill="url(#letterFGradient)"
+    fill="#f8fbff"
    />
 
-   {/* Letra l */}
+   {/* Letra l - agora branca */}
    <path
     d="M7880 5700 l0 -80 120 0 120 0 0 -435 0 -435 -110 0 -110 0 0 -80 0
 -80 300 0 300 0 0 80 0 80 -100 0 -100 0 0 515 0 515 -210 0 -210 0 0 -80z"
-    fill="url(#letterLGradient)"
+    fill="#f8fbff"
    />
 
    {/* Letra r */}
@@ -121,7 +110,7 @@ l57 -7 0 89 c0 68 -4 92 -16 101 -18 15 -152 23 -204 11z"
     fill="#f8fbff"
    />
 
-   {/* Letra e */}
+   {/* Letra E - agora branca */}
    <path
     d="M8822 5459 c-116 -41 -207 -147 -242 -286 -47 -183 -5 -378 105 -488
 81 -81 176 -115 325 -115 100 0 141 8 228 42 l53 21 -7 86 c-4 47 -8 88 -10
@@ -130,15 +119,15 @@ l57 -7 0 89 c0 68 -4 92 -16 101 -18 15 -152 23 -204 11z"
 -155 169 -307 175 -79 3 -107 0 -159 -18z m238 -161 c35 -18 51 -35 73 -77 15
 -30 27 -66 27 -80 l0 -26 -202 3 c-200 2 -203 2 -200 23 11 68 68 146 122 168
 46 18 132 13 180 -11z"
-    fill="url(#letterEGradient)"
+    fill="#f8fbff"
    />
 
-   {/* Letra i */}
+   {/* Letra i - agora branca */}
    <path
     d="M7142 5389 l3 -82 108 2 107 2 0 -280 0 -281 -120 0 -120 0 0 -64 c0
 -35 -3 -71 -6 -80 -6 -14 27 -16 325 -16 l331 0 0 80 0 80 -115 0 -115 0 0
 360 0 360 -200 0 -201 0 3 -81z"
-    fill="url(#letterIGradient)"
+    fill="#f8fbff"
    />
   </g>
  </svg>
