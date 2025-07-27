@@ -150,13 +150,15 @@ export class PuppeteerService {
 
  static async captureResumePDF(
   palette: string = paletteActiveState.value,
-  lang: string = "pt-br"
+  lang: string = "pt-br",
+  bannerColor?: string
  ): Promise<Buffer> {
   // Não use label, use sempre o slug/código
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
   await page.setViewport({ width: 1200, height: 1700, deviceScaleFactor: 2 });
-  const pageUrl = `http://127.0.0.1:3000/resume?palette=${palette}&lang=${lang}`;
+  let pageUrl = `http://127.0.0.1:3000/resume?palette=${palette}&lang=${lang}`;
+  if (bannerColor) pageUrl += `&bannerColor=${bannerColor}`;
   try {
    await page.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 60000 }); // 60s timeout
   } catch (err) {

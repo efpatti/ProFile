@@ -9,9 +9,14 @@ export default async function handler(
  try {
   const palette = (req.query.palette as string) || "darkGreen";
   const lang = (req.query.lang as string) || "pt-br";
-  console.log("[API] palette recebido:", palette);
+  const bannerColor = (req.query.bannerColor as string) || undefined;
+  console.log("[API] palette recebido:", palette, "bannerColor:", bannerColor);
   // Adicione outros parâmetros se necessário
-  const buffer = await PuppeteerService.captureResumePDF(palette, lang);
+  const buffer = await PuppeteerService.captureResumePDF(
+   palette,
+   lang,
+   bannerColor
+  );
   if (!buffer || buffer.length < 1000) {
    res.status(500).json({
     error: "Resume PDF generation failed (empty or invalid buffer)",

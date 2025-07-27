@@ -25,13 +25,16 @@ const ResumePage: React.FC = () => {
  const paletteFromQuery = searchParams
   ? (searchParams.get("palette") as PaletteName | null)
   : null;
+ const bannerColorFromQuery = searchParams
+  ? (searchParams.get("bannerColor") as BgBannerColorName | null)
+  : null;
  const [currentLang, setCurrentLang] = useState<"pt-br" | "en">("pt-br");
  const [data, setData] = useState(resumeData["pt-br"]);
  const [isClient, setIsClient] = useState(false);
  const [paletteName] = useState<PaletteName>(defaultPalette);
- const { bannerColor, palette, setPalette } = usePalette();
+ const { bannerColor, palette, setPalette, setBannerColor } = usePalette();
  const [selectedBg, setSelectedBg] = useState<BgBannerColorName>(
-  bannerColor || defaultBg
+  bannerColorFromQuery || bannerColor || defaultBg
  );
  const { user } = useAuth();
  const [currentLogoUrl, setCurrentLogoUrl] = useState<string | undefined>(
@@ -48,8 +51,12 @@ const ResumePage: React.FC = () => {
   if (paletteFromQuery && paletteFromQuery !== palette) {
    setPalette(paletteFromQuery);
   }
+  if (bannerColorFromQuery && bannerColorFromQuery !== bannerColor) {
+   setSelectedBg(bannerColorFromQuery);
+   setBannerColor(bannerColorFromQuery);
+  }
   // eslint-disable-next-line react-hooks/exhaustive-deps
- }, [paletteFromQuery]);
+ }, [paletteFromQuery, bannerColorFromQuery]);
 
  const toggleLanguage = () => {
   setCurrentLang(currentLang === "pt-br" ? "en" : "pt-br");

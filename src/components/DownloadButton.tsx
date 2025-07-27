@@ -29,6 +29,7 @@ export const DownloadButton = ({
   const params = new URLSearchParams({ palette });
   if (logoUrl) params.append("logo", logoUrl);
   if (type === "resume" && lang) params.append("lang", lang);
+  if (type === "resume" && selectedBg) params.append("bannerColor", selectedBg);
   const endpoint =
    type === "resume" ? "/api/download-resume" : "/api/download-banner";
   const res = await fetch(`${endpoint}?${params.toString()}`);
