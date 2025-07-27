@@ -1,10 +1,12 @@
 // Versão TypeScript migrada do PuppeteerService.js
 import puppeteer from "puppeteer";
 import { BannerService } from "@/core/services/BannerService";
+import { colorPalettes, PaletteName } from "@/styles/sharedStyleConstants";
+import { paletteActiveState } from "@/styles/PaletteProvider";
 
 export class PuppeteerService {
  static async captureBanner(
-  palette: string = "darkGreen",
+  palette: string = paletteActiveState.value,
   logoUrl: string = ""
  ): Promise<Buffer> {
   const browser = await puppeteer.launch();
@@ -137,10 +139,20 @@ export class PuppeteerService {
   return buffer;
  }
 
+ static getPaletteInfo(palette: string | undefined) {
+  if (!palette || !(palette in colorPalettes)) return null;
+  const info = colorPalettes[palette as PaletteName];
+  return {
+   label: info.colorName?.[0]?.["pt-br"] || palette,
+   color: info.colors?.[0]?.accent || "#888",
+  };
+ }
+
  static async captureResumePDF(
-  palette: string = "darkGreen",
+  palette: string = paletteActiveState.value,
   lang: string = "pt-br"
  ): Promise<Buffer> {
+  // Não use label, use sempre o slug/código
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
   await page.setViewport({ width: 1200, height: 1700, deviceScaleFactor: 2 });

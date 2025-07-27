@@ -16,6 +16,8 @@ import {
 import type { UserWithProfile } from "@/core/services/AuthProvider";
 import Image from "next/image";
 import { handleSignOut } from "@/core/services/signOut";
+import { colorPalettes, PaletteName } from "@/styles/sharedStyleConstants";
+import { usePalette } from "@/styles/PaletteProvider";
 
 // Mobile Menu component
 interface MobileMenuProps {
@@ -152,9 +154,19 @@ const AuthActions = ({
  </div>
 );
 
+const getPaletteInfo = (palette: string | undefined) => {
+ if (!palette || !(palette in colorPalettes)) return null;
+ const info = colorPalettes[palette as PaletteName];
+ return {
+  label: info.colorName?.[0]?.["pt-br"] || palette,
+  color: info.colors?.[0]?.accent || "#888",
+ };
+};
+
 const ProfileMenu = ({ user }: { user: UserWithProfile | null }) => {
  const [open, setOpen] = useState(false);
  const menuRef = useRef<HTMLDivElement>(null);
+ const { palette } = usePalette();
 
  useEffect(() => {
   if (!open) return;
@@ -170,6 +182,7 @@ const ProfileMenu = ({ user }: { user: UserWithProfile | null }) => {
  const avatar = user?.photoURL || undefined;
  const displayName = user?.displayName || user?.email?.split("@")[0] || "User";
  const email = user?.email || "";
+ const paletteInfo = getPaletteInfo(palette);
 
  return (
   <div className="relative ml-4" ref={menuRef}>
@@ -188,7 +201,18 @@ const ProfileMenu = ({ user }: { user: UserWithProfile | null }) => {
       unoptimized
      />
     ) : (
-     <span className="font-bold text-lg">{displayName[0]?.toUpperCase()}</span>
+     <span className="flex flex-col items-center justify-center w-full">
+      <span className="font-bold text-lg">{displayName[0]?.toUpperCase()}</span>
+      {paletteInfo && (
+       <span className="flex items-center gap-2 mt-1 text-xs font-semibold">
+        <span
+         className="inline-block w-3 h-3 rounded-full border border-white/40"
+         style={{ backgroundColor: paletteInfo.color }}
+        />
+        <span>Paleta: {paletteInfo.label}</span>
+       </span>
+      )}
+     </span>
     )}
    </button>
    {open && (
@@ -220,6 +244,17 @@ const ProfileMenu = ({ user }: { user: UserWithProfile | null }) => {
      <div className="text-zinc-400 text-xs mb-4 text-center px-4 truncate w-full">
       {email}
      </div>
+     {paletteInfo && (
+      <div className="flex items-center gap-2 mb-4">
+       <span
+        className="inline-block w-4 h-4 rounded-full border border-white/40"
+        style={{ backgroundColor: paletteInfo.color }}
+       />
+       <span className="text-xs text-white/80 font-semibold">
+        Paleta ativa: {paletteInfo.label}
+       </span>
+      </div>
+     )}
      <Link
       href={profileRoute?.href || "/profile"}
       className="w-11/12 text-center px-4 py-2 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white rounded-lg font-medium transition mb-2 shadow-md"

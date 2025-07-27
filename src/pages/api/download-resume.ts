@@ -9,6 +9,7 @@ export default async function handler(
  try {
   const palette = (req.query.palette as string) || "darkGreen";
   const lang = (req.query.lang as string) || "pt-br";
+  console.log("[API] palette recebido:", palette);
   // Adicione outros parâmetros se necessário
   const buffer = await PuppeteerService.captureResumePDF(palette, lang);
   if (!buffer || buffer.length < 1000) {

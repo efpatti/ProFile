@@ -10,6 +10,7 @@ import { doc, onSnapshot } from "firebase/firestore";
 export type UserProfileData = {
  displayName?: string | null;
  photoURL?: string | null;
+ bannerColor?: string | null; // paleta ativa do usuário
  // Adicione outros campos customizados do Firestore aqui
 };
 

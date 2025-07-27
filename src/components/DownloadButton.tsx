@@ -21,8 +21,11 @@ export const DownloadButton = ({
  const { palette } = usePalette();
  const [loading, setLoading] = useState(false);
 
+ if (!palette) return null;
+
  const handleDownload = async () => {
   setLoading(true);
+  console.log("[DownloadButton] palette enviado para download:", palette);
   const params = new URLSearchParams({ palette });
   if (logoUrl) params.append("logo", logoUrl);
   if (type === "resume" && lang) params.append("lang", lang);

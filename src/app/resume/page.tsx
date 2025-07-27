@@ -16,15 +16,20 @@ import { useAuth } from "@/core/services/AuthProvider";
 import { isDarkBackground } from "@/utils/color";
 import { SettingsPanel } from "@/components/SettingsPanel";
 import { usePalette } from "@/styles/PaletteProvider";
+import { useSearchParams } from "next/navigation";
 
 const defaultBg: BgBannerColorName = "midnightSlate";
 
 const ResumePage: React.FC = () => {
+ const searchParams = useSearchParams();
+ const paletteFromQuery = searchParams
+  ? (searchParams.get("palette") as PaletteName | null)
+  : null;
  const [currentLang, setCurrentLang] = useState<"pt-br" | "en">("pt-br");
  const [data, setData] = useState(resumeData["pt-br"]);
  const [isClient, setIsClient] = useState(false);
  const [paletteName] = useState<PaletteName>(defaultPalette);
- const { bannerColor } = usePalette();
+ const { bannerColor, palette, setPalette } = usePalette();
  const [selectedBg, setSelectedBg] = useState<BgBannerColorName>(
   bannerColor || defaultBg
  );
@@ -37,6 +42,14 @@ const ResumePage: React.FC = () => {
   setIsClient(true);
   setData(resumeData[currentLang]);
  }, [currentLang]);
+
+ // Força o contexto a usar a palette da query string, se existir
+ useEffect(() => {
+  if (paletteFromQuery && paletteFromQuery !== palette) {
+   setPalette(paletteFromQuery);
+  }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+ }, [paletteFromQuery]);
 
  const toggleLanguage = () => {
   setCurrentLang(currentLang === "pt-br" ? "en" : "pt-br");
