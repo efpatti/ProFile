@@ -15,6 +15,7 @@ import {
 } from "@/constants/routes";
 import type { UserWithProfile } from "@/core/services/AuthProvider";
 import Image from "next/image";
+import { handleSignOut } from "@/core/services/signOut";
 
 const MainLinks = () => (
  <div className="hidden md:flex bg-gradient-to-r from-zinc-900/30 via-zinc-700/30 to-zinc-900/30 backdrop-blur-sm rounded-full px-8 py-2 space-x-8 border border-white/10 shadow-lg">
@@ -148,7 +149,10 @@ const ProfileMenu = ({ user }: { user: UserWithProfile | null }) => {
      >
       My Profile
      </Link>
-     <button className="w-11/12 text-center px-4 py-2 text-white/80 hover:text-white text-sm mt-1">
+     <button
+      className="w-11/12 text-center px-4 py-2 text-white/80 hover:text-white text-sm mt-1"
+      onClick={handleSignOut}
+     >
       Sign Out
      </button>
     </motion.div>

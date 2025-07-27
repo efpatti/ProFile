@@ -6,16 +6,24 @@ import SkillCategory from "@/components/SkillCategory";
 import { resumeData } from "@/data/resumeData";
 import { FaAward, FaExternalLinkAlt } from "react-icons/fa";
 import {
- colorPalettes,
  defaultPalette,
- PaletteName,
+ colorPalettes,
+ bgBannerColor,
+ type PaletteName,
+ type BgBannerColorName,
 } from "@/styles/sharedStyleConstants";
+import { useAuth } from "@/core/services/AuthProvider";
+import { isDarkBackground } from "@/utils/color";
+
+const defaultBg: BgBannerColorName = "midnightSlate";
 
 const ResumePage: React.FC = () => {
  const [currentLang, setCurrentLang] = useState<"pt-br" | "en">("pt-br");
  const [data, setData] = useState(resumeData["pt-br"]);
  const [isClient, setIsClient] = useState(false);
  const [paletteName] = useState<PaletteName>(defaultPalette);
+ const [selectedBg, setSelectedBg] = useState<BgBannerColorName>(defaultBg);
+ const { user } = useAuth();
 
  useEffect(() => {
   setIsClient(true);
@@ -30,13 +38,31 @@ const ResumePage: React.FC = () => {
   const palette = colorPalettes[paletteName];
   if (!palette) return "bg-[var(--accent)] hover:bg-[var(--accent)]/90";
   const btnObj = palette.colors.find(
-   (c) => typeof c === "object" && c !== null && "btn" in c
+   (c: any) => typeof c === "object" && c !== null && "btn" in c
   ) as { btn?: string[] } | undefined;
   return btnObj && btnObj.btn
    ? btnObj.btn.join(" ")
    : "bg-[var(--accent)] hover:bg-[var(--accent)]/90";
  }
  const btnClasses = getBtnClasses(paletteName);
+
+ // Função utilitária para obter o objeto de cor do bg
+ function getBgColorObj(bgName: BgBannerColorName) {
+  const bgObj = bgBannerColor[bgName];
+  const colorsArr = bgObj.colors;
+  const bg = (
+   colorsArr.find((c) => Object.prototype.hasOwnProperty.call(c, "bg")) as {
+    bg: string;
+   }
+  ).bg;
+  const text = (
+   colorsArr.find((c) => Object.prototype.hasOwnProperty.call(c, "text")) as {
+    text: string;
+   }
+  ).text;
+  return { bg, text };
+ }
+ const effectiveBgColor = getBgColorObj(selectedBg);
 
  if (!isClient) {
   return null;
@@ -52,10 +78,15 @@ const ResumePage: React.FC = () => {
      {currentLang === "pt-br" ? "PT" : "EN"}
     </button>
    </div>
-   <div className="max-w-6xl pdf mx-auto overflow-hidden bg-gray-50 border-4 border-[var(--secondary)]">
+   <div
+    className="max-w-6xl pdf mx-auto overflow-hidden border-4 border-[var(--secondary)]"
+    style={{ background: effectiveBgColor.bg }}
+   >
     {/* Header */}
     <div className="p-8 bg-[var(--accent)]">
-     <h1 className="text-3xl font-bold mb-2">{data.header.name}</h1>
+     <h1 className="text-3xl font-bold mb-2">
+      {user?.displayName || data.header.name}
+     </h1>
      <h2 className="text-xl opacity-90 mb-6">{data.header.title}</h2>
      <div className="flex flex-wrap gap-4 md:gap-6 text-sm md:text-base">
       {data.header.contacts.map((contact) => (
@@ -85,11 +116,22 @@ const ResumePage: React.FC = () => {
      <div>
       {/* Profile */}
       <Section title={data.sections.profile.title} accent={"#2563eb"}>
-       <p className="text-gray-700 mb-3">{data.sections.profile.content}</p>
+       <p
+        className={
+         isDarkBackground(selectedBg) ? "text-gray-400" : "text-gray-700"
+        }
+        style={{ marginBottom: "0.75rem" }}
+       >
+        {data.sections.profile.content}
+       </p>
       </Section>
       {/* Languages */}
       <Section title={data.sections.languages.title} accent={"#2563eb"}>
-       <ul className="list-disc pl-5 space-y-1 text-gray-700">
+       <ul
+        className={`list-disc pl-5 space-y-1 ${
+         isDarkBackground(selectedBg) ? "text-gray-400" : "text-gray-700"
+        }`}
+       >
         {data.sections.languages.items.map((item, index) => (
          <li key={index}>{item}</li>
         ))}
@@ -99,8 +141,24 @@ const ResumePage: React.FC = () => {
       <Section title={data.sections.education.title} accent={"#2563eb"}>
        {data.sections.education.items.map((item, index) => (
         <div className="mb-6" key={index}>
-         <h4 className="font-bold text-gray-800">{item.title}</h4>
-         <p className="text-gray-500 text-sm mb-2">{item.period}</p>
+         <h4
+          className={
+           isDarkBackground(selectedBg)
+            ? "font-bold text-gray-200"
+            : "font-bold text-gray-800"
+          }
+         >
+          {item.title}
+         </h4>
+         <p
+          className={
+           isDarkBackground(selectedBg)
+            ? "text-gray-400 text-sm mb-2"
+            : "text-gray-500 text-sm mb-2"
+          }
+         >
+          {item.period}
+         </p>
         </div>
        ))}
       </Section>
@@ -111,9 +169,31 @@ const ResumePage: React.FC = () => {
          className="mb-6 p-4 rounded-lg transition-shadow duration-300"
          key={index}
         >
-         <h4 className="font-bold text-gray-800 text-lg">{item.title}</h4>
-         <p className="text-gray-500 text-sm mb-3">{item.period}</p>
-         <ul className="list-disc pl-5 space-y-2 text-gray-700">
+         <h4
+          className={
+           isDarkBackground(selectedBg)
+            ? "font-bold text-gray-200 text-lg"
+            : "font-bold text-gray-800 text-lg"
+          }
+         >
+          {item.title}
+         </h4>
+         <p
+          className={
+           isDarkBackground(selectedBg)
+            ? "text-gray-400 text-sm mb-3"
+            : "text-gray-500 text-sm mb-3"
+          }
+         >
+          {item.period}
+         </p>
+         <ul
+          className={
+           isDarkBackground(selectedBg)
+            ? "list-disc pl-5 space-y-2 text-gray-400"
+            : "list-disc pl-5 space-y-2 text-gray-700"
+          }
+         >
           {item.details.map((detail, i) => (
            <li key={i} className="leading-snug">
             {detail}
@@ -127,16 +207,33 @@ const ResumePage: React.FC = () => {
       <Section title={data.sections.projects.title} accent={"#2563eb"}>
        {data.sections.projects.items.map((item, index) => (
         <div
-         className="mb-6 p-4 rounded-lg transition-shadow duration-300"
+         className={`mb-6 p-4 rounded-lg transition-shadow duration-300 `}
          key={index}
         >
-         <h4 className="font-bold text-gray-800 text-lg">{item.title}</h4>
-         <p className="text-gray-700 mb-3">{item.description}</p>
+         <h4
+          className={
+           isDarkBackground(selectedBg)
+            ? "font-bold text-gray-200 text-lg"
+            : "font-bold text-gray-800 text-lg"
+          }
+         >
+          {item.title}
+         </h4>
+         <p
+          className={
+           isDarkBackground(selectedBg)
+            ? "text-gray-400 mb-3"
+            : "text-gray-700 mb-3"
+          }
+         >
+          {item.description}
+         </p>
          <a
           href={item.link.href}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center hover:underline transition-colors duration-200 text-[var(--accent)]"
+          className={`inline-flex items-center hover:underline transition-colors duration-200 
+            text-[var(--accent)]`}
          >
           <FaExternalLinkAlt className="mr-1" />
           {item.link.text}
@@ -151,9 +248,23 @@ const ResumePage: React.FC = () => {
          className="mb-6 p-4 rounded-lg transition-shadow duration-300"
          key={index}
         >
-         <h4 className="font-bold text-gray-800">{item.title}</h4>
+         <h4
+          className={
+           isDarkBackground(selectedBg)
+            ? "font-bold text-gray-200"
+            : "font-bold text-gray-800"
+          }
+         >
+          {item.title}
+         </h4>
          {item.examCode && (
-          <p className="text-gray-500 text-sm mb-2">
+          <p
+           className={
+            isDarkBackground(selectedBg)
+             ? "text-gray-400 text-sm mb-2"
+             : "text-gray-500 text-sm mb-2"
+           }
+          >
            {currentLang === "pt-br" ? "Código do exame" : "Exam code"}:{" "}
            {item.examCode}
           </p>
@@ -162,7 +273,8 @@ const ResumePage: React.FC = () => {
           href={item.linkCredly}
           target="_blank"
           rel="noopener noreferrer"
-          className="inline-flex items-center hover:underline transition-colors duration-200 text-[var(--accent)]"
+          className={`inline-flex items-center hover:underline transition-colors duration-200 
+            text-[var(--accent)]`}
          >
           <FaExternalLinkAlt className="mr-1" />
           {currentLang === "pt-br" ? "Ver credencial" : "View credential"}
@@ -176,15 +288,35 @@ const ResumePage: React.FC = () => {
       {/* Skills */}
       <Section title={data.sections.skills.title} accent={"#2563eb"}>
        {data.sections.skills.categories.map((category, index) => (
-        <SkillCategory key={index} category={category} />
+        <SkillCategory
+         key={index}
+         category={category}
+         textClass={
+          isDarkBackground(selectedBg) ? "text-gray-400" : "text-gray-700"
+         }
+        />
        ))}
       </Section>
       {/* Interests */}
       <Section title={data.sections.interests.title} accent={"#2563eb"}>
        {data.sections.interests.categories.map((cat, index) => (
         <div className="mb-4" key={index}>
-         <h4 className="font-semibold text-gray-700 mb-2">{cat.title}</h4>
-         <ul className="list-disc pl-5 space-y-1 text-gray-700">
+         <h4
+          className={
+           isDarkBackground(selectedBg)
+            ? "font-semibold text-gray-200 mb-2"
+            : "font-semibold text-gray-700 mb-2"
+          }
+         >
+          {cat.title}
+         </h4>
+         <ul
+          className={
+           isDarkBackground(selectedBg)
+            ? "list-disc pl-5 space-y-1 text-gray-400"
+            : "list-disc pl-5 space-y-1 text-gray-700"
+          }
+         >
           {cat.items.map((item, i) => (
            <li key={i}>{item}</li>
           ))}
@@ -196,11 +328,39 @@ const ResumePage: React.FC = () => {
       <Section title={data.sections.recommendations.title} accent={"#2563eb"}>
        {data.sections.recommendations.items.map((item, index) => (
         <div className="mb-6 rounded-r-lg" key={index}>
-         <h4 className="font-bold text-gray-800">{item.name}</h4>
-         <h4 className="text-md text-gray-600 mb-2">{item.position}</h4>
-         <p className="text-gray-500 text-sm mb-3">{item.period}</p>
+         <h4
+          className={
+           isDarkBackground(selectedBg)
+            ? "font-bold text-gray-200"
+            : "font-bold text-gray-800"
+          }
+         >
+          {item.name}
+         </h4>
+         <h4
+          className={
+           isDarkBackground(selectedBg)
+            ? "text-md text-gray-400 mb-2"
+            : "text-md text-gray-600 mb-2"
+          }
+         >
+          {item.position}
+         </h4>
+         <p
+          className={
+           isDarkBackground(selectedBg)
+            ? "text-gray-400 text-sm mb-3"
+            : "text-gray-500 text-sm mb-3"
+          }
+         >
+          {item.period}
+         </p>
          <blockquote
-          className="italic text-gray-700"
+          className={
+           isDarkBackground(selectedBg)
+            ? "italic text-gray-300"
+            : "italic text-gray-700"
+          }
           dangerouslySetInnerHTML={{ __html: item.text }}
          />
         </div>
@@ -210,16 +370,30 @@ const ResumePage: React.FC = () => {
       <Section title={data.sections.awards.title} accent={"#2563eb"}>
        {data.sections.awards.items.map((item, index) => (
         <div
-         className="flex items-start gap-3 mb-4 p-3 bg-white rounded-lg transition-shadow duration-300"
+         className={`flex items-start gap-3 mb-4 p-3 rounded-lg transition-shadow duration-300 `}
          key={index}
         >
          <div className="flex space-x-2">
           <div>
-           <FaAward className="inline-block text-[var(--accent)]" />
+           <FaAward className={"inline-block text-[var(--accent)]"} />
           </div>
           <div>
-           <p className="font-semibold text-gray-800">{item.title}</p>
-           <p className="text-gray-600">{item.description}</p>
+           <p
+            className={
+             isDarkBackground(selectedBg)
+              ? "font-semibold text-gray-200"
+              : "font-semibold text-gray-800"
+            }
+           >
+            {item.title}
+           </p>
+           <p
+            className={
+             isDarkBackground(selectedBg) ? "text-gray-400" : "text-gray-600"
+            }
+           >
+            {item.description}
+           </p>
           </div>
          </div>
         </div>
