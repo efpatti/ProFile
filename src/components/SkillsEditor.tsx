@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/core/services/AuthProvider";
 import {
  fetchSkillsForUser,
@@ -15,6 +15,39 @@ import {
  FaSave,
  FaEdit,
 } from "react-icons/fa";
+
+// Componente de textarea auto-ajustável
+const AutoResizeTextarea = ({
+ value,
+ onChange,
+ placeholder,
+ className,
+}: {
+ value: string;
+ onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+ placeholder: string;
+ className?: string;
+}) => {
+ const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+ useEffect(() => {
+  if (textareaRef.current) {
+   textareaRef.current.style.height = "auto";
+   textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+  }
+ }, [value]);
+
+ return (
+  <textarea
+   ref={textareaRef}
+   value={value}
+   onChange={onChange}
+   placeholder={placeholder}
+   className={`resize-none overflow-hidden ${className}`}
+   rows={1}
+  />
+ );
+};
 
 const SkillsEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
  const { user } = useAuth();
@@ -144,14 +177,13 @@ const SkillsEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
          </motion.div>
 
          <div className="flex-1 grid grid-cols-1">
-          <input
-           type="text"
+          <AutoResizeTextarea
            value={skill.item}
            onChange={(e) =>
             handleUpdateSkill(skill.id!, e.target.value, skill.category)
            }
-           className="bg-gray-600 text-white p-2 rounded w-full"
            placeholder="Habilidade"
+           className="bg-gray-600 text-white p-2 rounded w-full"
           />
          </div>
 
@@ -236,14 +268,13 @@ const SkillsEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
          </motion.div>
 
          <div className="flex-1">
-          <input
-           type="text"
+          <AutoResizeTextarea
            value={skill.item}
            onChange={(e) =>
             handleUpdateSkill(skill.id!, e.target.value, "Profissionais")
            }
-           className="bg-gray-600 text-white p-2 rounded w-full"
            placeholder="Habilidade Profissional"
+           className="bg-gray-600 text-white p-2 rounded w-full"
           />
          </div>
 
