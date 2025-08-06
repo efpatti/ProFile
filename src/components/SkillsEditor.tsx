@@ -143,16 +143,7 @@ const SkillsEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
           <FaGripVertical />
          </motion.div>
 
-         <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-3">
-          <input
-           type="text"
-           value={skill.category}
-           onChange={(e) =>
-            handleUpdateSkill(skill.id!, skill.item, e.target.value)
-           }
-           className="bg-gray-600 text-white p-2 rounded w-full"
-           placeholder="Categoria"
-          />
+         <div className="flex-1 grid grid-cols-1">
           <input
            type="text"
            value={skill.item}
