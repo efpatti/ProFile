@@ -2,11 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { PaletteSelector } from "./PaletteSelector";
-import { BgBannerSelector } from "./BgBannerSelector";
-import { LogoSearch } from "./LogoSearch";
-import { FiX as CloseIcon, FiCheck, FiAlertTriangle } from "react-icons/fi";
-import { BgBannerColorName } from "@/styles/sharedStyleConstants";
+import { useLanguage } from "@/core/services/LanguageProvider";
 import {
  Dialog,
  DialogTitle,
@@ -19,12 +15,20 @@ import {
 import { FloatingActionButton } from "./FloatingActionButton";
 import { GoGear as SettingsIcon } from "react-icons/go";
 import clsx from "clsx";
-import { FiImage as ImageIcon } from "react-icons/fi";
+import { FiImage as ImageIcon, FiEdit3 as EditIcon } from "react-icons/fi";
 import { FaPaintRoller as PaintIcon } from "react-icons/fa";
 import { usePalette } from "@/styles/PaletteProvider";
 import { useAuth } from "@/core/services/AuthProvider";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import SkillsEditor from "./SkillsEditor";
+import EducationEditor from "./EducationEditor";
+import LanguagesEditor from "./LanguagesEditor";
+import { PaletteSelector } from "./PaletteSelector";
+import { BgBannerSelector } from "./BgBannerSelector";
+import { LogoSearch } from "./LogoSearch";
+import { FiX as CloseIcon, FiCheck, FiAlertTriangle } from "react-icons/fi";
+import { BgBannerColorName } from "@/styles/sharedStyleConstants";
 
 interface SettingsBannerProps {
  selectedBg: BgBannerColorName;
@@ -43,14 +47,9 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
  const [showError, setShowError] = useState(false);
  const { palette, setPalette } = usePalette();
  const { user } = useAuth();
-
- console.log("[SettingsBanner] render", { selectedBg });
+ const { language } = useLanguage();
 
  const handleApplyChanges = async () => {
-  console.log("[SettingsBanner] handleApplyChanges start", {
-   user,
-   selectedBg,
-  });
   if (!user) {
    setIsOpen(false);
    return;
@@ -69,13 +68,11 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
     setShowSuccess(false);
     setIsOpen(false);
    }, 1500);
-   console.log("[SettingsBanner] handleApplyChanges success");
   } catch (error) {
    console.error("[SettingsBanner] handleApplyChanges error", error);
    setShowError(true);
    setTimeout(() => setShowError(false), 3000);
   } finally {
-   console.log("[SettingsBanner] handleApplyChanges finally");
    setIsSaving(false);
   }
  };
@@ -89,7 +86,6 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
     tooltipText="Configurações"
    />
 
-   {/* Diálogo Principal de Configurações */}
    <Dialog
     open={isOpen}
     onClose={() => setIsOpen(false)}
@@ -113,7 +109,7 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
         transition={{ type: "spring", damping: 25 }}
         className="fixed inset-0 flex items-center justify-center p-4"
        >
-        <Dialog.Panel className="relative bg-zinc-950 rounded-xl max-w-2xl w-full mx-4 p-6 shadow-2xl h-[600px] border border-zinc-800">
+        <Dialog.Panel className="relative bg-zinc-950 rounded-xl max-w-3xl w-full mx-4 p-6 shadow-2xl h-[600px] border border-zinc-800">
          <button
           onClick={() => setIsOpen(false)}
           className="absolute right-4 top-4 p-1 rounded-full text-gray-300 hover:text-white hover:bg-zinc-800 transition-colors focus:outline-none cursor-pointer"
@@ -129,8 +125,9 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
          <TabGroup>
           <TabList className="flex space-x-1 mb-6">
            {[
-            { label: "Your Information", icon: <ImageIcon /> },
             { label: "Appearance", icon: <PaintIcon /> },
+            { label: "Company Logo", icon: <ImageIcon /> },
+            { label: "Edit Content", icon: <EditIcon /> },
            ].map(({ label, icon }) => (
             <Tab
              key={label}
@@ -149,15 +146,9 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
            ))}
           </TabList>
 
-          <TabPanels className="h-[410px] pr-2">
+          <TabPanels className="h-[410px] overflow-y-auto pr-2">
+           {/* Appearance Panel */}
            <TabPanel className="space-y-6">
-            <div>
-             <DialogItemTitle>Company</DialogItemTitle>
-             <LogoSearch onLogoSelect={onLogoSelect} />
-            </div>
-           </TabPanel>
-
-           <TabPanel>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
              <div className="bg-white/5 p-4 rounded-xl border border-gray-800/10">
               <DialogItemTitle>Banner Color</DialogItemTitle>
@@ -178,6 +169,36 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
                onSelect={setPalette}
               />
              </div>
+            </div>
+           </TabPanel>
+
+           {/* Logo Panel */}
+           <TabPanel>
+            <div>
+             <DialogItemTitle>Company</DialogItemTitle>
+             <LogoSearch onLogoSelect={onLogoSelect} />
+            </div>
+           </TabPanel>
+
+           {/* Editors Panel */}
+           <TabPanel className="space-y-8">
+            <div>
+             <h3 className="text-xl font-semibold mb-4 border-b-2 border-gray-700 pb-2">
+              Skills
+             </h3>
+             {user && <SkillsEditor lang={language} />}
+            </div>
+            <div>
+             <h3 className="text-xl font-semibold mb-4 border-b-2 border-gray-700 pb-2">
+              Education
+             </h3>
+             {user && <EducationEditor lang={language} />}
+            </div>
+            <div>
+             <h3 className="text-xl font-semibold mb-4 border-b-2 border-gray-700 pb-2">
+              Languages
+             </h3>
+             {user && <LanguagesEditor lang={language} />}
             </div>
            </TabPanel>
           </TabPanels>

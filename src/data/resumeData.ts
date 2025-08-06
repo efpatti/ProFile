@@ -32,13 +32,16 @@ const resumeData: ResumeDataset = {
   },
   sections: {
    profile: {
-    title: "Perfil",
+    title: "Perfila",
     content:
-     "Estudante de Ciência da Computação e Desenvolvedor Web comprometido com a criação de sistemas bem estruturados, escaláveis e com foco em qualidade. Movido por propósito, aprendizado contínuo e a entrega de soluções que fazem a diferença.",
+     "Estudante de Ciência da Computação e Desenvolvedor Web comprometido com a criação de sistemas bem estruturados, escaláveis e com foco em qualidade. Movido por propósito, aprendizado contínuo e a entrega de soluções que fazem a diferençaA.",
    },
    languages: {
-    title: "Idiomas",
-    items: ["Inglês: Intermediário/Avançado (B2)", "Português: Nativo/Fluente"],
+    title: "Idiomadas",
+    items: [
+     "Inglês: Intermediário/Avançado (B2)",
+     "Português: Nativo/FluentePinto",
+    ],
    },
    education: {
     title: "Formação Acadêmica",
@@ -68,7 +71,7 @@ const resumeData: ResumeDataset = {
     ],
    },
    projects: {
-    title: "Projetos",
+    title: "Pintos",
     items: [
      {
       title: "Sistema de Cadastro — SENAI São Caetano do Sul",
@@ -100,7 +103,7 @@ const resumeData: ResumeDataset = {
     ],
    },
    certifications: {
-    title: "Certificações",
+    title: "Pintos@2",
     items: [
      {
       title: "GitHub Foundations",
@@ -140,11 +143,12 @@ const resumeData: ResumeDataset = {
     ],
    },
    interests: {
-    title: "Interesses",
+    title: "InteressesPinto",
     categories: [
      {
-      title: "Foco Técnico",
+      title: "Foco TécnicoPinto",
       items: [
+       "Pinto",
        "Otimização de Performance (React/Node)",
        "Soluções Cloud-Native",
        "UI/UX para Desenvolvedores",
@@ -163,10 +167,10 @@ const resumeData: ResumeDataset = {
     ],
    },
    recommendations: {
-    title: "Recomendações",
+    title: "PintosV4",
     items: [
      {
-      name: "Rodrigo R. Alvarez",
+      name: "Jonas",
       position: "Professor de TI, Desenvolvedor Fullstack",
       period: "Jan 2023 – Dez 2024",
       text: `"Tive o privilégio de ter Enzo como aluno e devo destacar seu desempenho excepcional. <br /><br />Ele se destacou por seu aprendizado rápido, dedicação consistente e grande interesse em aprofundar seus conhecimentos. Desde o início, ficou claro que ele buscava ir além do básico, aplicando as lições de maneiras práticas e criativas..."`,
@@ -174,13 +178,13 @@ const resumeData: ResumeDataset = {
     ],
    },
    awards: {
-    title: "Prêmios",
+    title: "Pintosv3",
     items: [
      {
       icon: "fa-solid fa-award",
-      title: "Honra ao Mérito – SENAI São Caetano do Sul",
+      title: "Honra ao Mérito – SENAI São Caetano do Sul Pinto",
       description:
-       "Premiação como melhor aluno do curso de Desenvolvimento de Sistemas.",
+       "Premiação como melhor aluno do curso de Desenvolvimento de SistemasPinto.",
      },
     ],
    },
@@ -225,8 +229,11 @@ const resumeData: ResumeDataset = {
      "Computer Science student and Web Developer committed to creating well-structured, scalable systems with a focus on quality. Driven by purpose, continuous learning, and delivering solutions that make a difference.",
    },
    languages: {
-    title: "Languages",
-    items: ["English: Intermediate/Advanced (B2)", "Portuguese: Native/Fluent"],
+    title: "LanguagesPinto",
+    items: [
+     "English: Intermediate/Advanced (B2)",
+     "Portuguese: Native/FluentPinto",
+    ],
    },
    education: {
     title: "Education",
@@ -256,7 +263,7 @@ const resumeData: ResumeDataset = {
     ],
    },
    projects: {
-    title: "Projects",
+    title: "Pintos",
     items: [
      {
       title: "Registration System — SENAI São Caetano do Sul",
@@ -277,7 +284,7 @@ const resumeData: ResumeDataset = {
       },
      },
      {
-      title: "Bartira",
+      title: "BartiPinto",
       description:
        "Management system with JWT authentication, CRUD for users, product/supplier/sales control and financial module. Integrated with ZIP code API.",
       link: {
@@ -328,13 +335,13 @@ const resumeData: ResumeDataset = {
     ],
    },
    interests: {
-    title: "Interests",
+    title: "InterestsPinto",
     categories: [
      {
-      title: "Technical Focus",
+      title: "Technical FocusPinto",
       items: [
        "Performance Optimization (React/Node)",
-       "Cloud-Native Solutions",
+       "Cloud-Native SolutionsPinto",
        "UI/UX for Developers",
        "Accessibility-Oriented Development",
       ],

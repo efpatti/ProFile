@@ -3,6 +3,7 @@ import { Inter, Manrope, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { PaletteProvider } from "@/styles/PaletteProvider";
 import { AuthProvider } from "@/core/services/AuthProvider";
+import { LanguageProvider } from "@/core/services/LanguageProvider";
 import Navbar from "@/components/Navbar";
 import { PaletteSyncWrapper } from "@/components/PaletteSyncWrapper";
 import { BannerColorSyncWrapper } from "@/components/BannerColorSyncWrapper";
@@ -34,17 +35,19 @@ export default function RootLayout({
  children: React.ReactNode;
 }>) {
  return (
-  <html lang="en">
-   <body
-    className={`${inter.variable} ${manrope.variable} ${jetbrains.variable} font-sans antialiased`}
-    suppressHydrationWarning
-   >
+  <html
+   lang="en"
+   className={`${inter.variable} ${manrope.variable} ${jetbrains.variable}`}
+  >
+   <body>
     <AuthProvider>
      <PaletteProvider>
-      <BannerColorSyncWrapper />
-      <PaletteSyncWrapper />
-      <Navbar />
-      <div className="pt-20">{children}</div>
+      <LanguageProvider>
+       <PaletteSyncWrapper />
+       <BannerColorSyncWrapper />
+       <Navbar />
+       {children}
+      </LanguageProvider>
      </PaletteProvider>
     </AuthProvider>
    </body>
