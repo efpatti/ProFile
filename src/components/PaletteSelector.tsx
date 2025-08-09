@@ -5,7 +5,7 @@ import { ColorSelector } from "./ColorSelector";
 import type { PaletteName } from "@/styles/PaletteProvider";
 import { BgBannerColorName } from "@/styles/sharedStyleConstants";
 import { useEffect, useCallback } from "react";
-import { doc, onSnapshot, updateDoc } from "firebase/firestore";
+import { doc, updateDoc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import { useAuth } from "@/core/services/AuthProvider";
 
@@ -52,18 +52,17 @@ export const PaletteSelector = ({
 
  useEffect(() => {
   if (!user) return;
-
-  const unsubscribe = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
+  // One-time fetch instead of realtime subscription
+  (async () => {
+   const docSnap = await getDoc(doc(db, "users", user.uid));
    if (docSnap.exists()) {
-    const data = docSnap.data();
+    const data = docSnap.data() as { palette?: PaletteName };
     if (data.palette && data.palette !== selected) {
      onSelect(data.palette);
     }
    }
-  });
-
-  return () => unsubscribe();
- }, [user, selected, onSelect]);
+  })();
+ }, [user]);
 
  return (
   <ColorSelector

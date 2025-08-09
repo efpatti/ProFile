@@ -14,7 +14,12 @@ import {
 } from "@/styles/sharedStyleConstants";
 import { useAuth } from "@/core/services/AuthProvider";
 import { isDarkBackground } from "@/utils/color";
-import { SettingsPanel } from "@/components/SettingsPanel";
+// import { SettingsPanel } from "@/components/SettingsPanel";
+import dynamic from "next/dynamic";
+const SettingsPanel = dynamic(
+ () => import("@/components/SettingsPanel").then((m) => m.SettingsPanel),
+ { ssr: false, loading: () => null }
+);
 import { usePalette } from "@/styles/PaletteProvider";
 import { useSearchParams } from "next/navigation";
 import { useLanguage } from "@/core/services/LanguageProvider";
@@ -26,8 +31,11 @@ import {
  where,
  getDocs,
  orderBy,
+ limit,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
+import useSWR from "swr";
+import { fetchSkillsForUser } from "@/core/services/SkillsService";
 
 const defaultBg: BgBannerColorName = "midnightSlate";
 
@@ -85,6 +93,26 @@ const ResumePage: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [paletteFromQuery, bannerColorFromQuery]);
 
+ // SWR cache for skills (no real-time needed)
+ const { data: rawSkills } = useSWR(
+  user ? ["skills", user.uid, language] : null,
+  () => fetchSkillsForUser(user!.uid, language, 50),
+  { revalidateOnFocus: false }
+ );
+
+ useEffect(() => {
+  if (!rawSkills) return;
+  // Agrupa e ordena por categoria
+  const grouped = rawSkills.reduce((acc, { category, item }) => {
+   if (!acc[category]) acc[category] = { title: category, items: [] };
+   acc[category].items.push(item);
+   return acc;
+  }, {} as Record<string, { title: string; items: string[] }>);
+  const orderedCategories = [...new Set(rawSkills.map((s) => s.category))];
+  const formatted = orderedCategories.map((c) => grouped[c]);
+  setSkills(formatted);
+ }, [rawSkills]);
+
  useEffect(() => {
   if (user) {
    const fetchProfile = async () => {
@@ -126,59 +154,17 @@ const ResumePage: React.FC = () => {
     }
    };
 
-   const fetchSkills = async () => {
-    const skillsRef = collection(db, "users", user.uid, "skills");
+   const fetchExperience = async () => {
+    const experienceRef = collection(db, "users", user.uid, "experience");
     const q = query(
-     skillsRef,
+     experienceRef,
      where("language", "==", language),
-     orderBy("order", "asc")
+     orderBy("order", "asc"),
+     limit(50)
     );
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
-     const skillsData = querySnapshot.docs.map(
-      (doc) =>
-       doc.data() as {
-        category: string;
-        item: string;
-        order: number;
-        id: string;
-       }
-     );
-
-     // Agrupa os itens por categoria, mantendo a ordem da categoria
-     const groupedSkills = skillsData.reduce((acc, { category, item }) => {
-      if (!acc[category]) {
-       acc[category] = { title: category, items: [] };
-      }
-      acc[category].items.push(item);
-      return acc;
-     }, {} as Record<string, { title: string; items: string[] }>);
-
-     // A ordem já é garantida pelo `orderBy` da query,
-     // então apenas convertemos o objeto para um array.
-     // Usamos um Set para pegar as categorias na ordem correta.
-     const orderedCategories = [
-      ...new Set(skillsData.map((skill) => skill.category)),
-     ];
-     const formattedSkills = orderedCategories.map(
-      (category) => groupedSkills[category]
-     );
-
-     setSkills(formattedSkills);
-    } else {
-     console.log("No skills documents found!");
-     setSkills([]); // Limpa as skills se não encontrar nada
-    }
-   };
-
-   const fetchExperience = async () => {
-    const experienceRef = collection(db, "users", user.uid, "experience");
-    const q = query(experienceRef, where("language", "==", language));
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-     const experienceData = querySnapshot.docs
-      .map((doc) => doc.data())
-      .sort((a, b) => a.order - b.order);
+     const experienceData = querySnapshot.docs.map((doc) => doc.data());
      setExperience(experienceData);
     } else {
      console.log("No experience documents found!");
@@ -206,7 +192,8 @@ const ResumePage: React.FC = () => {
     const q = query(
      educationRef,
      where("language", "==", language),
-     orderBy("order", "asc")
+     orderBy("order", "asc"),
+     limit(50)
     );
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
@@ -220,12 +207,15 @@ const ResumePage: React.FC = () => {
 
    const fetchProjects = async () => {
     const projectsRef = collection(db, "users", user.uid, "projects");
-    const q = query(projectsRef, where("language", "==", language));
+    const q = query(
+     projectsRef,
+     where("language", "==", language),
+     orderBy("order", "asc"),
+     limit(50)
+    );
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
-     const projectsData = querySnapshot.docs
-      .map((doc) => doc.data())
-      .sort((a, b) => a.order - b.order);
+     const projectsData = querySnapshot.docs.map((doc) => doc.data());
      setProjects(projectsData);
     } else {
      console.log("No projects documents found!");
@@ -239,12 +229,15 @@ const ResumePage: React.FC = () => {
      user.uid,
      "certifications"
     );
-    const q = query(certificationsRef, where("language", "==", language));
+    const q = query(
+     certificationsRef,
+     where("language", "==", language),
+     orderBy("order", "asc"),
+     limit(50)
+    );
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
-     const certificationsData = querySnapshot.docs
-      .map((doc) => doc.data())
-      .sort((a, b) => a.order - b.order);
+     const certificationsData = querySnapshot.docs.map((doc) => doc.data());
      setCertifications(certificationsData);
     } else {
      console.log("No certifications documents found!");
@@ -253,7 +246,12 @@ const ResumePage: React.FC = () => {
 
    const fetchInterests = async () => {
     const interestsRef = collection(db, "users", user.uid, "interests");
-    const q = query(interestsRef, where("language", "==", language));
+    const q = query(
+     interestsRef,
+     where("language", "==", language),
+     orderBy("order", "asc"),
+     limit(100)
+    );
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
      const interestsData = querySnapshot.docs.map(
@@ -294,12 +292,15 @@ const ResumePage: React.FC = () => {
      user.uid,
      "recommendations"
     );
-    const q = query(recommendationsRef, where("language", "==", language));
+    const q = query(
+     recommendationsRef,
+     where("language", "==", language),
+     orderBy("order", "asc"),
+     limit(50)
+    );
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
-     const recommendationsData = querySnapshot.docs
-      .map((doc) => doc.data())
-      .sort((a, b) => a.order - b.order);
+     const recommendationsData = querySnapshot.docs.map((doc) => doc.data());
      setRecommendations(recommendationsData);
     } else {
      console.log("No recommendations documents found!");
@@ -308,12 +309,15 @@ const ResumePage: React.FC = () => {
 
    const fetchAwards = async () => {
     const awardsRef = collection(db, "users", user.uid, "awards");
-    const q = query(awardsRef, where("language", "==", language));
+    const q = query(
+     awardsRef,
+     where("language", "==", language),
+     orderBy("order", "asc"),
+     limit(50)
+    );
     const querySnapshot = await getDocs(q);
     if (!querySnapshot.empty) {
-     const awardsData = querySnapshot.docs
-      .map((doc) => doc.data())
-      .sort((a, b) => a.order - b.order);
+     const awardsData = querySnapshot.docs.map((doc) => doc.data());
      setAwards(awardsData);
     } else {
      console.log("No awards documents found!");
@@ -321,7 +325,7 @@ const ResumePage: React.FC = () => {
    };
 
    fetchProfile();
-   fetchSkills();
+   // fetchSkills(); // replaced by SWR caching
    fetchExperience();
    fetchLanguages();
    fetchEducation();

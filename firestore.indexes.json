@@ -1,0 +1,69 @@
+{
+ "indexes": [
+  {
+   "collectionGroup": "skills",
+   "queryScope": "COLLECTION",
+   "fields": [
+    { "fieldPath": "language", "order": "ASCENDING" },
+    { "fieldPath": "order", "order": "ASCENDING" }
+   ]
+  },
+  {
+   "collectionGroup": "experience",
+   "queryScope": "COLLECTION",
+   "fields": [
+    { "fieldPath": "language", "order": "ASCENDING" },
+    { "fieldPath": "order", "order": "ASCENDING" }
+   ]
+  },
+  {
+   "collectionGroup": "education",
+   "queryScope": "COLLECTION",
+   "fields": [
+    { "fieldPath": "language", "order": "ASCENDING" },
+    { "fieldPath": "order", "order": "ASCENDING" }
+   ]
+  },
+  {
+   "collectionGroup": "projects",
+   "queryScope": "COLLECTION",
+   "fields": [
+    { "fieldPath": "language", "order": "ASCENDING" },
+    { "fieldPath": "order", "order": "ASCENDING" }
+   ]
+  },
+  {
+   "collectionGroup": "certifications",
+   "queryScope": "COLLECTION",
+   "fields": [
+    { "fieldPath": "language", "order": "ASCENDING" },
+    { "fieldPath": "order", "order": "ASCENDING" }
+   ]
+  },
+  {
+   "collectionGroup": "interests",
+   "queryScope": "COLLECTION",
+   "fields": [
+    { "fieldPath": "language", "order": "ASCENDING" },
+    { "fieldPath": "order", "order": "ASCENDING" }
+   ]
+  },
+  {
+   "collectionGroup": "recommendations",
+   "queryScope": "COLLECTION",
+   "fields": [
+    { "fieldPath": "language", "order": "ASCENDING" },
+    { "fieldPath": "order", "order": "ASCENDING" }
+   ]
+  },
+  {
+   "collectionGroup": "awards",
+   "queryScope": "COLLECTION",
+   "fields": [
+    { "fieldPath": "language", "order": "ASCENDING" },
+    { "fieldPath": "order", "order": "ASCENDING" }
+   ]
+  }
+ ],
+ "fieldOverrides": []
+}
