@@ -237,9 +237,12 @@ export class PuppeteerService {
           :root { ${cssVars} }
           html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
           * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
-          @page { size: A3; margin: 0; }
+          /* Let PDF width/height drive the final page size; keep margins zero */
+          @page { margin: 0; }
           /* Hide any non-print elements that might exist inside resume */
           [data-no-print] { display: none !important; visibility: hidden !important; }
+          /* Prevent unwanted page breaks inside resume sections */
+          #resume, #resume * { break-inside: avoid; page-break-inside: avoid; }
           /* Ensure header text remains white on accent background */
           #resume .bg-\[var\(--accent\)\], #resume .bg-\[var\(--accent\)\] * { color: #fff !important; }
         </style>
@@ -256,11 +259,23 @@ export class PuppeteerService {
   await page.evaluateHandle("document.fonts.ready");
   await new Promise((resolve) => setTimeout(resolve, 400));
 
+  // Compute exact content height (in mm) to force a single-page PDF without breaks
+  const contentHeightMm = await page.evaluate(() => {
+   const pxToMm = 0.264583; // 96 CSS px per inch
+   const el = document.querySelector("#resume") as HTMLElement | null;
+   const heightPx = el
+    ? Math.ceil(el.scrollHeight)
+    : Math.ceil(document.body.scrollHeight);
+   return Math.ceil(heightPx * pxToMm) + 2; // add a small 2mm buffer
+  });
+
   const buffer = Buffer.from(
    await page.pdf({
     printBackground: true,
-    format: "A3",
-    preferCSSPageSize: true,
+    // A3 width portrait is 297mm; height dynamically measured to fit exactly one page
+    width: "297mm",
+    height: `${contentHeightMm}mm`,
+    preferCSSPageSize: false,
     margin: { top: 0, right: 0, bottom: 0, left: 0 },
    })
   );
