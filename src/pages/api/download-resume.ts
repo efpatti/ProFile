@@ -10,12 +10,14 @@ export default async function handler(
   const palette = (req.query.palette as string) || "darkGreen";
   const lang = (req.query.lang as string) || "pt-br";
   const bannerColor = (req.query.bannerColor as string) || undefined;
+  const userId = (req.query.user as string) || undefined;
   console.log("[API] palette recebido:", palette, "bannerColor:", bannerColor);
   // Adicione outros parâmetros se necessário
   const buffer = await PuppeteerService.captureResumePDF(
    palette,
    lang,
-   bannerColor
+   bannerColor,
+   userId
   );
   if (!buffer || buffer.length < 1000) {
    res.status(500).json({

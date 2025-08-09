@@ -174,32 +174,90 @@ export class PuppeteerService {
  static async captureResumePDF(
   palette: string = paletteActiveState.value,
   lang: string = "pt-br",
-  bannerColor?: string
+  bannerColor?: string,
+  userId?: string
  ): Promise<Buffer> {
-  // Não use label, use sempre o slug/código
   const browser = await getBrowser();
   const page = await browser.newPage();
-  await page.setViewport({ width: 1200, height: 1700, deviceScaleFactor: 2 });
-  let pageUrl = `http://127.0.0.1:3000/resume?palette=${palette}&lang=${lang}`;
-  if (bannerColor) pageUrl += `&bannerColor=${bannerColor}`;
+  await page.setViewport({ width: 1123, height: 1588, deviceScaleFactor: 2 });
+
+  let pageUrl = `http://127.0.0.1:3000/protected/resume?export=1&palette=${encodeURIComponent(
+   palette
+  )}&lang=${encodeURIComponent(lang)}`;
+  if (bannerColor) pageUrl += `&bannerColor=${encodeURIComponent(bannerColor)}`;
+  if (userId) pageUrl += `&user=${encodeURIComponent(userId)}`;
+
   try {
-   await page.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 60000 }); // 60s timeout
+   await page.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
   } catch (err) {
    await page.screenshot({ path: "/tmp/resume_debug_goto_error.png" });
-   // eslint-disable-next-line no-console
    console.error("[PuppeteerService] Error during resume page.goto:", err);
    throw err;
   }
-  await page.waitForSelector(".pdf");
+
+  // Wait for resume container and readiness flag populated by the app
+  await page.waitForSelector("#resume", { timeout: 60000 });
+  await page.waitForSelector('#resume[data-ready="1"]', { timeout: 60000 });
+
+  // Extract only the necessary parts to render #resume identically
+  const origin = new URL(pageUrl).origin;
+  const { linkTags, styleTags, resumeHTML, cssVars } = await page.evaluate(() => {
+   const linkTags = Array.from(
+    document.querySelectorAll('head link[rel="stylesheet"]')
+   ).map((l) => (l as HTMLLinkElement).outerHTML);
+   const styleTags = Array.from(document.querySelectorAll('head style')).map(
+    (s) => (s as HTMLStyleElement).outerHTML
+   );
+   const resumeEl = document.querySelector('#resume') as HTMLElement | null;
+   // Collect CSS variables set on :root (documentElement)
+   const rootStyle = document.documentElement.style;
+   const varNames = Array.from(rootStyle).filter((n) => n.startsWith('--'));
+   const cssVars = varNames
+    .map((name) => `${name}: ${rootStyle.getPropertyValue(name)};`)
+    .join(' ');
+   return {
+    linkTags,
+    styleTags,
+    resumeHTML: resumeEl ? resumeEl.outerHTML : '',
+    cssVars,
+   };
+  });
+
+  // Replace page content with a minimal doc containing only #resume and the collected styles
+  await page.setContent(
+   `<!doctype html>
+    <html>
+      <head>
+        <base href="${origin}">
+        ${linkTags.join('\n')}
+        ${styleTags.join('\n')}
+        <style>
+          :root { ${cssVars} }
+          html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
+          * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+          @page { size: A3; margin: 0; }
+          /* Hide any non-print elements that might exist inside resume */
+          [data-no-print] { display: none !important; visibility: hidden !important; }
+        </style>
+      </head>
+      <body>
+        ${resumeHTML}
+      </body>
+    </html>`,
+   { waitUntil: 'domcontentloaded' }
+  );
+
+  // Ensure print styles and fonts are applied in the new content
+  await page.emulateMediaType("print");
   await page.evaluateHandle("document.fonts.ready");
-  // Aguarda renderização completa
-  await new Promise((resolve) => setTimeout(resolve, 1000));
-  // Gera o PDF
+  await new Promise((resolve) => setTimeout(resolve, 400));
+
   const buffer = Buffer.from(
    await page.pdf({
     printBackground: true,
-    format: "A4",
+    format: "A3",
     preferCSSPageSize: true,
+    margin: { top: 0, right: 0, bottom: 0, left: 0 },
    })
   );
   await page.close();

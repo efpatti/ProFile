@@ -40,6 +40,7 @@ export const SettingsPanel = ({
  return (
   <>
    <div
+    data-no-print
     className={`${
      position === "right" ? "absolute top-4 right-4" : "absolute top-4 left-4"
     } z-50 flex flex-row gap-2 items-center`}
@@ -61,6 +62,7 @@ export const SettingsPanel = ({
 
    {/* Sidebar Panel */}
    <div
+    data-no-print
     className={`fixed top-0 ${
      position === "right" ? "right-0" : "left-0"
     } h-full w-96 bg-gray-900 text-white shadow-2xl transform transition-transform duration-300 ease-in-out z-40 ${
@@ -107,6 +109,7 @@ export const SettingsPanel = ({
    {/* Overlay */}
    {isOpen && (
     <div
+     data-no-print
      className="fixed inset-0 bg-black/50 z-30"
      onClick={() => setIsOpen(false)}
     ></div>

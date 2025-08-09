@@ -47,6 +47,7 @@ const ResumePage: React.FC = () => {
  const bannerColorFromQuery = searchParams
   ? (searchParams.get("bannerColor") as BgBannerColorName | null)
   : null;
+ const forcedUserId = searchParams ? searchParams.get("user") : null;
  const { language, toggleLanguage } = useLanguage();
  // const [data, setData] = useState(resumeData["pt-br"]);
  const [isClient, setIsClient] = useState(false);
@@ -56,6 +57,10 @@ const ResumePage: React.FC = () => {
   bannerColorFromQuery || bannerColor || defaultBg
  );
  const { user } = useAuth();
+ const effectiveUserId = forcedUserId || user?.uid || undefined;
+ const [displayName, setDisplayName] = useState<string | undefined>(
+  user?.displayName || undefined
+ );
  const [currentLogoUrl, setCurrentLogoUrl] = useState<string | undefined>(
   undefined
  );
@@ -77,6 +82,48 @@ const ResumePage: React.FC = () => {
  const [recommendations, setRecommendations] = useState<any[]>();
  const [awards, setAwards] = useState<any[]>();
 
+ // Loading flags for reliable export readiness
+ const [skillsLoaded, setSkillsLoaded] = useState(false);
+ const [profileLoaded, setProfileLoaded] = useState(false);
+ const [headerLoaded, setHeaderLoaded] = useState(false);
+ const [experienceLoaded, setExperienceLoaded] = useState(false);
+ const [languagesLoaded, setLanguagesLoaded] = useState(false);
+ const [educationLoaded, setEducationLoaded] = useState(false);
+ const [projectsLoaded, setProjectsLoaded] = useState(false);
+ const [certificationsLoaded, setCertificationsLoaded] = useState(false);
+ const [interestsLoaded, setInterestsLoaded] = useState(false);
+ const [recommendationsLoaded, setRecommendationsLoaded] = useState(false);
+ const [awardsLoaded, setAwardsLoaded] = useState(false);
+ const [ready, setReady] = useState(false);
+
+ useEffect(() => {
+  const allLoaded =
+   skillsLoaded &&
+   profileLoaded &&
+   headerLoaded &&
+   experienceLoaded &&
+   languagesLoaded &&
+   educationLoaded &&
+   projectsLoaded &&
+   certificationsLoaded &&
+   interestsLoaded &&
+   recommendationsLoaded &&
+   awardsLoaded;
+  setReady(allLoaded);
+ }, [
+  skillsLoaded,
+  profileLoaded,
+  headerLoaded,
+  experienceLoaded,
+  languagesLoaded,
+  educationLoaded,
+  projectsLoaded,
+  certificationsLoaded,
+  interestsLoaded,
+  recommendationsLoaded,
+  awardsLoaded,
+ ]);
+
  useEffect(() => {
   setIsClient(true);
  }, [language]);
@@ -95,8 +142,8 @@ const ResumePage: React.FC = () => {
 
  // SWR cache for skills (no real-time needed)
  const { data: rawSkills } = useSWR(
-  user ? ["skills", user.uid, language] : null,
-  () => fetchSkillsForUser(user!.uid, language, 50),
+  effectiveUserId ? ["skills", effectiveUserId, language] : null,
+  () => fetchSkillsForUser(effectiveUserId!, language, 50),
   { revalidateOnFocus: false }
  );
 
@@ -111,51 +158,87 @@ const ResumePage: React.FC = () => {
   const orderedCategories = [...new Set(rawSkills.map((s) => s.category))];
   const formatted = orderedCategories.map((c) => grouped[c]);
   setSkills(formatted);
+  setSkillsLoaded(true);
  }, [rawSkills]);
 
  useEffect(() => {
-  if (user) {
-   const fetchProfile = async () => {
-    const profileRef = doc(db, "users", user.uid, "profile", language);
+  if (!effectiveUserId) return;
+  const uid = effectiveUserId;
+
+  // Reset flags on dependency change
+  setSkillsLoaded(false);
+  setProfileLoaded(false);
+  setHeaderLoaded(false);
+  setExperienceLoaded(false);
+  setLanguagesLoaded(false);
+  setEducationLoaded(false);
+  setProjectsLoaded(false);
+  setCertificationsLoaded(false);
+  setInterestsLoaded(false);
+  setRecommendationsLoaded(false);
+  setAwardsLoaded(false);
+
+  const fetchTopLevelUser = async () => {
+   try {
+    const userDocRef = doc(db, "users", uid);
+    const userSnap = await getDoc(userDocRef);
+    if (userSnap.exists()) {
+     const data = userSnap.data() as any;
+     if (data.displayName) setDisplayName(data.displayName);
+    }
+   } catch (e) {
+    console.error("Error fetching top-level user doc:", e);
+   }
+  };
+
+  const fetchProfile = async () => {
+   try {
+    const profileRef = doc(db, "users", uid, "profile", language);
     const docSnap = await getDoc(profileRef);
     if (docSnap.exists()) {
      setProfile(docSnap.data());
     } else {
      console.log("No such document!");
     }
-   };
+   } finally {
+    setProfileLoaded(true);
+   }
+  };
 
-   const fetchHeader = async () => {
-    try {
-     const headerDocRef = doc(db, "users", user.uid, "header", language);
-     const headerDocSnap = await getDoc(headerDocRef);
+  const fetchHeader = async () => {
+   try {
+    const headerDocRef = doc(db, "users", uid, "header", language);
+    const headerDocSnap = await getDoc(headerDocRef);
 
-     let subtitle = "";
-     if (headerDocSnap.exists()) {
-      subtitle = headerDocSnap.data().subtitle || "";
-     }
-
-     const contactsColRef = collection(
-      db,
-      "users",
-      user.uid,
-      "header",
-      language,
-      "contacts"
-     );
-     const q = query(contactsColRef);
-     const contactsSnapshot = await getDocs(q);
-     const contacts = contactsSnapshot.docs.map((doc) => doc.data());
-
-     setHeader({ subtitle, contacts });
-    } catch (error) {
-     console.error("Error fetching header:", error);
-     setHeader(null); // Reset on error
+    let subtitle = "";
+    if (headerDocSnap.exists()) {
+     subtitle = headerDocSnap.data().subtitle || "";
     }
-   };
 
-   const fetchExperience = async () => {
-    const experienceRef = collection(db, "users", user.uid, "experience");
+    const contactsColRef = collection(
+     db,
+     "users",
+     uid,
+     "header",
+     language,
+     "contacts"
+    );
+    const q = query(contactsColRef);
+    const contactsSnapshot = await getDocs(q);
+    const contacts = contactsSnapshot.docs.map((doc) => doc.data());
+
+    setHeader({ subtitle, contacts });
+   } catch (error) {
+    console.error("Error fetching header:", error);
+    setHeader(null); // Reset on error
+   } finally {
+    setHeaderLoaded(true);
+   }
+  };
+
+  const fetchExperience = async () => {
+   try {
+    const experienceRef = collection(db, "users", uid, "experience");
     const q = query(
      experienceRef,
      where("language", "==", language),
@@ -168,11 +251,16 @@ const ResumePage: React.FC = () => {
      setExperience(experienceData);
     } else {
      console.log("No experience documents found!");
+     setExperience([]);
     }
-   };
+   } finally {
+    setExperienceLoaded(true);
+   }
+  };
 
-   const fetchLanguages = async () => {
-    const langDocRef = doc(db, "users", user.uid, "languages", language);
+  const fetchLanguages = async () => {
+   try {
+    const langDocRef = doc(db, "users", uid, "languages", language);
     const docSnap = await getDoc(langDocRef);
 
     if (docSnap.exists()) {
@@ -182,13 +270,17 @@ const ResumePage: React.FC = () => {
       items: data.items || [],
      });
     } else {
-     console.log("No languages document found!");
-     setLanguages({ title: "Idiomas", items: [] });
+      console.log("No languages document found!");
+      setLanguages({ title: "Idiomas", items: [] });
     }
-   };
+   } finally {
+    setLanguagesLoaded(true);
+   }
+  };
 
-   const fetchEducation = async () => {
-    const educationRef = collection(db, "users", user.uid, "education");
+  const fetchEducation = async () => {
+   try {
+    const educationRef = collection(db, "users", uid, "education");
     const q = query(
      educationRef,
      where("language", "==", language),
@@ -203,10 +295,14 @@ const ResumePage: React.FC = () => {
      console.log("No education documents found!");
      setEducation([]);
     }
-   };
+   } finally {
+    setEducationLoaded(true);
+   }
+  };
 
-   const fetchProjects = async () => {
-    const projectsRef = collection(db, "users", user.uid, "projects");
+  const fetchProjects = async () => {
+   try {
+    const projectsRef = collection(db, "users", uid, "projects");
     const q = query(
      projectsRef,
      where("language", "==", language),
@@ -219,16 +315,16 @@ const ResumePage: React.FC = () => {
      setProjects(projectsData);
     } else {
      console.log("No projects documents found!");
+     setProjects([]);
     }
-   };
+   } finally {
+    setProjectsLoaded(true);
+   }
+  };
 
-   const fetchCertifications = async () => {
-    const certificationsRef = collection(
-     db,
-     "users",
-     user.uid,
-     "certifications"
-    );
+  const fetchCertifications = async () => {
+   try {
+    const certificationsRef = collection(db, "users", uid, "certifications");
     const q = query(
      certificationsRef,
      where("language", "==", language),
@@ -241,11 +337,16 @@ const ResumePage: React.FC = () => {
      setCertifications(certificationsData);
     } else {
      console.log("No certifications documents found!");
+     setCertifications([]);
     }
-   };
+   } finally {
+    setCertificationsLoaded(true);
+   }
+  };
 
-   const fetchInterests = async () => {
-    const interestsRef = collection(db, "users", user.uid, "interests");
+  const fetchInterests = async () => {
+   try {
+    const interestsRef = collection(db, "users", uid, "interests");
     const q = query(
      interestsRef,
      where("language", "==", language),
@@ -282,16 +383,16 @@ const ResumePage: React.FC = () => {
      setInterests(formattedInterests);
     } else {
      console.log("No interests documents found!");
+     setInterests([]);
     }
-   };
+   } finally {
+    setInterestsLoaded(true);
+   }
+  };
 
-   const fetchRecommendations = async () => {
-    const recommendationsRef = collection(
-     db,
-     "users",
-     user.uid,
-     "recommendations"
-    );
+  const fetchRecommendations = async () => {
+   try {
+    const recommendationsRef = collection(db, "users", uid, "recommendations");
     const q = query(
      recommendationsRef,
      where("language", "==", language),
@@ -304,11 +405,16 @@ const ResumePage: React.FC = () => {
      setRecommendations(recommendationsData);
     } else {
      console.log("No recommendations documents found!");
+     setRecommendations([]);
     }
-   };
+   } finally {
+    setRecommendationsLoaded(true);
+   }
+  };
 
-   const fetchAwards = async () => {
-    const awardsRef = collection(db, "users", user.uid, "awards");
+  const fetchAwards = async () => {
+   try {
+    const awardsRef = collection(db, "users", uid, "awards");
     const q = query(
      awardsRef,
      where("language", "==", language),
@@ -321,22 +427,25 @@ const ResumePage: React.FC = () => {
      setAwards(awardsData);
     } else {
      console.log("No awards documents found!");
+     setAwards([]);
     }
-   };
+   } finally {
+    setAwardsLoaded(true);
+   }
+  };
 
-   fetchProfile();
-   // fetchSkills(); // replaced by SWR caching
-   fetchExperience();
-   fetchLanguages();
-   fetchEducation();
-   fetchProjects();
-   fetchCertifications();
-   fetchInterests();
-   fetchRecommendations();
-   fetchAwards();
-   fetchHeader();
-  }
- }, [user, language]);
+  fetchTopLevelUser();
+  fetchProfile();
+  fetchExperience();
+  fetchLanguages();
+  fetchEducation();
+  fetchProjects();
+  fetchCertifications();
+  fetchInterests();
+  fetchRecommendations();
+  fetchAwards();
+  fetchHeader();
+ }, [effectiveUserId, language]);
 
  useEffect(() => {
   if (bannerColor) setSelectedBg(bannerColor);
@@ -378,7 +487,9 @@ const ResumePage: React.FC = () => {
  // --- PDF Handlers ---
  const handleGeneratePDFPuppeteer = () => {
   window.open(
-   `/api/download-resume?palette=${palette}&lang=${language}&bannerColor=${selectedBg}`,
+   `/api/download-resume?palette=${palette}&lang=${language}&bannerColor=${selectedBg}${
+    effectiveUserId ? `&user=${effectiveUserId}` : ""
+   }`,
    "_blank"
   );
  };
@@ -494,6 +605,7 @@ const ResumePage: React.FC = () => {
     className="max-w-6xl pdf mx-auto overflow-hidden border-4 border-[var(--secondary)] relative"
     style={{ background: effectiveBgColor.bg }}
     id="resume"
+    data-ready={ready ? "1" : "0"}
    >
     {/* Shared settings panel for bg/logo/download */}
     <SettingsPanel
@@ -508,7 +620,7 @@ const ResumePage: React.FC = () => {
     {/* Header */}
     <div className="p-8 bg-[var(--accent)]">
      <h1 className="text-3xl font-bold mb-2">
-      {user?.displayName || "Seu Nome"}
+      {displayName || user?.displayName || "Seu Nome"}
      </h1>
      <h2 className="text-xl opacity-90 mb-6">
       {header?.subtitle || "Título Profissional"}

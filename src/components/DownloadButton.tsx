@@ -6,6 +6,7 @@ import { usePalette } from "@/styles/PaletteProvider";
 import { BgBannerColorName } from "@/styles/sharedStyleConstants";
 import { FloatingActionButton } from "./FloatingActionButton";
 import { GoDownload as DownloadIcon } from "react-icons/go";
+import { useAuth } from "@/core/services/AuthProvider";
 
 export const DownloadButton = ({
  logoUrl,
@@ -19,17 +20,18 @@ export const DownloadButton = ({
  lang?: string;
 }) => {
  const { palette } = usePalette();
+ const { user } = useAuth();
  const [loading, setLoading] = useState(false);
 
  if (!palette) return null;
 
  const handleDownload = async () => {
   setLoading(true);
-  console.log("[DownloadButton] palette enviado para download:", palette);
   const params = new URLSearchParams({ palette });
   if (logoUrl) params.append("logo", logoUrl);
   if (type === "resume" && lang) params.append("lang", lang);
   if (type === "resume" && selectedBg) params.append("bannerColor", selectedBg);
+  if (type === "resume" && user?.uid) params.append("user", user.uid);
   const endpoint =
    type === "resume" ? "/api/download-resume" : "/api/download-banner";
   const res = await fetch(`${endpoint}?${params.toString()}`);
