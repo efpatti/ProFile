@@ -94,6 +94,7 @@ const ResumePage: React.FC = () => {
  const [interestsLoaded, setInterestsLoaded] = useState(false);
  const [recommendationsLoaded, setRecommendationsLoaded] = useState(false);
  const [awardsLoaded, setAwardsLoaded] = useState(false);
+ const [userLoaded, setUserLoaded] = useState(false);
  const [ready, setReady] = useState(false);
 
  useEffect(() => {
@@ -108,7 +109,8 @@ const ResumePage: React.FC = () => {
    certificationsLoaded &&
    interestsLoaded &&
    recommendationsLoaded &&
-   awardsLoaded;
+   awardsLoaded &&
+   userLoaded;
   setReady(allLoaded);
  }, [
   skillsLoaded,
@@ -122,6 +124,7 @@ const ResumePage: React.FC = () => {
   interestsLoaded,
   recommendationsLoaded,
   awardsLoaded,
+  userLoaded,
  ]);
 
  useEffect(() => {
@@ -177,6 +180,7 @@ const ResumePage: React.FC = () => {
   setInterestsLoaded(false);
   setRecommendationsLoaded(false);
   setAwardsLoaded(false);
+  setUserLoaded(false);
 
   const fetchTopLevelUser = async () => {
    try {
@@ -184,10 +188,16 @@ const ResumePage: React.FC = () => {
     const userSnap = await getDoc(userDocRef);
     if (userSnap.exists()) {
      const data = userSnap.data() as any;
-     if (data.displayName) setDisplayName(data.displayName);
+     const fromDoc =
+      (typeof data.name === "string" && data.name.trim()) ||
+      (typeof data.displayName === "string" && data.displayName.trim()) ||
+      undefined;
+     if (fromDoc) setDisplayName(fromDoc);
     }
    } catch (e) {
     console.error("Error fetching top-level user doc:", e);
+   } finally {
+    setUserLoaded(true);
    }
   };
 
@@ -618,7 +628,7 @@ const ResumePage: React.FC = () => {
      downloadType="resume"
     />
     {/* Header */}
-    <div className="p-8 bg-[var(--accent)]">
+    <div className="p-8 bg-[var(--accent)] text-white">
      <h1 className="text-3xl font-bold mb-2">
       {displayName || user?.displayName || "Seu Nome"}
      </h1>
@@ -630,7 +640,7 @@ const ResumePage: React.FC = () => {
        <a
         key={contact.text}
         href={contact.href}
-        className="flex items-center gap-2 hover:underline transition-colors duration-200 text-sm"
+        className="flex items-center gap-2 hover:underline transition-colors duration-200 text-sm text-white"
         target={contact.href.startsWith("http") ? "_blank" : undefined}
         rel="noopener noreferrer"
        >

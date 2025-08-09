@@ -238,6 +238,8 @@ export class PuppeteerService {
           @page { size: A3; margin: 0; }
           /* Hide any non-print elements that might exist inside resume */
           [data-no-print] { display: none !important; visibility: hidden !important; }
+          /* Ensure header text remains white on accent background */
+          #resume .bg-\[var\(--accent\)\], #resume .bg-\[var\(--accent\)\] * { color: #fff !important; }
         </style>
       </head>
       <body>
