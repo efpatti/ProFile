@@ -10,6 +10,7 @@ import SkillsEditor from "./SkillsEditor";
 import EducationEditor from "./EducationEditor";
 import LanguagesEditor from "./LanguagesEditor";
 import { useLanguage } from "@/core/services/LanguageProvider";
+import ExperienceEditor from "./ExperienceEditor";
 
 interface SettingsPanelProps {
  selectedBg: BgBannerColorName;
@@ -91,6 +92,14 @@ export const SettingsPanel = ({
       </h3>
       <SkillsEditor lang={language} />
      </div>
+
+     <div>
+      <h3 className="text-xl font-semibold mb-4 border-b-2 border-gray-700 pb-2">
+       {language === "pt-br" ? "Experiência" : "Experience"}
+      </h3>
+      <ExperienceEditor lang={language} />
+     </div>
+
      <div>
       <h3 className="text-xl font-semibold mb-4 border-b-2 border-gray-700 pb-2">
        Education

@@ -508,33 +508,50 @@ const ResumePage: React.FC = () => {
   if (typeof window === "undefined") return;
   const el = document.getElementById("resume");
   if (!el) return alert("Resume element not found");
+  const clone = el.cloneNode(true) as HTMLElement;
+  document.body.appendChild(clone);
+
+  // Freeze computed styles into inline styles to preserve CSS variables/oklch
+  const freezeComputed = (root: HTMLElement) => {
+   const apply = (node: HTMLElement) => {
+    const cs = window.getComputedStyle(node);
+    node.style.color = cs.color;
+    node.style.backgroundColor = cs.backgroundColor;
+    node.style.borderColor = cs.borderColor;
+   };
+   apply(root);
+   root.querySelectorAll<HTMLElement>("*").forEach(apply);
+  };
+  freezeComputed(clone);
+
   // @ts-ignore
   const html2pdf = (await import("html2pdf.js")).default;
-  html2pdf().from(el).save("resume-html2pdf.pdf");
+  // Render from the cloned, style-frozen node
+  // @ts-ignore
+  await html2pdf().from(clone).save("resume-html2pdf.pdf");
+  clone.remove();
  };
 
  const handleGeneratePDFJsPDF = async () => {
   if (typeof window === "undefined") return;
   const el = document.getElementById("resume");
   if (!el) return alert("Resume element not found");
-  // Cria um clone do elemento para manipular as cores
   const clone = el.cloneNode(true) as HTMLElement;
-  // Substitui oklch() por #fff (ou outra cor fallback)
-  const replaceOklch = (node: HTMLElement) => {
-   if (node.style) {
-    if (node.style.background && node.style.background.includes("oklch")) {
-     node.style.background = "#fff";
-    }
-    if (node.style.color && node.style.color.includes("oklch")) {
-     node.style.color = "#222";
-    }
-   }
-   Array.from(node.children).forEach((child) =>
-    replaceOklch(child as HTMLElement)
-   );
-  };
-  replaceOklch(clone);
   document.body.appendChild(clone);
+
+  // Freeze computed styles into inline styles
+  const freezeComputed = (root: HTMLElement) => {
+   const apply = (node: HTMLElement) => {
+    const cs = window.getComputedStyle(node);
+    node.style.color = cs.color;
+    node.style.backgroundColor = cs.backgroundColor;
+    node.style.borderColor = cs.borderColor;
+   };
+   apply(root);
+   root.querySelectorAll<HTMLElement>("*").forEach(apply);
+  };
+  freezeComputed(clone);
+
   const { jsPDF } = await import("jspdf");
   // @ts-ignore
   await doc.html(clone, {
@@ -549,24 +566,22 @@ const ResumePage: React.FC = () => {
   if (typeof window === "undefined") return;
   const el = document.getElementById("resume");
   if (!el) return alert("Resume element not found");
-  // Cria um clone do elemento para manipular as cores
   const clone = el.cloneNode(true) as HTMLElement;
-  // Substitui oklch() por #fff (ou outra cor fallback)
-  const replaceOklch = (node: HTMLElement) => {
-   if (node.style) {
-    if (node.style.background && node.style.background.includes("oklch")) {
-     node.style.background = "#fff";
-    }
-    if (node.style.color && node.style.color.includes("oklch")) {
-     node.style.color = "#222";
-    }
-   }
-   Array.from(node.children).forEach((child) =>
-    replaceOklch(child as HTMLElement)
-   );
-  };
-  replaceOklch(clone);
   document.body.appendChild(clone);
+
+  // Freeze computed styles into inline styles
+  const freezeComputed = (root: HTMLElement) => {
+   const apply = (node: HTMLElement) => {
+    const cs = window.getComputedStyle(node);
+    node.style.color = cs.color;
+    node.style.backgroundColor = cs.backgroundColor;
+    node.style.borderColor = cs.borderColor;
+   };
+   apply(root);
+   root.querySelectorAll<HTMLElement>("*").forEach(apply);
+  };
+  freezeComputed(clone);
+
   const { PDFDocument } = await import("pdf-lib");
   const html2canvas = (await import("html2canvas")).default;
   const canvas = await html2canvas(clone);
@@ -723,7 +738,8 @@ const ResumePage: React.FC = () => {
             : "font-bold text-gray-800 text-lg"
           }
          >
-          {item.title}
+          {item.title} - {item.company}
+          {item.locate ? `, ${item.locate}` : ""}
          </h4>
          <p
           className={
@@ -734,19 +750,29 @@ const ResumePage: React.FC = () => {
          >
           {item.period}
          </p>
-         <ul
-          className={
-           isDarkBackground(selectedBg)
-            ? "list-disc pl-5 space-y-2 text-gray-400"
-            : "list-disc pl-5 space-y-2 text-gray-700"
-          }
-         >
-          {(item.details || []).map((detail: any, i: number) => (
-           <li key={i} className="leading-snug">
-            {detail}
-           </li>
-          ))}
-         </ul>
+         {Array.isArray(item.details) && item.details.length > 0 ? (
+          <ul
+           className={
+            isDarkBackground(selectedBg)
+             ? "list-disc pl-5 space-y-2 text-gray-400"
+             : "list-disc pl-5 space-y-2 text-gray-700"
+           }
+          >
+           {item.details.map((detail: string, i: number) => (
+            <li key={i} className="leading-snug">
+             {detail}
+            </li>
+           ))}
+          </ul>
+         ) : (
+          <p
+           className={
+            isDarkBackground(selectedBg) ? "text-gray-300" : "text-gray-700"
+           }
+          >
+           {item.description}
+          </p>
+         )}
         </div>
        ))}
       </Section>

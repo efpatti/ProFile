@@ -245,8 +245,8 @@ export class PuppeteerService {
           #resume, #resume * { break-inside: avoid; page-break-inside: avoid; }
           /* Ensure header text remains white on accent background */
           #resume .bg-\[var\(--accent\)\], #resume .bg-\[var\(--accent\)\] * { color: #fff !important; }
-          /* Remove focus outlines, rings and link styles that can print as blue borders */
-          #resume a, #resume a:visited, #resume a:active { color: inherit !important; text-decoration: none !important; outline: none !important; box-shadow: none !important; }
+          /* Remove focus outlines, rings and underline without changing color */
+          #resume a, #resume a:visited, #resume a:active { text-decoration: none !important; outline: none !important; box-shadow: none !important; }
           #resume *:focus { outline: none !important; box-shadow: none !important; }
           #resume [class*="ring-"], #resume [class*="focus:ring-"] { box-shadow: none !important; }
           /* Avoid unintended right borders next to section underlines */

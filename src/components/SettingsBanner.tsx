@@ -29,6 +29,7 @@ import { BgBannerSelector } from "./BgBannerSelector";
 import { LogoSearch } from "./LogoSearch";
 import { FiX as CloseIcon, FiCheck, FiAlertTriangle } from "react-icons/fi";
 import { BgBannerColorName } from "@/styles/sharedStyleConstants";
+import ExperienceEditor from "./ExperienceEditor";
 
 interface SettingsBannerProps {
  selectedBg: BgBannerColorName;
@@ -187,6 +188,12 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
               Skills
              </h3>
              {user && <SkillsEditor lang={language} />}
+            </div>
+            <div>
+             <h3 className="text-xl font-semibold mb-4 border-b-2 border-gray-700 pb-2">
+              {language === "pt-br" ? "Experiência" : "Experience"}
+             </h3>
+             {user && <ExperienceEditor lang={language} />}
             </div>
             <div>
              <h3 className="text-xl font-semibold mb-4 border-b-2 border-gray-700 pb-2">
