@@ -280,8 +280,8 @@ const ResumePage: React.FC = () => {
       items: data.items || [],
      });
     } else {
-      console.log("No languages document found!");
-      setLanguages({ title: "Idiomas", items: [] });
+     console.log("No languages document found!");
+     setLanguages({ title: "Idiomas", items: [] });
     }
    } finally {
     setLanguagesLoaded(true);

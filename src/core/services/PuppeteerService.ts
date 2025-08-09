@@ -201,27 +201,29 @@ export class PuppeteerService {
 
   // Extract only the necessary parts to render #resume identically
   const origin = new URL(pageUrl).origin;
-  const { linkTags, styleTags, resumeHTML, cssVars } = await page.evaluate(() => {
-   const linkTags = Array.from(
-    document.querySelectorAll('head link[rel="stylesheet"]')
-   ).map((l) => (l as HTMLLinkElement).outerHTML);
-   const styleTags = Array.from(document.querySelectorAll('head style')).map(
-    (s) => (s as HTMLStyleElement).outerHTML
-   );
-   const resumeEl = document.querySelector('#resume') as HTMLElement | null;
-   // Collect CSS variables set on :root (documentElement)
-   const rootStyle = document.documentElement.style;
-   const varNames = Array.from(rootStyle).filter((n) => n.startsWith('--'));
-   const cssVars = varNames
-    .map((name) => `${name}: ${rootStyle.getPropertyValue(name)};`)
-    .join(' ');
-   return {
-    linkTags,
-    styleTags,
-    resumeHTML: resumeEl ? resumeEl.outerHTML : '',
-    cssVars,
-   };
-  });
+  const { linkTags, styleTags, resumeHTML, cssVars } = await page.evaluate(
+   () => {
+    const linkTags = Array.from(
+     document.querySelectorAll('head link[rel="stylesheet"]')
+    ).map((l) => (l as HTMLLinkElement).outerHTML);
+    const styleTags = Array.from(document.querySelectorAll("head style")).map(
+     (s) => (s as HTMLStyleElement).outerHTML
+    );
+    const resumeEl = document.querySelector("#resume") as HTMLElement | null;
+    // Collect CSS variables set on :root (documentElement)
+    const rootStyle = document.documentElement.style;
+    const varNames = Array.from(rootStyle).filter((n) => n.startsWith("--"));
+    const cssVars = varNames
+     .map((name) => `${name}: ${rootStyle.getPropertyValue(name)};`)
+     .join(" ");
+    return {
+     linkTags,
+     styleTags,
+     resumeHTML: resumeEl ? resumeEl.outerHTML : "",
+     cssVars,
+    };
+   }
+  );
 
   // Replace page content with a minimal doc containing only #resume and the collected styles
   await page.setContent(
@@ -229,8 +231,8 @@ export class PuppeteerService {
     <html>
       <head>
         <base href="${origin}">
-        ${linkTags.join('\n')}
-        ${styleTags.join('\n')}
+        ${linkTags.join("\n")}
+        ${styleTags.join("\n")}
         <style>
           :root { ${cssVars} }
           html, body { margin: 0 !important; padding: 0 !important; background: #fff !important; }
@@ -246,7 +248,7 @@ export class PuppeteerService {
         ${resumeHTML}
       </body>
     </html>`,
-   { waitUntil: 'domcontentloaded' }
+   { waitUntil: "domcontentloaded" }
   );
 
   // Ensure print styles and fonts are applied in the new content
