@@ -11,9 +11,9 @@ const SkillCategoryComponent: React.FC<SkillCategoryProps> = ({
  textClass = "text-gray-700",
 }) => {
  return (
-  <div className="mb-4">
+  <div className="mb-4 p-4">
    <h4 className={`font-semibold mb-2 ${textClass}`}>{category.title}</h4>
-   <ul className={`list-disc pl-5 space-y-1 ${textClass}`}>
+   <ul className={`list-disc pl-5 space-y-1 perfect-justify ${textClass}`}>
     {category.items.map((item, index) => (
      <li key={index}>{item}</li>
     ))}

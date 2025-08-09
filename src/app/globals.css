@@ -78,3 +78,21 @@ body {
   }
  }
 }
+
+/* globals.css */
+@supports (text-wrap: pretty) {
+ .perfect-justify {
+  text-wrap: pretty;
+  text-align: justify;
+  text-justify: auto;
+ }
+}
+
+@supports not (text-wrap: pretty) {
+ .perfect-justify {
+  text-align: justify;
+  text-justify: inter-word;
+  hyphens: auto;
+  word-spacing: -0.05em;
+ }
+}

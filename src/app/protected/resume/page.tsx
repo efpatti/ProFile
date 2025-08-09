@@ -679,9 +679,9 @@ const ResumePage: React.FC = () => {
       {/* Profile */}
       <Section title={profile?.title || "Profile"} accent={"#2563eb"}>
        <p
-        className={
+        className={`${
          isDarkBackground(selectedBg) ? "text-gray-400" : "text-gray-700"
-        }
+        } perfect-justify`}
         style={{ marginBottom: "0.75rem" }}
        >
         {profile?.content || "erro"}
@@ -690,7 +690,7 @@ const ResumePage: React.FC = () => {
       {/* Languages */}
       <Section title={languages?.title || "Languages"} accent={"#2563eb"}>
        <ul
-        className={`list-disc pl-5 space-y-1 ${
+        className={`list-disc pl-7 space-y-1  ${
          isDarkBackground(selectedBg) ? "text-gray-400" : "text-gray-700"
         }`}
        >
@@ -700,9 +700,9 @@ const ResumePage: React.FC = () => {
        </ul>
       </Section>
       {/* Education */}
-      <Section title={"Education"} accent={"#2563eb"}>
+      <Section title={"Educação"} accent={"#2563eb"}>
        {(education || []).map((item, index) => (
-        <div className="mb-6" key={index}>
+        <div className="p-2" key={index}>
          <h4
           className={
            isDarkBackground(selectedBg)
@@ -725,7 +725,7 @@ const ResumePage: React.FC = () => {
        ))}
       </Section>
       {/* Experience */}
-      <Section title={"Experience"} accent={"#2563eb"}>
+      <Section title={"Experiência"} accent={"#2563eb"}>
        {(experience || []).map((item: any, index: number) => (
         <div
          className="mb-6 p-4 rounded-lg transition-shadow duration-300"
@@ -759,7 +759,7 @@ const ResumePage: React.FC = () => {
            }
           >
            {item.details.map((detail: string, i: number) => (
-            <li key={i} className="leading-snug">
+            <li key={i} className="perfect-justify">
              {detail}
             </li>
            ))}
@@ -776,46 +776,51 @@ const ResumePage: React.FC = () => {
         </div>
        ))}
       </Section>
-      {/* Projects */}
-      <Section title={"Projects"} accent={"#2563eb"}>
-       {(projects || []).map((item: any, index: number) => (
-        <div
-         className={`mb-6 p-4 rounded-lg transition-shadow duration-300 `}
-         key={index}
-        >
+      {/* Recommendations (moved here from right column) */}
+      <Section title={"Recomendações"} accent={"#2563eb"}>
+       {(recommendations || []).map((item: any, index: number) => (
+        <div className="mb-6 p-4 rounded-r-lg" key={index}>
          <h4
           className={
            isDarkBackground(selectedBg)
-            ? "font-bold text-gray-200 text-lg"
-            : "font-bold text-gray-800 text-lg"
+            ? "font-bold text-gray-200"
+            : "font-bold text-gray-800"
           }
          >
-          {item.title}
+          {item.name}
+         </h4>
+         <h4
+          className={
+           isDarkBackground(selectedBg)
+            ? "text-md text-gray-400 mb-2"
+            : "text-md text-gray-600 mb-2"
+          }
+         >
+          {item.position}
          </h4>
          <p
           className={
            isDarkBackground(selectedBg)
-            ? "text-gray-400 mb-3"
-            : "text-gray-700 mb-3"
+            ? "text-gray-400 text-sm mb-3"
+            : "text-gray-500 text-sm mb-3"
           }
          >
-          {item.description}
+          {item.period}
          </p>
-         <a
-          href={item.link.href}
-          target="_blank"
-          rel="noopener noreferrer"
-          className={`inline-flex items-center hover:underline transition-colors duration-200 
-            text-[var(--accent)]`}
-         >
-          <FaExternalLinkAlt className="mr-1" />
-          {item.link.text}
-         </a>
+         <blockquote
+          className={
+           isDarkBackground(selectedBg)
+            ? "italic text-gray-300 perfect-justify"
+            : "italic text-gray-700 perfect-justify"
+          }
+          dangerouslySetInnerHTML={{ __html: item.text }}
+         />
         </div>
        ))}
       </Section>
-      {/* Certifications */}
-      <Section title={"Certifications"} accent={"#2563eb"}>
+
+      {/* Certifications (kept abaixo da seção trocada) */}
+      <Section title={"Certificações"} accent={"#2563eb"}>
        {(certifications || []).map((item: any, index: number) => (
         <div
          className="mb-6 p-4 rounded-lg transition-shadow duration-300"
@@ -859,7 +864,7 @@ const ResumePage: React.FC = () => {
      {/* Right Column */}
      <div>
       {/* Skills */}
-      <Section title={"Skills"} accent={"#2563eb"}>
+      <Section title={"Habilidades"} accent={"#2563eb"}>
        {(skills || []).map((category: any, index: number) => (
         <SkillCategory
          key={index}
@@ -870,10 +875,48 @@ const ResumePage: React.FC = () => {
         />
        ))}
       </Section>
-      {/* Interests */}
-      <Section title={"Interests"} accent={"#2563eb"}>
+      {/* Projects (moved here from left column) */}
+      <Section title={"Projetos"} accent={"#2563eb"}>
+       {(projects || []).map((item: any, index: number) => (
+        <div
+         className={`mb-6 p-4 rounded-lg transition-shadow duration-300 `}
+         key={index}
+        >
+         <h4
+          className={
+           isDarkBackground(selectedBg)
+            ? "font-bold text-gray-200 text-lg"
+            : "font-bold text-gray-800 text-lg"
+          }
+         >
+          {item.title}
+         </h4>
+         <p
+          className={
+           isDarkBackground(selectedBg)
+            ? "text-gray-400 mb-3 perfect-justify"
+            : "text-gray-700 mb-3 perfect-justify"
+          }
+         >
+          {item.description}
+         </p>
+         <a
+          href={item.link.href}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={`inline-flex items-center hover:underline transition-colors duration-200 
+            text-[var(--accent)]`}
+         >
+          <FaExternalLinkAlt className="mr-1" />
+          {item.link.text}
+         </a>
+        </div>
+       ))}
+      </Section>
+      {/* Interests (moved here from left column) */}
+      <Section title={"Interesses"} accent={"#2563eb"}>
        {(interests || []).map((cat: any, index: number) => (
-        <div className="mb-4" key={index}>
+        <div className="mb-4 p-4" key={index}>
          <h4
           className={
            isDarkBackground(selectedBg)
@@ -897,50 +940,8 @@ const ResumePage: React.FC = () => {
         </div>
        ))}
       </Section>
-      {/* Recommendations */}
-      <Section title={"Recommendations"} accent={"#2563eb"}>
-       {(recommendations || []).map((item: any, index: number) => (
-        <div className="mb-6 rounded-r-lg" key={index}>
-         <h4
-          className={
-           isDarkBackground(selectedBg)
-            ? "font-bold text-gray-200"
-            : "font-bold text-gray-800"
-          }
-         >
-          {item.name}
-         </h4>
-         <h4
-          className={
-           isDarkBackground(selectedBg)
-            ? "text-md text-gray-400 mb-2"
-            : "text-md text-gray-600 mb-2"
-          }
-         >
-          {item.position}
-         </h4>
-         <p
-          className={
-           isDarkBackground(selectedBg)
-            ? "text-gray-400 text-sm mb-3"
-            : "text-gray-500 text-sm mb-3"
-          }
-         >
-          {item.period}
-         </p>
-         <blockquote
-          className={
-           isDarkBackground(selectedBg)
-            ? "italic text-gray-300"
-            : "italic text-gray-700"
-          }
-          dangerouslySetInnerHTML={{ __html: item.text }}
-         />
-        </div>
-       ))}
-      </Section>
-      {/* Awards */}
-      <Section title={"Awards"} accent={"#2563eb"}>
+      {/* Awards (restored) */}
+      <Section title={"Prêmios"} accent={"#2563eb"}>
        {(awards || []).map((item: any, index: number) => (
         <div
          className={`flex items-start gap-3 mb-4 p-3 rounded-lg transition-shadow duration-300 `}
