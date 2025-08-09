@@ -4,12 +4,30 @@ import { BannerService } from "@/core/services/BannerService";
 import { colorPalettes, PaletteName } from "@/styles/sharedStyleConstants";
 import { paletteActiveState } from "@/styles/PaletteProvider";
 
+// Properly typed browser reference reused across calls
+type PuppeteerBrowser = import("puppeteer").Browser;
+let browser: PuppeteerBrowser | null = null;
+
+async function getBrowser() {
+ if (!browser) {
+  browser = await puppeteer.launch();
+ }
+ return browser;
+}
+
+async function closeBrowser() {
+ if (browser) {
+  await browser.close();
+  browser = null;
+ }
+}
+
 export class PuppeteerService {
  static async captureBanner(
   palette: string = paletteActiveState.value,
   logoUrl: string = ""
  ): Promise<Buffer> {
-  const browser = await puppeteer.launch();
+  const browser = await getBrowser();
   const page = await browser.newPage();
   // Aumenta a resolução para máxima qualidade
   await page.setViewport({ width: 1584, height: 396, deviceScaleFactor: 4 });
@@ -83,7 +101,10 @@ export class PuppeteerService {
   await page.screenshot({ path: "/tmp/banner_debug_before_wait_code.png" });
 
   // DEBUG: Log code block contents before waiting
-  const codeBlockBefore = await page.$eval("#code", (el) => el.innerHTML);
+  const codeBlockBefore = await page.$eval(
+   "#code",
+   (el: Element) => (el as HTMLElement).innerHTML
+  );
   // eslint-disable-next-line no-console
   console.log(
    "[PuppeteerService] #code contents before wait:",
@@ -103,7 +124,10 @@ export class PuppeteerService {
   await page.screenshot({ path: "/tmp/banner_debug_after_wait_code.png" });
 
   // DEBUG: Log code block contents after waiting
-  const codeBlockAfter = await page.$eval("#code", (el) => el.innerHTML);
+  const codeBlockAfter = await page.$eval(
+   "#code",
+   (el: Element) => (el as HTMLElement).innerHTML
+  );
   // eslint-disable-next-line no-console
   console.log("[PuppeteerService] #code contents after wait:", codeBlockAfter);
 
@@ -128,14 +152,13 @@ export class PuppeteerService {
    throw new Error("Banner element not found");
   }
   // Screenshot com máxima qualidade
-  // @ts-expect-error puppeteer screenshot returns Buffer
-  const buffer: Buffer = await banner.screenshot({
+  const buffer = (await banner.screenshot({
    encoding: "binary",
    type: "png",
    captureBeyondViewport: true,
    omitBackground: false,
-  });
-  await browser.close();
+  })) as Buffer;
+  await page.close();
   return buffer;
  }
 
@@ -154,7 +177,7 @@ export class PuppeteerService {
   bannerColor?: string
  ): Promise<Buffer> {
   // Não use label, use sempre o slug/código
-  const browser = await puppeteer.launch();
+  const browser = await getBrowser();
   const page = await browser.newPage();
   await page.setViewport({ width: 1200, height: 1700, deviceScaleFactor: 2 });
   let pageUrl = `http://127.0.0.1:3000/resume?palette=${palette}&lang=${lang}`;
@@ -179,7 +202,9 @@ export class PuppeteerService {
     preferCSSPageSize: true,
    })
   );
-  await browser.close();
+  await page.close();
   return buffer;
  }
 }
+
+export { closeBrowser };

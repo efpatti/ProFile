@@ -1,7 +1,15 @@
 "use client";
 import React from "react";
 import Image from "next/image";
-import { CodeBlock } from "./CodeBlock";
+import dynamic from "next/dynamic";
+// Lazy load CodeBlock to reduce initial bundle
+const CodeBlock = dynamic(
+ () => import("./CodeBlock").then((m) => m.CodeBlock),
+ {
+  ssr: false,
+  loading: () => null,
+ }
+);
 import { Developer } from "@/core/models/Developer";
 import { MdEmail } from "react-icons/md";
 import { FaPhoneAlt, FaGithub } from "react-icons/fa";
@@ -10,7 +18,7 @@ import {
  bgBannerColor,
  BgBannerColorName,
 } from "@/styles/sharedStyleConstants";
-import { SettingsPanel } from "@/components/SettingsPanel";
+
 import type { User } from "firebase/auth";
 import { usePalette } from "@/styles/PaletteProvider";
 
@@ -76,19 +84,6 @@ export const Banner: React.FC<BannerProps> = ({
    }}
    className="shadow-sm shadow-[color:var(--secondary)] flex flex-row gap-0 w-full relative"
   >
-   {/* Settings Banner no canto superior esquerdo */}
-   {selectedBg && onSelectBg && (
-    <SettingsPanel
-     selectedBg={selectedBg}
-     onSelectBg={onSelectBg}
-     onLogoSelect={setCurrentLogoUrl}
-     logoUrl={currentLogoUrl}
-     showDownloadButton={true}
-     position="left"
-     downloadType="banner"
-    />
-   )}
-
    {/* Left content - shifted right */}
    <div className="w-[900px] flex flex-col justify-center">
     <div className="flex justify-start items-center space-x-4">
@@ -105,6 +100,8 @@ export const Banner: React.FC<BannerProps> = ({
       width={40}
       height={40}
       className="h-10 w-10 rounded-full bg-white shadow"
+      loading="lazy"
+      priority={false}
      />
     </div>
     <p className="italic mb-3 text-lg" style={{ color: effectiveBgColor.text }}>

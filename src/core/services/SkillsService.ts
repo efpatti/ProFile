@@ -8,6 +8,8 @@ import {
  deleteDoc,
  addDoc,
  updateDoc,
+ orderBy,
+ limit,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
@@ -22,10 +24,16 @@ export interface Skill {
 // Busca todas as skills para um usuário e idioma
 export const fetchSkillsForUser = async (
  userId: string,
- language: "pt-br" | "en"
+ language: "pt-br" | "en",
+ pageSize = 100
 ): Promise<Skill[]> => {
  const skillsRef = collection(db, "users", userId, "skills");
- const q = query(skillsRef, where("language", "==", language));
+ const q = query(
+  skillsRef,
+  where("language", "==", language),
+  orderBy("order", "asc"),
+  limit(pageSize)
+ );
  const querySnapshot = await getDocs(q);
  return querySnapshot.docs.map((doc) => ({
   id: doc.id,

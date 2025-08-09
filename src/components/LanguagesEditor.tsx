@@ -3,8 +3,15 @@
 import React, { useState, useEffect } from "react";
 import { useAuth } from "@/core/services/AuthProvider";
 import { db } from "@/lib/firebase";
-import { doc, getDoc, updateDoc, setDoc } from "firebase/firestore";
-import { FaTrash, FaPlus, FaSave } from "react-icons/fa";
+import { doc, getDoc, setDoc } from "firebase/firestore";
+import { motion, Reorder, useDragControls } from "framer-motion";
+import {
+ FaTrash,
+ FaGripVertical,
+ FaPlus,
+ FaSave,
+ FaEdit,
+} from "react-icons/fa";
 
 interface LanguagesEditorProps {
  lang: "pt-br" | "en";
@@ -13,9 +20,11 @@ interface LanguagesEditorProps {
 const LanguagesEditor: React.FC<LanguagesEditorProps> = ({ lang }) => {
  const { user } = useAuth();
  const [items, setItems] = useState<string[]>([]);
- const [title, setTitle] = useState("");
+ const [title, setTitle] = useState("Idiomas");
  const [isLoading, setIsLoading] = useState(true);
+ const [editing, setEditing] = useState(false);
  const [newItem, setNewItem] = useState("");
+ const controls = useDragControls();
 
  useEffect(() => {
   if (user) {
@@ -27,9 +36,6 @@ const LanguagesEditor: React.FC<LanguagesEditorProps> = ({ lang }) => {
       const data = docSnap.data();
       setItems(data.items || []);
       setTitle(data.title || "Idiomas");
-     } else {
-      setItems([]);
-      setTitle("Idiomas");
      }
      setIsLoading(false);
     })
@@ -62,6 +68,7 @@ const LanguagesEditor: React.FC<LanguagesEditorProps> = ({ lang }) => {
   const docRef = doc(db, "users", user.uid, "languages", lang);
   try {
    await setDoc(docRef, { title, items, language: lang }, { merge: true });
+   setEditing(false);
    alert("Idiomas salvos com sucesso!");
   } catch (error) {
    console.error("Erro ao salvar idiomas:", error);
@@ -69,56 +76,103 @@ const LanguagesEditor: React.FC<LanguagesEditorProps> = ({ lang }) => {
   }
  };
 
- if (isLoading) {
-  return <div>Carregando editor de idiomas...</div>;
- }
+ if (isLoading) return <div className="text-white">Carregando idiomas...</div>;
 
  return (
-  <>
-   <h3 className="text-xl font-bold mb-4 text-white">Editor de Idiomas</h3>
-   <div className="space-y-2">
-    {items.map((item, index) => (
-     <div key={index} className="flex items-center gap-2">
+  <div className="bg-gray-800 rounded-lg p-6">
+   <div className="flex justify-between items-center mb-6">
+    <h2 className="text-2xl font-bold text-white">
+     {lang === "pt-br" ? "Idiomas" : "Languages"}
+    </h2>
+    <button
+     onClick={() => setEditing(!editing)}
+     className="bg-blue-600 hover:bg-blue-500 text-white font-medium py-2 px-4 rounded"
+    >
+     {editing ? "Visualizar" : "Editar"}
+    </button>
+   </div>
+
+   {editing ? (
+    <div className="space-y-4">
+     <Reorder.Group
+      axis="y"
+      values={items}
+      onReorder={setItems}
+      className="space-y-4"
+     >
+      {items.map((item, index) => (
+       <Reorder.Item
+        key={index}
+        value={item}
+        as="div"
+        dragListener={false}
+        className="flex items-center gap-3 p-3 bg-gray-700 rounded-lg"
+       >
+        <motion.div
+         className="cursor-grab p-2 text-gray-400 hover:text-white"
+         drag="x"
+         dragControls={controls}
+         onPointerDown={(e) => controls.start(e)}
+         whileDrag={{ opacity: 0.7 }}
+        >
+         <FaGripVertical />
+        </motion.div>
+
+        <input
+         type="text"
+         value={item}
+         onChange={(e) => handleUpdateItem(index, e.target.value)}
+         className="bg-gray-600 text-white p-2 rounded flex-grow"
+        />
+
+        <button
+         onClick={() => handleRemoveItem(index)}
+         className="text-red-500 hover:text-red-400 p-2"
+        >
+         <FaTrash />
+        </button>
+       </Reorder.Item>
+      ))}
+     </Reorder.Group>
+
+     <div className="flex gap-4 mt-4">
       <input
        type="text"
-       value={item}
-       onChange={(e) => handleUpdateItem(index, e.target.value)}
-       className="bg-gray-700 text-white p-2 rounded w-full"
+       value={newItem}
+       onChange={(e) => setNewItem(e.target.value)}
+       className="bg-gray-600 text-white p-2 rounded flex-grow"
+       placeholder="Novo idioma"
       />
       <button
-       onClick={() => handleRemoveItem(index)}
-       className="text-red-500 hover:text-red-400 p-2"
+       onClick={handleAddItem}
+       className="bg-blue-600 hover:bg-blue-500 text-white p-2 rounded"
       >
-       <FaTrash />
+       <FaPlus />
       </button>
      </div>
-    ))}
-   </div>
-   <div className="mt-4 flex items-center gap-2">
-    <input
-     type="text"
-     value={newItem}
-     onChange={(e) => setNewItem(e.target.value)}
-     className="bg-gray-700 text-white p-2 rounded w-full"
-     placeholder="Novo idioma"
-    />
-    <button
-     onClick={handleAddItem}
-     className="bg-blue-500 hover:bg-blue-400 text-white p-2 rounded"
-    >
-     <FaPlus />
-    </button>
-   </div>
-   <div className="mt-6 text-right">
-    <button
-     onClick={handleSave}
-     className="bg-green-600 hover:bg-green-500 text-white font-bold py-2 px-4 rounded flex items-center gap-2 ml-auto"
-    >
-     <FaSave />
-     Salvar Idiomas
-    </button>
-   </div>
-  </>
+
+     <div className="mt-6">
+      <button
+       onClick={handleSave}
+       className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white font-medium py-2 px-6 rounded ml-auto"
+      >
+       <FaSave /> Salvar Idiomas
+      </button>
+     </div>
+    </div>
+   ) : (
+    <div className="flex flex-wrap gap-2">
+     {items.map((item, index) => (
+      <div
+       key={index}
+       className="bg-gray-700 text-white px-4 py-2 rounded-full"
+      >
+       {item}
+      </div>
+     ))}
+    </div>
+   )}
+  </div>
  );
 };
 

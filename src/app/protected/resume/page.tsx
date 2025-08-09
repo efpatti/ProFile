@@ -823,7 +823,6 @@ const ResumePage: React.FC = () => {
      </div>
     </div>
    </div>
-   <div className="my-8 p-4 md:p-8 bg-gray-900 rounded-lg space-y-8"></div>
   </div>
  );
 };

@@ -3,7 +3,7 @@
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import LogoSVG from "@/components/LogoSVG";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, memo } from "react";
 import { FaGithub, FaTimes } from "react-icons/fa";
 import { useAuth } from "@/core/services/AuthProvider";
 import {
@@ -26,7 +26,7 @@ interface MobileMenuProps {
  children: React.ReactNode;
 }
 
-const MobileMenu = ({ isOpen, onClose, children }: MobileMenuProps) => (
+const MobileMenu = memo(({ isOpen, onClose, children }: MobileMenuProps) => (
  <AnimatePresence>
   {isOpen && (
    <motion.div
@@ -34,12 +34,14 @@ const MobileMenu = ({ isOpen, onClose, children }: MobileMenuProps) => (
     animate={{ opacity: 1 }}
     exit={{ opacity: 0 }}
     className="fixed inset-0 z-40 bg-zinc-900/95 backdrop-blur-sm pt-16"
+    style={{ willChange: "opacity" }}
    >
     <motion.div
      initial={{ y: -20 }}
      animate={{ y: 0 }}
      exit={{ y: -20 }}
      className="container mx-auto p-6 overflow-y-auto h-full"
+     style={{ willChange: "transform" }}
     >
      {children}
      <div className="mt-8 flex justify-center">
@@ -54,7 +56,7 @@ const MobileMenu = ({ isOpen, onClose, children }: MobileMenuProps) => (
    </motion.div>
   )}
  </AnimatePresence>
-);
+));
 
 // Hamburger Menu Button component
 interface MenuButtonProps {
@@ -62,7 +64,7 @@ interface MenuButtonProps {
  isOpen: boolean;
 }
 
-const MenuButton = ({ onClick, isOpen }: MenuButtonProps) => (
+const MenuButton = memo(({ onClick, isOpen }: MenuButtonProps) => (
  <button
   onClick={onClick}
   className="md:hidden p-2 text-gray-400 hover:text-white"
@@ -77,9 +79,9 @@ const MenuButton = ({ onClick, isOpen }: MenuButtonProps) => (
    />
   </svg>
  </button>
-);
+));
 
-const MainLinks = ({ isMobile = false }: { isMobile?: boolean }) => (
+const MainLinks = memo(({ isMobile = false }: { isMobile?: boolean }) => (
  <div
   className={`${
    isMobile ? "flex flex-col space-y-4" : "hidden md:flex"
@@ -108,9 +110,9 @@ const MainLinks = ({ isMobile = false }: { isMobile?: boolean }) => (
    </Link>
   )}
  </div>
-);
+));
 
-const AuthLinks = () => (
+const AuthLinks = memo(() => (
  <div className="flex flex-col space-y-3 md:flex-row md:items-center md:space-y-0 md:space-x-3">
   {authRoutes.map((route) => (
    <Link
@@ -126,7 +128,7 @@ const AuthLinks = () => (
    </Link>
   ))}
  </div>
-);
+));
 
 const AuthActions = ({
  isLogged,
@@ -163,7 +165,7 @@ const getPaletteInfo = (palette: string | undefined) => {
  };
 };
 
-const ProfileMenu = ({ user }: { user: UserWithProfile | null }) => {
+const ProfileMenu = memo(({ user }: { user: UserWithProfile | null }) => {
  const [open, setOpen] = useState(false);
  const menuRef = useRef<HTMLDivElement>(null);
  const { palette } = usePalette();
@@ -199,6 +201,7 @@ const ProfileMenu = ({ user }: { user: UserWithProfile | null }) => {
       height={40}
       className="w-10 h-10 rounded-full object-cover"
       unoptimized
+      loading="lazy"
      />
     ) : (
      <span className="flex flex-col items-center justify-center w-full">
@@ -221,6 +224,7 @@ const ProfileMenu = ({ user }: { user: UserWithProfile | null }) => {
      animate={{ opacity: 1, y: 0 }}
      transition={{ duration: 0.2 }}
      className="absolute right-0 mt-2 w-64 bg-zinc-800/95 backdrop-blur-lg border border-zinc-700 rounded-xl shadow-xl py-4 z-50 flex flex-col items-center"
+     style={{ willChange: "transform, opacity" }}
     >
      <div className="w-20 h-20 rounded-full bg-gradient-to-br from-blue-500 to-blue-600 flex items-center justify-center text-white mb-3 shadow-lg">
       {avatar ? (
@@ -231,6 +235,7 @@ const ProfileMenu = ({ user }: { user: UserWithProfile | null }) => {
         height={80}
         className="w-20 h-20 rounded-full object-cover"
         unoptimized
+        loading="lazy"
        />
       ) : (
        <span className="font-bold text-3xl">
@@ -272,7 +277,7 @@ const ProfileMenu = ({ user }: { user: UserWithProfile | null }) => {
    )}
   </div>
  );
-};
+});
 
 const Navbar = () => {
  const [isScrolled, setIsScrolled] = useState(false);
@@ -298,6 +303,7 @@ const Navbar = () => {
       ? "backdrop-blur-md bg-zinc-900/80 border-b border-zinc-800/50"
       : "bg-transparent"
     }`}
+    style={{ willChange: "transform, opacity" }}
    >
     <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-16">
      {/* Logo */}

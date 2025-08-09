@@ -176,14 +176,14 @@ const SkillsEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
           <FaGripVertical />
          </motion.div>
 
-         <div className="flex-1 grid grid-cols-1">
+         <div className="flex-1 grid grid-cols-1 gap-3">
           <AutoResizeTextarea
            value={skill.item}
            onChange={(e) =>
             handleUpdateSkill(skill.id!, e.target.value, skill.category)
            }
            placeholder="Habilidade"
-           className="bg-gray-600 text-white p-2 rounded w-full"
+           className="bg-gray-600 text-white p-2 rounded w-full whitespace-normal break-words"
           />
          </div>
 
@@ -208,11 +208,12 @@ const SkillsEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       {Object.entries(groupedTechnicalSkills).map(([category, items]) => (
        <div key={category} className="bg-gray-700 p-4 rounded-lg">
+        <h4 className="font-bold text-white mb-2">{category}</h4>
         <ul className="flex flex-wrap gap-2">
          {items.map((item, index) => (
           <li
            key={index}
-           className="bg-gray-600 text-white px-3 py-1 rounded-full text-sm"
+           className="bg-gray-600 text-white px-3 py-1 rounded-xl text-sm whitespace-normal break-words max-w-full"
           >
            {item}
           </li>
@@ -274,7 +275,7 @@ const SkillsEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
             handleUpdateSkill(skill.id!, e.target.value, "Profissionais")
            }
            placeholder="Habilidade Profissional"
-           className="bg-gray-600 text-white p-2 rounded w-full"
+           className="bg-gray-600 text-white p-2 rounded w-full whitespace-normal break-words"
           />
          </div>
 
@@ -301,7 +302,7 @@ const SkillsEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
        {professionalSkills.map((skill, index) => (
         <li
          key={index}
-         className="bg-gray-600 text-white px-3 py-1 rounded-full text-sm"
+         className="bg-gray-600 text-white px-3 py-1 rounded-full text-sm whitespace-normal break-words max-w-full"
         >
          {skill.item}
         </li>
