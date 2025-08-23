@@ -138,6 +138,18 @@ export const colorPalettes = {
   ],
   colorName: [{ "pt-br": "Rosa Quente", en: "Hot Pink" }],
  },
+ // Neutros Escuros (13)
+ obsidian: {
+  colors: [
+   { accent: "#18181b" },
+   { key: "#f4f4f5" },
+   { highlightBg: "rgba(24,24,27,0.1)" },
+   { accent30: "rgba(24,24,27,0.3)" },
+   { secondary: "#27272a" },
+   { secondarySoft: "#e4e4e7" },
+  ],
+  colorName: [{ "pt-br": "Obsidiana", en: "Obsidian" }],
+ },
 } as const;
 
 export const bgBannerColor = {
