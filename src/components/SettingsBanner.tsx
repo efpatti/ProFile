@@ -1,10 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
+import dynamic from "next/dynamic";
 import { motion, AnimatePresence } from "framer-motion";
 import { useLanguage } from "@/core/services/LanguageProvider";
 import {
  Dialog,
+ DialogPanel,
  DialogTitle,
  Tab,
  TabGroup,
@@ -21,15 +23,36 @@ import { usePalette } from "@/styles/PaletteProvider";
 import { useAuth } from "@/core/services/AuthProvider";
 import { doc, updateDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import SkillsEditor from "./SkillsEditor";
-import EducationEditor from "./EducationEditor";
-import LanguagesEditor from "./LanguagesEditor";
 import { PaletteSelector } from "./PaletteSelector";
 import { BgBannerSelector } from "./BgBannerSelector";
 import { LogoSearch } from "./LogoSearch";
 import { FiX as CloseIcon, FiCheck, FiAlertTriangle } from "react-icons/fi";
 import { BgBannerColorName } from "@/styles/sharedStyleConstants";
-import ExperienceEditor from "./ExperienceEditor";
+
+const LazySkeleton = () => (
+ <div className="animate-pulse space-y-3 p-4 rounded-lg border border-zinc-800 bg-zinc-900/40">
+  <div className="h-4 w-40 bg-zinc-700/60 rounded" />
+  <div className="h-3 w-3/4 bg-zinc-700/40 rounded" />
+  <div className="h-3 w-2/3 bg-zinc-700/30 rounded" />
+ </div>
+);
+
+const SkillsEditor = dynamic(() => import("./SkillsEditor"), {
+ loading: () => <LazySkeleton />,
+ ssr: false,
+});
+const ExperienceEditor = dynamic(() => import("./ExperienceEditor"), {
+ loading: () => <LazySkeleton />,
+ ssr: false,
+});
+const EducationEditor = dynamic(() => import("./EducationEditor"), {
+ loading: () => <LazySkeleton />,
+ ssr: false,
+});
+const LanguagesEditor = dynamic(() => import("./LanguagesEditor"), {
+ loading: () => <LazySkeleton />,
+ ssr: false,
+});
 
 interface SettingsBannerProps {
  selectedBg: BgBannerColorName;
@@ -49,6 +72,25 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
  const { palette, setPalette } = usePalette();
  const { user } = useAuth();
  const { language } = useLanguage();
+ const [openSections, setOpenSections] = useState<Record<string, boolean>>({
+  skills: true,
+ });
+
+ const toggleSection = useCallback((key: string) => {
+  setOpenSections((prev) => ({ ...prev, [key]: !prev[key] }));
+ }, []);
+
+ const expandAll = useCallback(() => {
+  setOpenSections({
+   skills: true,
+   experience: true,
+   education: true,
+   languages: true,
+  });
+ }, []);
+ const collapseAll = useCallback(() => {
+  setOpenSections({});
+ }, []);
 
  const handleApplyChanges = async () => {
   if (!user) {
@@ -90,7 +132,7 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
    <Dialog
     open={isOpen}
     onClose={() => setIsOpen(false)}
-    className="relative z-50"
+    className="relative z-50 custom-organic-scroll"
    >
     <AnimatePresence>
      {isOpen && (
@@ -110,7 +152,7 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
         transition={{ type: "spring", damping: 25 }}
         className="fixed inset-0 flex items-center justify-center p-4"
        >
-        <Dialog.Panel className="relative bg-zinc-950 rounded-xl max-w-3xl w-full mx-4 p-6 shadow-2xl h-[600px] border border-zinc-800">
+        <DialogPanel className="relative bg-zinc-950 rounded-xl max-w-3xl w-full mx-4 p-6 shadow-2xl h-[600px] border border-zinc-800">
          <button
           onClick={() => setIsOpen(false)}
           className="absolute right-4 top-4 p-1 rounded-full text-gray-300 hover:text-white hover:bg-zinc-800 transition-colors focus:outline-none cursor-pointer"
@@ -182,31 +224,59 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
            </TabPanel>
 
            {/* Editors Panel */}
-           <TabPanel className="space-y-8">
-            <div>
-             <h3 className="text-xl font-semibold mb-4 border-b-2 border-gray-700 pb-2">
-              Skills
-             </h3>
-             {user && <SkillsEditor lang={language} />}
+           <TabPanel className="space-y-6" unmount>
+            <div className="flex justify-end gap-2 mb-2">
+             <button
+              onClick={expandAll}
+              className="text-xs px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-gray-300"
+             >
+              {language === "pt-br" ? "Expandir" : "Expand"}
+             </button>
+             <button
+              onClick={collapseAll}
+              className="text-xs px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-gray-300"
+             >
+              {language === "pt-br" ? "Recolher" : "Collapse"}
+             </button>
             </div>
-            <div>
-             <h3 className="text-xl font-semibold mb-4 border-b-2 border-gray-700 pb-2">
-              {language === "pt-br" ? "Experiência" : "Experience"}
-             </h3>
-             {user && <ExperienceEditor lang={language} />}
-            </div>
-            <div>
-             <h3 className="text-xl font-semibold mb-4 border-b-2 border-gray-700 pb-2">
-              Education
-             </h3>
-             {user && <EducationEditor lang={language} />}
-            </div>
-            <div>
-             <h3 className="text-xl font-semibold mb-4 border-b-2 border-gray-700 pb-2">
-              Languages
-             </h3>
-             {user && <LanguagesEditor lang={language} />}
-            </div>
+            <ContentSection
+             id="skills"
+             title="Skills"
+             open={!!openSections.skills}
+             onToggle={() => toggleSection("skills")}
+            >
+             {user && openSections.skills && <SkillsEditor lang={language} />}
+            </ContentSection>
+            <ContentSection
+             id="experience"
+             title={language === "pt-br" ? "Experiência" : "Experience"}
+             open={!!openSections.experience}
+             onToggle={() => toggleSection("experience")}
+            >
+             {user && openSections.experience && (
+              <ExperienceEditor lang={language} />
+             )}
+            </ContentSection>
+            <ContentSection
+             id="education"
+             title={language === "pt-br" ? "Educação" : "Education"}
+             open={!!openSections.education}
+             onToggle={() => toggleSection("education")}
+            >
+             {user && openSections.education && (
+              <EducationEditor lang={language} />
+             )}
+            </ContentSection>
+            <ContentSection
+             id="languages"
+             title={language === "pt-br" ? "Idiomas" : "Languages"}
+             open={!!openSections.languages}
+             onToggle={() => toggleSection("languages")}
+            >
+             {user && openSections.languages && (
+              <LanguagesEditor lang={language} />
+             )}
+            </ContentSection>
            </TabPanel>
           </TabPanels>
          </TabGroup>
@@ -249,7 +319,7 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
            )}
           </button>
          </div>
-        </Dialog.Panel>
+        </DialogPanel>
        </motion.div>
       </>
      )}
@@ -276,14 +346,14 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
      exit={{ opacity: 0, scale: 0.9 }}
      className="fixed inset-0 flex items-center justify-center p-4"
     >
-     <Dialog.Panel className="w-full max-w-sm rounded-xl bg-green-600/90 backdrop-blur-md p-6 text-white border border-green-500/30">
+     <DialogPanel className="w-full max-w-sm rounded-xl bg-green-600/90 backdrop-blur-md p-6 text-white border border-green-500/30">
       <div className="flex items-center gap-3">
        <FiCheck className="h-6 w-6" />
        <Dialog.Title className="text-lg font-semibold">
         Configurações salvas com sucesso!
        </Dialog.Title>
       </div>
-     </Dialog.Panel>
+     </DialogPanel>
     </motion.div>
    </Dialog>
 
@@ -307,14 +377,14 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
      exit={{ opacity: 0, scale: 0.9 }}
      className="fixed inset-0 flex items-center justify-center p-4"
     >
-     <Dialog.Panel className="w-full max-w-sm rounded-xl bg-red-600/90 backdrop-blur-md p-6 text-white border border-red-500/30">
+     <DialogPanel className="w-full max-w-sm rounded-xl bg-red-600/90 backdrop-blur-md p-6 text-white border border-red-500/30">
       <div className="flex items-center gap-3">
        <FiAlertTriangle className="h-6 w-6" />
        <Dialog.Title className="text-lg font-semibold">
         Erro ao salvar configurações
        </Dialog.Title>
       </div>
-     </Dialog.Panel>
+     </DialogPanel>
     </motion.div>
    </Dialog>
   </>
@@ -328,5 +398,54 @@ interface DialogItemTitleProps {
 const DialogItemTitle: React.FC<DialogItemTitleProps> = ({ children }) => {
  return (
   <h3 className={`text-lg font-semibold mb-1 text-gray-100`}>{children}</h3>
+ );
+};
+
+interface ContentSectionProps {
+ id: string;
+ title: string;
+ open: boolean;
+ onToggle: () => void;
+ children: React.ReactNode;
+}
+
+const ContentSection = ({
+ id,
+ title,
+ open,
+ onToggle,
+ children,
+}: ContentSectionProps) => {
+ return (
+  <section
+   id={id}
+   className="border border-zinc-800/60 rounded-lg overflow-hidden bg-zinc-900/40 backdrop-blur-sm"
+  >
+   <button
+    onClick={onToggle}
+    className="w-full flex items-center justify-between px-4 py-3 text-left text-sm font-medium text-gray-200 hover:bg-zinc-800/70 transition-colors"
+   >
+    <span>{title}</span>
+    <svg
+     className={`h-4 w-4 transition-transform ${
+      open ? "rotate-180" : "rotate-0"
+     }`}
+     fill="none"
+     stroke="currentColor"
+     strokeWidth="2"
+     viewBox="0 0 24 24"
+    >
+     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+    </svg>
+   </button>
+   <motion.div
+    initial={false}
+    animate={{ height: open ? "auto" : 0, opacity: open ? 1 : 0 }}
+    transition={{ duration: 0.25, ease: "easeInOut" }}
+    className="overflow-hidden"
+   >
+    <div className="p-4 space-y-4">{children}</div>
+   </motion.div>
+  </section>
  );
 };

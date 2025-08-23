@@ -3,7 +3,6 @@
 import { motion } from "framer-motion";
 import { FaGithub, FaGoogle, FaEnvelope, FaLock } from "react-icons/fa";
 import { FiArrowRight } from "react-icons/fi";
-import LogoSVG from "@/components/LogoSVG"; // Componente SVG extraído
 import { useState, useEffect } from "react";
 import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
@@ -44,11 +43,6 @@ const Header = () => {
  const { t } = useLanguage();
  return (
   <motion.div variants={itemVariants} className="p-8 pb-0">
-   <div className="flex justify-center mb-6">
-    <div className="h-30 w-40 bg-gradient-to-r flex items-center justify-center">
-     <LogoSVG className="w-[500px] h-[400px]" />
-    </div>
-   </div>
    <h1 className="text-2xl font-bold text-center text-white mb-2">
     {t("auth.login")}
    </h1>

@@ -1,6 +1,12 @@
 "use client";
 
-import React, { useState, useEffect, useRef } from "react";
+import React, {
+ useState,
+ useEffect,
+ useRef,
+ useCallback,
+ useMemo,
+} from "react";
 import { useAuth } from "@/core/services/AuthProvider";
 import {
  fetchSkillsForUser,
@@ -14,9 +20,10 @@ import {
  FaPlus,
  FaSave,
  FaEdit,
+ FaUndo,
 } from "react-icons/fa";
 
-// Componente de textarea auto-ajustável
+// Auto-resize textarea
 const AutoResizeTextarea = ({
  value,
  onChange,
@@ -29,14 +36,12 @@ const AutoResizeTextarea = ({
  className?: string;
 }) => {
  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
  useEffect(() => {
   if (textareaRef.current) {
    textareaRef.current.style.height = "auto";
    textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
   }
  }, [value]);
-
  return (
   <textarea
    ref={textareaRef}
@@ -49,278 +54,360 @@ const AutoResizeTextarea = ({
  );
 };
 
+const PROFESSIONAL_KEY = "Profissionais";
+
 const SkillsEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
  const { user } = useAuth();
  const [skills, setSkills] = useState<Skill[]>([]);
+ const [snapshot, setSnapshot] = useState<Skill[]>([]);
  const [isLoading, setIsLoading] = useState(true);
  const [error, setError] = useState<string | null>(null);
- const [editingTechnical, setEditingTechnical] = useState(false);
- const [editingProfessional, setEditingProfessional] = useState(false);
+ const [editing, setEditing] = useState(false);
+ const [isSaving, setIsSaving] = useState(false);
  const controls = useDragControls();
 
  useEffect(() => {
-  if (user) {
-   setIsLoading(true);
-   fetchSkillsForUser(user.uid, lang)
-    .then((fetchedSkills) => {
-     setSkills(fetchedSkills.sort((a, b) => a.order - b.order));
-     setIsLoading(false);
-    })
-    .catch(() => {
-     setError("Falha ao carregar as skills.");
-     setIsLoading(false);
-    });
-  }
+  if (!user) return;
+  setIsLoading(true);
+  fetchSkillsForUser(user.uid, lang)
+   .then((fetched) => {
+    const ordered = fetched.sort((a, b) => a.order - b.order);
+    setSkills(ordered);
+    setSnapshot(ordered);
+   })
+   .catch(() =>
+    setError(
+     lang === "pt-br"
+      ? "Falha ao carregar habilidades."
+      : "Failed to load skills."
+    )
+   )
+   .finally(() => setIsLoading(false));
  }, [user, lang]);
 
- // Separa skills em técnicas e profissionais
- const technicalSkills = skills.filter(
-  (skill) => skill.category !== "Profissionais"
- );
+ const technicalSkills = skills.filter((s) => s.category !== PROFESSIONAL_KEY);
  const professionalSkills = skills.filter(
-  (skill) => skill.category === "Profissionais"
+  (s) => s.category === PROFESSIONAL_KEY
  );
 
- const groupedTechnicalSkills = technicalSkills.reduce((acc, skill) => {
-  if (!acc[skill.category]) {
-   acc[skill.category] = [];
-  }
-  acc[skill.category].push(skill.item);
-  return acc;
- }, {} as Record<string, string[]>);
+ const groupedTechnical = useMemo(() => {
+  return technicalSkills.reduce((acc, s) => {
+   acc[s.category] = acc[s.category] || [];
+   acc[s.category].push(s.item);
+   return acc;
+  }, {} as Record<string, string[]>);
+ }, [technicalSkills]);
 
- const handleUpdateSkill = (id: string, item: string, category: string) => {
-  setSkills((prev) =>
-   prev.map((skill) => (skill.id === id ? { ...skill, item, category } : skill))
-  );
- };
+ const hasChanges = useMemo(() => {
+  if (snapshot.length !== skills.length) return true;
+  return skills.some((s, i) => {
+   const o = snapshot[i];
+   if (!o) return true;
+   return s.category !== o.category || s.item !== o.item || s.order !== o.order;
+  });
+ }, [skills, snapshot]);
 
- const handleRemoveSkill = (id: string) => {
-  setSkills((prev) => prev.filter((skill) => skill.id !== id));
- };
+ const updateSkill = useCallback(
+  (id: string, item: string, category: string) => {
+   setSkills((prev) =>
+    prev.map((sk) => (sk.id === id ? { ...sk, item, category } : sk))
+   );
+  },
+  []
+ );
 
- const handleAddSkill = (categoryType: "technical" | "professional") => {
+ const removeSkill = useCallback(
+  (id: string) => {
+   if (!confirm(lang === "pt-br" ? "Remover habilidade?" : "Remove skill?"))
+    return;
+   setSkills((prev) => prev.filter((sk) => sk.id !== id));
+  },
+  [lang]
+ );
+
+ const generateTempId = () =>
+  typeof crypto !== "undefined" && (crypto as any).randomUUID
+   ? (crypto as any).randomUUID()
+   : `temp-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+ const addSkill = (type: "technical" | "professional") => {
   const newSkill: Skill = {
-   category: categoryType === "technical" ? "Nova Categoria" : "Profissionais",
-   item: "Nova Habilidade",
+   id: generateTempId(),
+   category:
+    type === "technical"
+     ? lang === "pt-br"
+       ? "Nova Categoria"
+       : "New Category"
+     : PROFESSIONAL_KEY,
+   item: lang === "pt-br" ? "Nova Habilidade" : "New Skill",
    language: lang,
    order: skills.length,
   };
   setSkills((prev) => [...prev, newSkill]);
  };
 
- const handleSaveChanges = async () => {
+ const reorderTechnical = (newItems: Skill[]) => {
+  const prof = skills.filter((s) => s.category === PROFESSIONAL_KEY);
+  setSkills([...newItems, ...prof]);
+ };
+ const reorderProfessional = (newItems: Skill[]) => {
+  const tech = skills.filter((s) => s.category !== PROFESSIONAL_KEY);
+  setSkills([...tech, ...newItems]);
+ };
+
+ const handleSave = async () => {
   if (!user) return;
+  setIsSaving(true);
   try {
    await saveSkills(user.uid, lang, skills);
-   setEditingTechnical(false);
-   setEditingProfessional(false);
-   alert("Habilidades salvas com sucesso!");
+   setSnapshot([...skills]);
+   setEditing(false);
   } catch (e) {
    console.error(e);
-   alert("Erro ao salvar as habilidades.");
+  } finally {
+   setIsSaving(false);
   }
  };
 
- if (isLoading) return <p className="text-white">Carregando habilidades...</p>;
- if (error) return <p className="text-red-500">{error}</p>;
+ const handleRevert = () => setSkills(snapshot);
+
+ if (isLoading)
+  return (
+   <p className="text-xs text-gray-400">
+    {lang === "pt-br" ? "Carregando..." : "Loading..."}
+   </p>
+  );
+ if (error) return <p className="text-red-500 text-sm">{error}</p>;
 
  return (
-  <div className="bg-gray-800 rounded-lg p-6">
-   <div className="flex justify-between items-center mb-6">
-    <h2 className="text-2xl font-bold text-white">
-     {lang === "pt-br" ? "Habilidades" : "Skills"}
-    </h2>
-   </div>
-
-   {/* Seção Técnicas */}
-   <div className="mb-8">
-    <div className="flex justify-between items-center mb-4">
-     <h3 className="text-xl font-semibold text-white">Técnicas</h3>
+  <div className="rounded-lg border border-zinc-800 bg-zinc-900/50 p-4 shadow-inner">
+   <div className="flex items-center justify-between mb-4">
+    <div className="flex gap-2 items-center">
+     {editing && hasChanges && (
+      <button
+       onClick={handleRevert}
+       className="text-xs flex items-center gap-1 px-2 py-1 rounded bg-zinc-800 hover:bg-zinc-700 text-amber-300"
+       title={lang === "pt-br" ? "Reverter mudanças" : "Revert changes"}
+      >
+       <FaUndo className="text-[10px]" />{" "}
+       {lang === "pt-br" ? "Reverter" : "Revert"}
+      </button>
+     )}
      <button
-      onClick={() => setEditingTechnical(!editingTechnical)}
-      className="flex items-center gap-2 text-blue-400 hover:text-blue-300"
+      onClick={() => setEditing((v) => !v)}
+      className={`text-xs flex items-center gap-1 px-2 py-1 rounded transition-colors ${
+       editing
+        ? "bg-blue-600/80 hover:bg-blue-600 text-white"
+        : "bg-zinc-800 hover:bg-zinc-700 text-blue-300"
+      }`}
      >
-      <FaEdit /> {editingTechnical ? "Cancelar" : "Editar"}
+      <FaEdit className="text-[10px]" />{" "}
+      {editing
+       ? lang === "pt-br"
+         ? "Fechar"
+         : "Close"
+       : lang === "pt-br"
+       ? "Editar"
+       : "Edit"}
      </button>
     </div>
+   </div>
 
-    {editingTechnical ? (
-     <div className="space-y-4 mb-6">
+   {editing ? (
+    <div className="space-y-6">
+     {/* Technical Skills Editor */}
+     <section>
+      <p className="text-[11px] font-medium text-gray-400 mb-2">
+       {lang === "pt-br" ? "Técnicas" : "Technical"}
+      </p>
       <Reorder.Group
        axis="y"
        values={technicalSkills}
-       onReorder={(newItems) => {
-        const professionalItems = skills.filter(
-         (s) => s.category === "Profissionais"
-        );
-        setSkills([...newItems, ...professionalItems]);
-       }}
-       className="space-y-4"
+       onReorder={reorderTechnical}
+       className="space-y-3"
       >
        {technicalSkills.map((skill) => (
         <Reorder.Item
-         key={skill.id || `new-${Math.random()}`}
+         key={skill.id}
          value={skill}
          as="div"
          dragListener={false}
-         className="flex items-start gap-3 p-3 bg-gray-700 rounded-lg"
+         className="group relative flex flex-col gap-2 p-3 rounded-lg bg-zinc-800/70 border border-zinc-700/40"
         >
          <motion.div
-          className="cursor-grab p-2 text-gray-400 hover:text-white"
+          className="absolute -left-2 top-1.5 cursor-grab p-1.5 text-zinc-500 hover:text-white"
           drag="x"
           dragControls={controls}
           onPointerDown={(e) => controls.start(e)}
-          whileDrag={{ opacity: 0.7 }}
+          whileDrag={{ opacity: 0.6 }}
          >
           <FaGripVertical />
          </motion.div>
-
-         <div className="flex-1 grid grid-cols-1 gap-3">
+         <div className="grid grid-cols-1 md:grid-cols-5 gap-2 pl-4">
+          <input
+           value={skill.category}
+           onChange={(e) =>
+            updateSkill(
+             skill.id!,
+             skill.item,
+             e.target.value.trim() ||
+              (lang === "pt-br" ? "Categoria" : "Category")
+            )
+           }
+           placeholder={lang === "pt-br" ? "Categoria" : "Category"}
+           className="md:col-span-2 bg-zinc-700/70 focus:bg-zinc-700 text-gray-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
+          />
           <AutoResizeTextarea
            value={skill.item}
            onChange={(e) =>
-            handleUpdateSkill(skill.id!, e.target.value, skill.category)
+            updateSkill(skill.id!, e.target.value, skill.category)
            }
-           placeholder="Habilidade"
-           className="bg-gray-600 text-white p-2 rounded w-full whitespace-normal break-words"
+           placeholder={lang === "pt-br" ? "Habilidade" : "Skill"}
+           className="md:col-span-3 bg-zinc-700/70 focus:bg-zinc-700 text-gray-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500 whitespace-normal break-words"
           />
          </div>
-
          <button
-          onClick={() => handleRemoveSkill(skill.id!)}
-          className="text-red-500 hover:text-red-400 p-2"
+          onClick={() => removeSkill(skill.id!)}
+          className="absolute -right-2 -top-2 bg-red-600/80 hover:bg-red-600 text-white rounded-full p-1 shadow"
+          aria-label="Remove"
          >
-          <FaTrash />
+          <FaTrash className="text-[10px]" />
          </button>
         </Reorder.Item>
        ))}
       </Reorder.Group>
+      <div className="flex flex-wrap gap-2 pt-2">
+       <button
+        onClick={() => addSkill("technical")}
+        className="text-xs inline-flex items-center gap-1 px-2 py-1 rounded bg-green-600/80 hover:bg-green-600 text-white"
+       >
+        <FaPlus className="text-[10px]" />{" "}
+        {lang === "pt-br" ? "Adicionar" : "Add"}
+       </button>
+      </div>
+     </section>
 
-      <button
-       onClick={() => handleAddSkill("technical")}
-       className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-2 px-4 rounded"
-      >
-       <FaPlus /> Adicionar Habilidade Técnica
-      </button>
-     </div>
-    ) : (
-     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-      {Object.entries(groupedTechnicalSkills).map(([category, items]) => (
-       <div key={category} className="bg-gray-700 p-4 rounded-lg">
-        <h4 className="font-bold text-white mb-2">{category}</h4>
-        <ul className="flex flex-wrap gap-2">
-         {items.map((item, index) => (
-          <li
-           key={index}
-           className="bg-gray-600 text-white px-3 py-1 rounded-xl text-sm whitespace-normal break-words max-w-full"
-          >
-           {item}
-          </li>
-         ))}
-        </ul>
-       </div>
-      ))}
-     </div>
-    )}
-   </div>
-
-   {/* Seção Profissionais */}
-   <div>
-    <div className="flex justify-between items-center mb-4">
-     <h3 className="text-xl font-semibold text-white">Profissionais</h3>
-     <button
-      onClick={() => setEditingProfessional(!editingProfessional)}
-      className="flex items-center gap-2 text-blue-400 hover:text-blue-300"
-     >
-      <FaEdit /> {editingProfessional ? "Cancelar" : "Editar"}
-     </button>
-    </div>
-
-    {editingProfessional ? (
-     <div className="space-y-4 mb-6">
+     {/* Professional Skills Editor */}
+     <section>
+      <p className="text-[11px] font-medium text-gray-400 mb-2">
+       {lang === "pt-br" ? "Profissionais" : "Professional"}
+      </p>
       <Reorder.Group
        axis="y"
        values={professionalSkills}
-       onReorder={(newItems) => {
-        const technicalItems = skills.filter(
-         (s) => s.category !== "Profissionais"
-        );
-        setSkills([...technicalItems, ...newItems]);
-       }}
-       className="space-y-4"
+       onReorder={reorderProfessional}
+       className="space-y-3"
       >
        {professionalSkills.map((skill) => (
         <Reorder.Item
-         key={skill.id || `new-${Math.random()}`}
+         key={skill.id}
          value={skill}
          as="div"
          dragListener={false}
-         className="flex items-start gap-3 p-3 bg-gray-700 rounded-lg"
+         className="group relative flex flex-col gap-2 p-3 rounded-lg bg-zinc-800/70 border border-zinc-700/40"
         >
          <motion.div
-          className="cursor-grab p-2 text-gray-400 hover:text-white"
+          className="absolute -left-2 top-1.5 cursor-grab p-1.5 text-zinc-500 hover:text-white"
           drag="x"
           dragControls={controls}
           onPointerDown={(e) => controls.start(e)}
-          whileDrag={{ opacity: 0.7 }}
+          whileDrag={{ opacity: 0.6 }}
          >
           <FaGripVertical />
          </motion.div>
-
-         <div className="flex-1">
+         <div className="pl-4">
           <AutoResizeTextarea
            value={skill.item}
            onChange={(e) =>
-            handleUpdateSkill(skill.id!, e.target.value, "Profissionais")
+            updateSkill(skill.id!, e.target.value, PROFESSIONAL_KEY)
            }
-           placeholder="Habilidade Profissional"
-           className="bg-gray-600 text-white p-2 rounded w-full whitespace-normal break-words"
+           placeholder={
+            lang === "pt-br" ? "Habilidade Profissional" : "Professional Skill"
+           }
+           className="w-full bg-zinc-700/70 focus:bg-zinc-700 text-gray-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500 whitespace-normal break-words"
           />
          </div>
-
          <button
-          onClick={() => handleRemoveSkill(skill.id!)}
-          className="text-red-500 hover:text-red-400 p-2"
+          onClick={() => removeSkill(skill.id!)}
+          className="absolute -right-2 -top-2 bg-red-600/80 hover:bg-red-600 text-white rounded-full p-1 shadow"
+          aria-label="Remove"
          >
-          <FaTrash />
+          <FaTrash className="text-[10px]" />
          </button>
         </Reorder.Item>
        ))}
       </Reorder.Group>
+      <div className="flex flex-wrap gap-2 pt-2">
+       <button
+        onClick={() => addSkill("professional")}
+        className="text-xs inline-flex items-center gap-1 px-2 py-1 rounded bg-green-600/80 hover:bg-green-600 text-white"
+       >
+        <FaPlus className="text-[10px]" />{" "}
+        {lang === "pt-br" ? "Adicionar" : "Add"}
+       </button>
+      </div>
+     </section>
 
+     <div className="flex flex-wrap gap-2 pt-2">
       <button
-       onClick={() => handleAddSkill("professional")}
-       className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white py-2 px-4 rounded"
+       onClick={handleSave}
+       disabled={!hasChanges || isSaving}
+       className={`text-xs inline-flex items-center gap-1 px-2 py-1 rounded font-medium transition-colors ${
+        !hasChanges || isSaving
+         ? "bg-blue-900/40 text-blue-300 cursor-not-allowed"
+         : "bg-blue-600/80 hover:bg-blue-600 text-white"
+       }`}
       >
-       <FaPlus /> Adicionar Habilidade Profissional
+       <FaSave className="text-[10px]" />{" "}
+       {isSaving
+        ? lang === "pt-br"
+          ? "Salvando..."
+          : "Saving..."
+        : lang === "pt-br"
+        ? "Salvar"
+        : "Save"}
       </button>
+      {hasChanges && !isSaving && (
+       <span className="text-[10px] text-amber-400 flex items-center">
+        {lang === "pt-br" ? "Alterações não salvas" : "Unsaved changes"}
+       </span>
+      )}
      </div>
-    ) : (
-     <div className="bg-gray-700 p-4 rounded-lg">
-      <ul className="flex flex-wrap gap-2">
-       {professionalSkills.map((skill, index) => (
+    </div>
+   ) : (
+    <div className="space-y-6">
+     {/* Technical view */}
+     <section>
+      <p className="text-[11px] font-medium text-gray-400 mb-2">
+       {lang === "pt-br" ? "Técnicas" : "Technical"}
+      </p>
+      <ul className="flex flex-wrap gap-1.5">
+       {technicalSkills.map((sk) => (
         <li
-         key={index}
-         className="bg-gray-600 text-white px-3 py-1 rounded-full text-sm whitespace-normal break-words max-w-full"
+         key={sk.id}
+         className="px-2 py-1 rounded-full bg-zinc-800/60 text-[11px] text-gray-200 border border-zinc-700/40 max-w-full break-words"
         >
-         {skill.item}
+         {sk.item}
         </li>
        ))}
       </ul>
-     </div>
-    )}
-   </div>
-
-   {/* Botão de salvar quando em modo de edição */}
-   {(editingTechnical || editingProfessional) && (
-    <div className="mt-6">
-     <button
-      onClick={handleSaveChanges}
-      className="flex items-center gap-2 bg-green-600 hover:bg-green-500 text-white font-medium py-2 px-6 rounded"
-     >
-      <FaSave /> Salvar Todas as Alterações
-     </button>
+     </section>
+     {/* Professional view */}
+     <section>
+      <p className="text-[11px] font-medium text-gray-400 mb-2">
+       {lang === "pt-br" ? "Profissionais" : "Professional"}
+      </p>
+      <ul className="flex flex-wrap gap-1.5">
+       {professionalSkills.map((sk) => (
+        <li
+         key={sk.id}
+         className="px-2 py-1 rounded-full bg-zinc-800/60 text-[11px] text-gray-200 border border-zinc-700/40 max-w-full break-words"
+        >
+         {sk.item}
+        </li>
+       ))}
+      </ul>
+     </section>
     </div>
    )}
   </div>

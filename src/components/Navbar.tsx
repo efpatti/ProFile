@@ -1,7 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import LogoSVG from "@/components/LogoSVG";
 import { useAuth } from "@/core/services/AuthProvider";
 import { useLanguage } from "@/core/services/LanguageProvider";
 import { MainLinks } from "@/features/navigation/components/MainLinks";
@@ -38,7 +37,6 @@ const Navbar = () => {
       onClick={() => setMenuOpen(false)}
      >
       <div className="relative flex items-center">
-       <LogoSVG className="w-32 h-32 -ml-6 scale-75 origin-left transition-transform group-hover:scale-[0.78]" />
        <span className="ml-[-28px] pl-2 text-lg font-semibold tracking-tight bg-gradient-to-r from-white via-white/90 to-white/70 bg-clip-text text-transparent hidden sm:inline-flex">
         ProFile
        </span>
