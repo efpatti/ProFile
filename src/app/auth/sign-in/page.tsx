@@ -9,6 +9,12 @@ import { signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebase";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/core/services/AuthProvider";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useLanguage } from "@/core/services/LanguageProvider";
+import { Button } from "@/shared/components/Button";
+import { Input } from "@/shared/components/Input";
 
 const containerVariants = {
  hidden: { opacity: 0 },
@@ -27,21 +33,29 @@ const itemVariants = {
  },
 };
 
-const Header = () => (
- <motion.div variants={itemVariants} className="p-8 pb-0">
-  <div className="flex justify-center mb-6">
-   <div className="h-30 w-40 bg-gradient-to-r flex items-center justify-center">
-    <LogoSVG className="w-[500px] h-[400px]" />
+const signInSchema = z.object({
+ email: z.string().email("Invalid email"),
+ password: z.string().min(6, "Minimum 6 characters"),
+});
+
+type SignInValues = z.infer<typeof signInSchema>;
+
+const Header = () => {
+ const { t } = useLanguage();
+ return (
+  <motion.div variants={itemVariants} className="p-8 pb-0">
+   <div className="flex justify-center mb-6">
+    <div className="h-30 w-40 bg-gradient-to-r flex items-center justify-center">
+     <LogoSVG className="w-[500px] h-[400px]" />
+    </div>
    </div>
-  </div>
-  <h1 className="text-2xl font-bold text-center text-white mb-2">
-   Welcome back
-  </h1>
-  <p className="text-zinc-400 text-center">
-   Log in to your account to continue
-  </p>
- </motion.div>
-);
+   <h1 className="text-2xl font-bold text-center text-white mb-2">
+    {t("auth.login")}
+   </h1>
+   <p className="text-zinc-400 text-center">{t("auth.email")}</p>
+  </motion.div>
+ );
+};
 
 const SocialButtons = () => (
  <motion.div
@@ -73,40 +87,44 @@ const InputField = ({
  type,
  Icon,
  placeholder,
+ register,
+ error,
 }: {
- id: string;
+ id: keyof SignInValues;
  label: string;
  type: string;
  Icon: React.ElementType;
  placeholder: string;
+ register: ReturnType<typeof useForm<SignInValues>>["register"];
+ error?: string;
 }) => (
  <motion.div variants={itemVariants}>
-  <label htmlFor={id} className="block text-sm font-medium text-zinc-300 mb-1">
-   {label}
-  </label>
-  <div className="relative">
-   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-    <Icon className="text-zinc-500" />
-   </div>
-   <input
-    id={id}
-    type={type}
-    defaultValue=""
-    autoComplete="off"
-    className="w-full pl-10 pr-3 py-3 bg-zinc-700/50 border border-zinc-600 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-    placeholder={placeholder}
-   />
-  </div>
+  <Input
+   id={id}
+   label={label}
+   type={type}
+   placeholder={placeholder}
+   leftIcon={<Icon className="text-zinc-500" />}
+   error={error}
+   {...register(id)}
+  />
  </motion.div>
 );
 
 const Form = () => {
  const [loading, setLoading] = useState(false);
- const [error, setError] = useState("");
  const [authLoading, setAuthLoading] = useState(true);
  const [userLogged, setUserLogged] = useState(false);
  const router = useRouter();
  const { user, loading: globalAuthLoading } = useAuth();
+ const {
+  register,
+  handleSubmit,
+  formState: { errors },
+  setError,
+  clearErrors,
+ } = useForm<SignInValues>({ resolver: zodResolver(signInSchema) });
+ const { t } = useLanguage();
 
  useEffect(() => {
   setAuthLoading(globalAuthLoading);
@@ -127,20 +145,14 @@ const Form = () => {
   );
  }
 
- const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-  e.preventDefault();
-  setError("");
+ const onSubmit = async (values: SignInValues) => {
   setLoading(true);
-  const form = e.currentTarget;
-  const email = (form.elements.namedItem("email") as HTMLInputElement)?.value;
-  const password = (form.elements.namedItem("password") as HTMLInputElement)
-   ?.value;
+  clearErrors();
   try {
-   await signInWithEmailAndPassword(auth, email, password);
-   // TODO: redirect or show success
+   await signInWithEmailAndPassword(auth, values.email, values.password);
   } catch (err) {
-   const errorMsg = err instanceof Error ? err.message : String(err);
-   setError(errorMsg || "Failed to sign in");
+   const message = err instanceof Error ? err.message : "Failed to sign in";
+   setError("root", { message });
   } finally {
    setLoading(false);
   }
@@ -150,14 +162,17 @@ const Form = () => {
   <motion.form
    variants={containerVariants}
    className="px-8 pb-8 space-y-6"
-   onSubmit={handleSubmit}
+   onSubmit={handleSubmit(onSubmit)}
+   noValidate
   >
    <InputField
     id="email"
-    label="Email address"
+    label={t("auth.email")}
     type="email"
     Icon={FaEnvelope}
     placeholder="you@example.com"
+    register={register}
+    error={errors.email?.message}
    />
    <motion.div variants={itemVariants}>
     <div className="flex justify-between items-center mb-1">
@@ -165,50 +180,47 @@ const Form = () => {
       htmlFor="password"
       className="block text-sm font-medium text-zinc-300"
      >
-      Password
+      {t("auth.password")}
      </label>
      <a
       href="#"
       className="text-sm text-blue-500 hover:text-blue-400 transition-colors"
      >
-      Forgot?
+      {t("auth.forgot")}
      </a>
     </div>
     <div className="relative">
-     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-      <FaLock className="text-zinc-500" />
-     </div>
-     <input
+     <Input
       id="password"
       type="password"
-      defaultValue=""
-      autoComplete="off"
-      className="w-full pl-10 pr-3 py-3 bg-zinc-700/50 border border-zinc-600 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
       placeholder="••••••••"
+      leftIcon={<FaLock className="text-zinc-500" />}
+      error={errors.password?.message}
+      {...register("password")}
      />
     </div>
+    {errors.password && (
+     <p id="password-error" className="mt-1 text-xs text-red-400">
+      {errors.password.message}
+     </p>
+    )}
    </motion.div>
    <motion.div variants={itemVariants}>
-    <button
+    <Button
      type="submit"
-     className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium rounded-lg shadow-lg hover:shadow-blue-500/20 transition-all duration-300 flex items-center justify-center"
-     disabled={loading}
+     loading={loading}
+     full
+     rightIcon={<FiArrowRight className="ml-2" />}
     >
-     {loading ? (
-      "Logging in..."
-     ) : (
-      <>
-       Log in <FiArrowRight className="ml-2" />
-      </>
-     )}
-    </button>
+     {t("auth.login")}
+    </Button>
    </motion.div>
-   {error && (
+   {errors.root && (
     <motion.div
      variants={itemVariants}
      className="text-center text-red-400 text-sm"
     >
-     {error}
+     {errors.root.message}
     </motion.div>
    )}
    <motion.div
@@ -220,7 +232,7 @@ const Form = () => {
      href="/auth/sign-up"
      className="text-blue-500 hover:text-blue-400 font-medium transition-colors"
     >
-     Sign up
+     {t("auth.signUpCta")}
     </a>
    </motion.div>
   </motion.form>

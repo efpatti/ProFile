@@ -6,6 +6,13 @@
  --font-inter: "Inter", sans-serif;
  --font-manrope: "Manrope", sans-serif;
  --font-jetbrains: "JetBrains Mono", monospace;
+
+ /* semantic tokens */
+ --surface: #0f1115;
+ --surface-elevated: #181b21;
+ --surface-subtle: #1f242c;
+ --border: #2a3038;
+ --ring-accent: var(--accent);
 }
 
 @theme inline {
@@ -95,4 +102,9 @@ body {
   hyphens: auto;
   word-spacing: -0.05em;
  }
+}
+
+:focus-visible {
+ outline: none;
+ box-shadow: 0 0 0 2px var(--accent), 0 0 0 4px rgba(var(--accent-30), 0.4);
 }

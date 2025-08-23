@@ -6,7 +6,15 @@ import {
  PaletteName,
 } from "@/styles/sharedStyleConstants";
 
-export class HtmlFormatter extends DevDataFormatter {
+export interface IFormatter {
+ format(
+  data: Record<string, unknown>,
+  paletteName: PaletteName,
+  textColor?: string
+ ): string;
+}
+
+export class HtmlFormatter extends DevDataFormatter implements IFormatter {
  indent(level: number): string {
   return "&nbsp;".repeat(level * 2);
  }

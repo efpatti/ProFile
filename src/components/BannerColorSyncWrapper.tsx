@@ -1,7 +1,7 @@
 // src/components/BannerColorSyncWrapper.tsx
 "use client";
-import { useUserBannerColorSync } from "@/core/services/useUserBannerColorSync";
-import { useBannerColorFirestoreSync } from "@/core/services/useBannerColorFirestoreSync";
+import { useUserBannerColorSync } from "@/features/palette/hooks/useUserBannerColorSync";
+import { useBannerColorFirestoreSync } from "@/features/palette/hooks/useBannerColorFirestoreSync";
 
 export function BannerColorSyncWrapper() {
  useUserBannerColorSync();

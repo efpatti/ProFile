@@ -32,12 +32,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
  const [isLogged, setIsLogged] = useState(false);
  const [loading, setLoading] = useState<boolean>(true);
 
- console.log("[AuthProvider] render", { loading, user, isLogged });
-
  useEffect(() => {
-  console.log("[AuthProvider] useEffect mounted");
   const unsubscribe = onAuthStateChanged(auth, (userState) => {
-   console.log("[AuthProvider] onAuthStateChanged fired", userState);
    if (userState) {
     const userDoc = doc(db, "users", userState.uid);
     const unsubscribeSnapshot = onSnapshot(
@@ -46,21 +42,17 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const userData = docSnapshot.exists()
        ? (docSnapshot.data() as UserProfileData)
        : {};
-      console.log("[AuthProvider] Firestore userData", userData);
       setUser({ ...userState, ...userData });
       setIsLogged(true);
       setLoading(false);
      },
-     (err) => {
-      console.error("[AuthProvider] Firestore onSnapshot error", err);
+     () => {
       setUser({ ...userState });
       setIsLogged(true);
       setLoading(false);
      }
     );
-    // Limpa o snapshot listener ao deslogar
     return () => {
-     console.log("[AuthProvider] Unsubscribing Firestore snapshot");
      unsubscribeSnapshot();
     };
    } else {
@@ -70,14 +62,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
    }
   });
   return () => {
-   console.log("[AuthProvider] Unsubscribing onAuthStateChanged");
    unsubscribe();
   };
  }, []);
-
- useEffect(() => {
-  console.log("[AuthProvider] useEffect", { loading, user, isLogged });
- }, [loading, user, isLogged]);
 
  return (
   <AuthContext.Provider value={{ user, isLogged, loading, setUser }}>

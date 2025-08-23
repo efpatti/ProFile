@@ -1,5 +1,3 @@
-// functions/src/index.ts ou functions/index.js
-
 import * as functions from "firebase-functions/v1";
 import * as admin from "firebase-admin";
 

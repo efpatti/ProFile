@@ -13,15 +13,17 @@ const colors = [
  "#ec4899", // 11 - rosa
 ] as const;
 
-const LogoSVG = ({ className }: { className?: string }) => (
+const LogoSVG = (props: React.SVGProps<SVGSVGElement>) => (
  <svg
+  {...props}
+  aria-hidden="true"
+  focusable="false"
   version="1.0"
   xmlns="http://www.w3.org/2000/svg"
   width="1024pt"
   height="1024pt"
   viewBox="0 0 1024 1024"
   preserveAspectRatio="xMidYMid meet"
-  className={className}
  >
   <defs>
    {/* Gradiente para o triângulo com 5 cores */}

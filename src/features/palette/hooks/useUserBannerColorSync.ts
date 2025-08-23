@@ -1,7 +1,6 @@
-// src/core/services/useUserBannerColorSync.ts
 "use client";
 import { useEffect } from "react";
-import { useAuth } from "./AuthProvider";
+import { useAuth } from "@/core/services/AuthProvider";
 import { usePalette } from "@/styles/PaletteProvider";
 import { db } from "@/lib/firebase";
 import { doc, onSnapshot } from "firebase/firestore";

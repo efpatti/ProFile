@@ -1,33 +1,29 @@
-# linkedin-profile-banner (Next.js)
+# ProFile (Next.js)
 
-Este projeto foi migrado para Next.js com TypeScript, TailwindCSS, Puppeteer e React Icons.
+Uma plataforma web moderna para criar banners de perfil e currículos personalizados.
 
-## Scripts principais
+## Tech Stack
 
-- `npm run dev` — inicia o servidor de desenvolvimento
-- `npm run build` — build de produção
-- `npm run start` — inicia o servidor em produção
+Next.js (App Router), TypeScript, TailwindCSS, Firebase, Puppeteer, Framer Motion.
 
-## Estrutura
+## Scripts
 
-- `src/` — código-fonte principal
-- `public/` — arquivos estáticos
+- `npm run dev`
+- `npm run build`
+- `npm run start`
+- `npm run typecheck`
+- `npm run lint`
 
-## Dependências principais
+## Estrutura (parcial após refactor Primeira Onda)
 
-- next
-- react
-- tailwindcss
-- puppeteer
-- react-icons
-
-## Como rodar
-
-```bash
-npm install
-npm run dev
+```
+src/
+  app/
+  features/
+    navigation/
+  shared/
+    providers/
+    config/
 ```
 
----
-
-Para dúvidas ou sugestões, abra uma issue.
+Mais melhorias futuras listadas no plano de refatoração (features/\* por domínio, i18n, testes, design system).

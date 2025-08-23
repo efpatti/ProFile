@@ -36,6 +36,7 @@ import {
 import { db } from "@/lib/firebase";
 import useSWR from "swr";
 import { fetchSkillsForUser } from "@/core/services/SkillsService";
+import { Button } from "@/shared/components/Button";
 
 const defaultBg: BgBannerColorName = "midnightSlate";
 
@@ -461,18 +462,6 @@ const ResumePage: React.FC = () => {
   if (bannerColor) setSelectedBg(bannerColor);
  }, [bannerColor]);
 
- function getBtnClasses(paletteName: PaletteName): string {
-  const palette = colorPalettes[paletteName];
-  if (!palette) return "bg-[var(--accent)] hover:bg-[var(--accent)]/90";
-  const btnObj = palette.colors.find(
-   (c: any) => typeof c === "object" && c !== null && "btn" in c
-  ) as { btn?: string[] } | undefined;
-  return btnObj && btnObj.btn
-   ? btnObj.btn.join(" ")
-   : "bg-[var(--accent)] hover:bg-[var(--accent)]/90";
- }
- const btnClasses = getBtnClasses(paletteName);
-
  // Função utilitária para obter o objeto de cor do bg
  function getBgColorObj(bgName: BgBannerColorName) {
   const bgObj = bgBannerColor[bgName];
@@ -619,12 +608,9 @@ const ResumePage: React.FC = () => {
  return (
   <div className="min-h-screen bg-gray-950 p-4 md:p-8 w-full">
    <div className="flex justify-end mb-4">
-    <button
-     className={`font-semibold py-2 px-4 cursor-pointer rounded transition-colors duration-200 text-white rounded-md ${btnClasses}`}
-     onClick={toggleLanguage}
-    >
+    <Button variant="outline" size="sm" onClick={toggleLanguage} full={false}>
      {language === "pt-br" ? "PT" : "EN"}
-    </button>
+    </Button>
    </div>
    <div
     className="max-w-6xl pdf mx-auto overflow-hidden border-4 border-[var(--secondary)] relative"

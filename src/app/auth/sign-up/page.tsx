@@ -13,6 +13,8 @@ import { useAuth } from "@/core/services/AuthProvider";
 import { doc, setDoc } from "firebase/firestore";
 import { PaletteSelector } from "@/components/PaletteSelector";
 import type { PaletteName } from "@/styles/PaletteProvider";
+import { Button } from "@/shared/components/Button";
+import { Input } from "@/shared/components/Input";
 
 const containerVariants = {
  hidden: { opacity: 0 },
@@ -85,22 +87,13 @@ const InputField = ({
  placeholder: string;
 }) => (
  <motion.div variants={itemVariants}>
-  <label htmlFor={id} className="block text-sm font-medium text-zinc-300 mb-1">
-   {label}
-  </label>
-  <div className="relative">
-   <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-    <Icon className="text-zinc-500" />
-   </div>
-   <input
-    id={id}
-    type={type}
-    defaultValue=""
-    autoComplete="off"
-    className="w-full pl-10 pr-3 py-3 bg-zinc-700/50 border border-zinc-600 rounded-lg text-white placeholder-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
-    placeholder={placeholder}
-   />
-  </div>
+  <Input
+   id={id}
+   label={label}
+   type={type}
+   placeholder={placeholder}
+   leftIcon={<Icon className="text-zinc-500" />}
+  />
  </motion.div>
 );
 
@@ -220,19 +213,14 @@ const Form = () => {
     />
    </motion.div>
    <motion.div variants={itemVariants}>
-    <button
+    <Button
      type="submit"
-     className="w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-medium rounded-lg shadow-lg hover:shadow-blue-500/20 transition-all duration-300 flex items-center justify-center"
-     disabled={loading}
+     loading={loading}
+     full
+     rightIcon={<FiArrowRight className="ml-2" />}
     >
-     {loading ? (
-      "Creating account..."
-     ) : (
-      <>
-       Sign up <FiArrowRight className="ml-2" />
-      </>
-     )}
-    </button>
+     Sign up
+    </Button>
    </motion.div>
    {error && (
     <motion.div

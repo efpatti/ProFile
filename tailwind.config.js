@@ -9,49 +9,44 @@ module.exports = {
   extend: {
    colors: {
     accent: {
-     darkGreen: "#22c55e",
-     deepBlue: "#3b82f6",
-     vibrantPurple: "#a855f7",
-     sunsetOrange: "#f97316",
-     teal: "#14b8a6",
+     DEFAULT: "var(--accent)",
+     fg: "var(--key)",
+     soft: "var(--secondary-soft)",
+     secondary: "var(--secondary)",
+     30: "rgba(var(--accent-30),0.9)",
     },
-    key: {
-     darkGreen: "#f7fafc",
-     deepBlue: "#f8fafc",
-     vibrantPurple: "#faf5ff",
-     sunsetOrange: "#fff7ed",
-     teal: "#f0fdfa",
+    surface: {
+     DEFAULT: "#0f1115",
+     elevated: "#181b21",
+     subtle: "#1f242c",
     },
-    secondary: {
-     darkGreen: "#4ade80",
-     deepBlue: "#60a5fa",
-     vibrantPurple: "#c084fc",
-     sunsetOrange: "#fdba74",
-     teal: "#2dd4bf",
+    border: {
+     DEFAULT: "#2a3038",
+     accent: "var(--accent)",
     },
-    secondarySoft: {
-     darkGreen: "#bbf7d0",
-     deepBlue: "#dbeafe",
-     vibrantPurple: "#ede9fe",
-     sunsetOrange: "#ffedd5",
-     teal: "#ccfbf1",
-    },
-    highlightBg: {
-     darkGreen: "rgba(34, 197, 94, 0.1)",
-     deepBlue: "rgba(59, 130, 246, 0.1)",
-     vibrantPurple: "rgba(168, 85, 247, 0.1)",
-     sunsetOrange: "rgba(249, 115, 22, 0.1)",
-     teal: "rgba(20, 184, 166, 0.1)",
-    },
-    accent30: {
-     darkGreen: "rgba(34, 197, 94, 0.3)",
-     deepBlue: "rgba(59, 130, 246, 0.3)",
-     vibrantPurple: "rgba(168, 85, 247, 0.3)",
-     sunsetOrange: "rgba(249, 115, 22, 0.3)",
-     teal: "rgba(20, 184, 166, 0.3)",
-    },
+   },
+   boxShadow: {
+    focus: "0 0 0 2px var(--accent), 0 0 0 4px rgba(var(--accent-30),0.4)",
+   },
+   transitionTimingFunction: {
+    "soft-out": "cubic-bezier(.22,.61,.36,1)",
    },
   },
  },
- plugins: ["tailwindcss-text-shadow"],
+ plugins: [
+  function ({ addUtilities }) {
+   addUtilities({
+    ".focus-ring": {
+     outline: "none",
+     boxShadow: "0 0 0 2px var(--accent), 0 0 0 4px rgba(var(--accent-30),0.4)",
+    },
+    ".focus-ring-inset": {
+     outline: "none",
+     boxShadow:
+      "inset 0 0 0 2px var(--accent), 0 0 0 4px rgba(var(--accent-30),0.4)",
+    },
+   });
+  },
+  "tailwindcss-text-shadow",
+ ],
 };

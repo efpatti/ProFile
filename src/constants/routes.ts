@@ -8,66 +8,61 @@ export const BANNER_PATH = `${PROTECTED_PATH}/banner`;
 export const RESUME_PATH = `${PROTECTED_PATH}/resume`;
 export const CONTACT_PATH = "/contact";
 
-export const routes = [
+export type Locale = "en" | "ptBr";
+export interface AppRoute {
+ key: string;
+ title: Record<Locale, string>;
+ href: string;
+ protected: boolean;
+ auth: boolean;
+}
+
+export const routes: AppRoute[] = [
  {
-  title: {
-   en: "Home",
-   ptBr: "Início",
-  },
+  key: "home",
+  title: { en: "home", ptBr: "home" },
   href: HOME_PATH,
   protected: false,
   auth: false,
  },
  {
-  title: {
-   en: "Profile",
-   ptBr: "Perfil",
-  },
+  key: "profile",
+  title: { en: "profile", ptBr: "profile" },
   href: PROFILE_PATH,
   protected: true,
   auth: false,
  },
  {
-  title: {
-   en: "Banner",
-   ptBr: "Banner",
-  },
+  key: "banner",
+  title: { en: "banner", ptBr: "banner" },
   href: BANNER_PATH,
   protected: true,
   auth: false,
  },
  {
-  title: {
-   en: "Resume",
-   ptBr: "Currículo",
-  },
+  key: "resume",
+  title: { en: "resume", ptBr: "resume" },
   href: RESUME_PATH,
   protected: true,
   auth: false,
  },
  {
-  title: {
-   en: "Log in",
-   ptBr: "Entrar",
-  },
+  key: "signIn",
+  title: { en: "signIn", ptBr: "signIn" },
   href: LOGIN_PATH,
   protected: false,
   auth: true,
  },
  {
-  title: {
-   en: "Sign up",
-   ptBr: "Cadastrar",
-  },
+  key: "signUp",
+  title: { en: "signUp", ptBr: "signUp" },
   href: REGISTER_PATH,
   protected: false,
   auth: true,
  },
  {
-  title: {
-   en: "Contact",
-   ptBr: "Fale Conosco",
-  },
+  key: "contact",
+  title: { en: "contact", ptBr: "contact" },
   href: CONTACT_PATH,
   protected: false,
   auth: false,
