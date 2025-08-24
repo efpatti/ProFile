@@ -3,7 +3,6 @@
 import React, { useState, useEffect } from "react";
 import Section from "@/components/Section";
 import SkillCategory from "@/components/SkillCategory";
-// import { resumeData } from "@/data/resumeData";
 import { FaAward, FaExternalLinkAlt } from "react-icons/fa";
 import {
  defaultPalette,
@@ -14,27 +13,16 @@ import {
 } from "@/styles/sharedStyleConstants";
 import { useAuth } from "@/core/services/AuthProvider";
 import { isDarkBackground } from "@/utils/color";
-// import { SettingsPanel } from "@/components/SettingsPanel";
 import dynamic from "next/dynamic";
-const SettingsPanel = dynamic(
- () => import("@/components/SettingsPanel").then((m) => m.SettingsPanel),
+const SettingsShell = dynamic(
+ () => import("@/components/SettingsShell").then((m) => m.SettingsShell),
  { ssr: false, loading: () => null }
 );
 import { usePalette } from "@/styles/PaletteProvider";
 import { useSearchParams } from "next/navigation";
 import { useLanguage } from "@/core/services/LanguageProvider";
-import {
- getDoc,
- doc,
- collection,
- query,
- where,
- getDocs,
- orderBy,
- limit,
-} from "firebase/firestore";
+import { getDoc, doc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-// Removed SWR and direct skills fetch (handled by store)
 import { Button } from "@/shared/components/Button";
 import { useResumeStore } from "@/core/store/useResumeStore"; // added
 
@@ -527,7 +515,7 @@ const ResumePage: React.FC = () => {
     data-ready={ready ? "1" : "0"}
    >
     {/* Shared settings panel for bg/logo/download */}
-    <SettingsPanel
+    <SettingsShell
      selectedBg={selectedBg}
      onSelectBg={handleSelectBg}
      logoUrl={currentLogoUrl}
@@ -642,7 +630,7 @@ const ResumePage: React.FC = () => {
             : "text-gray-500 text-sm mb-3"
           }
          >
-          {item.period}
+          {item.periodDisplay}
          </p>
          {Array.isArray(item.details) && item.details.length > 0 ? (
           <ul

@@ -17,9 +17,11 @@ import {
  FaSave,
  FaTrash,
  FaUndo,
+ FaCalendar,
 } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import type { Experience } from "@/core/services/ExperienceService";
+import { Timestamp } from "firebase/firestore";
 
 // Auto-resize textarea like other editors
 const AutoResizeTextarea = ({
@@ -51,6 +53,50 @@ const AutoResizeTextarea = ({
    className={`resize-none overflow-hidden ${className}`}
    rows={1}
   />
+ );
+};
+
+// Componente para input de data
+const DateInput = ({
+ value,
+ onChange,
+ placeholder,
+ className,
+ disabled,
+}: {
+ value: Date | null;
+ onChange: (date: Date | null) => void;
+ placeholder?: string;
+ className?: string;
+ disabled?: boolean;
+}) => {
+ const [internalValue, setInternalValue] = useState(
+  value ? value.toISOString().split("T")[0] : ""
+ );
+
+ const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const newValue = e.target.value;
+  setInternalValue(newValue);
+
+  if (newValue) {
+   onChange(new Date(newValue));
+  } else {
+   onChange(null);
+  }
+ };
+
+ return (
+  <div className="relative w-full">
+   <input
+    type="date"
+    value={internalValue}
+    onChange={handleChange}
+    placeholder={placeholder}
+    className={`${className} pr-8`}
+    disabled={disabled}
+   />
+   <FaCalendar className="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs pointer-events-none" />
+  </div>
  );
 };
 
@@ -105,10 +151,16 @@ const ExperienceEditor = ({
     it.title !== s.title ||
     it.company !== s.company ||
     it.locate !== s.locate ||
-    it.period !== s.period ||
     it.description !== s.description ||
     JSON.stringify(it.details) !== JSON.stringify(s.details) ||
-    it.order !== s.order
+    it.order !== s.order ||
+    it.isCurrent !== s.isCurrent ||
+    (it.startDate instanceof Timestamp && s.startDate instanceof Timestamp
+     ? !it.startDate.isEqual(s.startDate)
+     : it.startDate !== s.startDate) ||
+    (it.endDate instanceof Timestamp && s.endDate instanceof Timestamp
+     ? !it.endDate.isEqual(s.endDate)
+     : it.endDate !== s.endDate)
    );
   });
  }, [items, snapshot]);
@@ -117,10 +169,23 @@ const ExperienceEditor = ({
   (
    id: string | undefined,
    field: keyof Omit<Experience, "id" | "language" | "order">,
-   value: string
+   value: any
   ) => {
    setItems((prev) =>
-    prev.map((it) => (it.id === id ? { ...it, [field]: value } : it))
+    prev.map((it) => {
+     if (it.id !== id) return it;
+
+     // Lógica especial para isCurrent
+     if (field === "isCurrent" && value === true) {
+      return {
+       ...it,
+       [field]: value,
+       endDate: null, // Se marcar como atual, endDate vira null
+      };
+     }
+
+     return { ...it, [field]: value };
+    })
    );
   },
   []
@@ -164,8 +229,11 @@ const ExperienceEditor = ({
 
  const handleRemove = useCallback(
   (id?: string) => {
+   if (!id) return;
    if (
-    !confirm(lang === "pt-br" ? "Remover experiência?" : "Remove experience?")
+    !window.confirm(
+     lang === "pt-br" ? "Remover experiência?" : "Remove experience?"
+    )
    )
     return;
    setItems((prev) => prev.filter((it) => it.id !== id));
@@ -176,6 +244,7 @@ const ExperienceEditor = ({
  const handleAdd = useCallback(() => {
   const defaultDetailsPt = ["Atividade 1", "Atividade 2", "Atividade 3"];
   const defaultDetailsEn = ["Activity 1", "Activity 2", "Activity 3"];
+
   const newItem: Experience = {
    id: uuidv4(),
    title: lang === "pt-br" ? "Novo Cargo" : "New Role",
@@ -186,6 +255,10 @@ const ExperienceEditor = ({
    language: lang,
    order: items.length,
    details: lang === "pt-br" ? defaultDetailsPt : defaultDetailsEn,
+   startDate: Timestamp.now(),
+   isCurrent: true,
+   endDate: null,
+   periodDisplay: lang === "pt-br" ? "Atual" : "Present",
   };
   setItems((prev) => [...prev, newItem]);
  }, [items.length, lang]);
@@ -207,6 +280,14 @@ const ExperienceEditor = ({
  }, [items, user, saveExperienceRemote, setExperienceLocal, onSaved]);
 
  const handleRevert = () => setItems(snapshot);
+
+ // Função para converter Timestamp para Date (se necessário)
+ const convertToDate = (date: any): Date | null => {
+  if (!date) return null;
+  if (date instanceof Timestamp) return date.toDate();
+  if (date instanceof Date) return date;
+  return null;
+ };
 
  if (isLoading)
   return (
@@ -274,38 +355,89 @@ const ExperienceEditor = ({
        >
         <FaGripVertical />
        </motion.div>
-       <div className="grid grid-cols-1 md:grid-cols-6 gap-2 pl-4">
+       <div className="grid grid-cols-1 md:grid-cols-12 gap-2 pl-4">
         <input
          value={it.title}
          onChange={(e) => handleUpdate(it.id, "title", e.target.value)}
          placeholder={lang === "pt-br" ? "Cargo" : "Role"}
-         className="md:col-span-2 bg-zinc-700/70 focus:bg-zinc-700 text-gray-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
+         className="md:col-span-3 bg-zinc-700/70 focus:bg-zinc-700 text-gray-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
         />
         <input
          value={it.company}
          onChange={(e) => handleUpdate(it.id, "company", e.target.value)}
          placeholder={lang === "pt-br" ? "Empresa" : "Company"}
-         className="md:col-span-2 bg-zinc-700/70 focus:bg-zinc-700 text-gray-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
+         className="md:col-span-3 bg-zinc-700/70 focus:bg-zinc-700 text-gray-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
         />
         <input
          value={it.locate || ""}
-         onChange={(e) => handleUpdate(it.id, "locate", e.target.value as any)}
+         onChange={(e) => handleUpdate(it.id, "locate", e.target.value)}
          placeholder={lang === "pt-br" ? "Local" : "Location"}
-         className="md:col-span-1 bg-zinc-700/70 focus:bg-zinc-700 text-gray-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
+         className="md:col-span-2 bg-zinc-700/70 focus:bg-zinc-700 text-gray-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
         />
-        <input
-         value={it.period}
-         onChange={(e) => handleUpdate(it.id, "period", e.target.value)}
-         placeholder={lang === "pt-br" ? "Período" : "Period"}
-         className="md:col-span-1 bg-zinc-700/70 focus:bg-zinc-700 text-gray-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
-        />
+
+        {/* Campos de data */}
+        <div className="md:col-span-2 flex flex-col gap-1">
+         <DateInput
+          value={convertToDate(it.startDate)}
+          onChange={(date) =>
+           handleUpdate(
+            it.id,
+            "startDate",
+            date ? Timestamp.fromDate(date) : null
+           )
+          }
+          placeholder={lang === "pt-br" ? "Início" : "Start"}
+          className="bg-zinc-700/70 focus:bg-zinc-700 text-gray-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
+         />
+        </div>
+
+        <div className="md:col-span-2 flex flex-col gap-1">
+         <div className="flex items-center gap-2">
+          {!it.isCurrent && (
+           <DateInput
+            value={convertToDate(it.endDate)}
+            onChange={(date) =>
+             handleUpdate(
+              it.id,
+              "endDate",
+              date ? Timestamp.fromDate(date) : null
+             )
+            }
+            placeholder={lang === "pt-br" ? "Fim" : "End"}
+            className="bg-zinc-700/70 focus:bg-zinc-700 text-gray-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
+           />
+          )}
+          <button
+           type="button"
+           onClick={() => handleUpdate(it.id, "isCurrent", !it.isCurrent)}
+           className={`flex items-center gap-1 text-xs px-2 py-1 rounded transition-colors border border-zinc-600/60 ${
+            it.isCurrent
+             ? "bg-green-700/80 text-white"
+             : "bg-zinc-700/60 text-gray-300 hover:bg-green-900/40"
+           }`}
+           title={
+            lang === "pt-br"
+             ? "Alternar experiência atual"
+             : "Toggle current experience"
+           }
+          >
+           {it.isCurrent ? (
+            <span className="inline-block w-2 h-2 rounded-full bg-green-400 mr-1" />
+           ) : (
+            <span className="inline-block w-2 h-2 rounded-full bg-gray-400 mr-1" />
+           )}
+           {lang === "pt-br" ? "Atual" : "Current"}
+          </button>
+         </div>
+        </div>
+
         <AutoResizeTextarea
          value={it.description}
          onChange={(e) => handleUpdate(it.id, "description", e.target.value)}
          placeholder={lang === "pt-br" ? "Descrição" : "Description"}
-         className="md:col-span-6 bg-zinc-700/70 focus:bg-zinc-700 text-gray-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500 whitespace-pre-wrap"
+         className="md:col-span-12 bg-zinc-700/70 focus:bg-zinc-700 text-gray-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500 whitespace-pre-wrap"
         />
-        <div className="md:col-span-6 pl-1">
+        <div className="md:col-span-12 pl-1">
          <p className="text-[11px] font-medium text-gray-300 mb-1">
           {lang === "pt-br" ? "Detalhes" : "Details"}
          </p>
@@ -386,7 +518,14 @@ const ExperienceEditor = ({
          <span className="text-gray-500"> • {it.locate}</span>
         ) : null}
        </p>
-       <p className="text-[11px] text-gray-400 mt-0.5">{it.period}</p>
+       <p className="text-[11px] text-gray-400 mt-0.5">
+        {it.periodDisplay || it.period}
+        {it.isCurrent && (
+         <span className="ml-2 bg-green-600/20 text-green-400 text-[10px] px-1.5 py-0.5 rounded">
+          {lang === "pt-br" ? "Atual" : "Current"}
+         </span>
+        )}
+       </p>
        {it.description && (
         <p className="text-[12px] text-gray-300 mt-1 whitespace-pre-wrap">
          {it.description}

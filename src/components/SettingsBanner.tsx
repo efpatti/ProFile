@@ -169,7 +169,6 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
           <TabList className="flex space-x-1 mb-6">
            {[
             { label: "Appearance", icon: <PaintIcon /> },
-            { label: "Company Logo", icon: <ImageIcon /> },
             { label: "Edit Content", icon: <EditIcon /> },
            ].map(({ label, icon }) => (
             <Tab
@@ -214,15 +213,6 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
              </div>
             </div>
            </TabPanel>
-
-           {/* Logo Panel */}
-           <TabPanel>
-            <div>
-             <DialogItemTitle>Company</DialogItemTitle>
-             <LogoSearch onLogoSelect={onLogoSelect} />
-            </div>
-           </TabPanel>
-
            {/* Editors Panel */}
            <TabPanel className="space-y-6" unmount>
             <div className="flex justify-end gap-2 mb-2">
@@ -240,8 +230,16 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
              </button>
             </div>
             <ContentSection
+             id="current-company"
+             title={language === "pt-br" ? "Empresa Atual" : "Current Company"}
+             open={!!openSections.currentCompany}
+             onToggle={() => toggleSection("currentCompany")}
+            >
+             <LogoSearch onLogoSelect={onLogoSelect} />
+            </ContentSection>
+            <ContentSection
              id="skills"
-             title="Skills"
+             title={language === "pt-br" ? "Habilidades" : "Skills"}
              open={!!openSections.skills}
              onToggle={() => toggleSection("skills")}
             >
