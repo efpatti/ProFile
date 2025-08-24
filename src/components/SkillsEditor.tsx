@@ -8,11 +8,7 @@ import React, {
  useMemo,
 } from "react";
 import { useAuth } from "@/core/services/AuthProvider";
-import {
- fetchSkillsForUser,
- saveSkills,
- type Skill,
-} from "@/core/services/SkillsService";
+import { useResumeStore } from "@/core/store/useResumeStore";
 import { motion, Reorder, useDragControls } from "framer-motion";
 import {
  FaTrash,
@@ -22,6 +18,7 @@ import {
  FaEdit,
  FaUndo,
 } from "react-icons/fa";
+import type { Skill } from "@/core/services/SkillsService";
 
 // Auto-resize textarea
 const AutoResizeTextarea = ({
@@ -56,8 +53,20 @@ const AutoResizeTextarea = ({
 
 const PROFESSIONAL_KEY = "Profissionais";
 
-const SkillsEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
+interface SkillsEditorProps {
+ lang: "pt-br" | "en";
+ initialSkills?: Skill[]; // optional externally provided skills (raw docs with id)
+ onSaved?: (skills: Skill[]) => void; // callback after successful save
+}
+
+const SkillsEditor = ({ lang, initialSkills, onSaved }: SkillsEditorProps) => {
  const { user } = useAuth();
+ const {
+  skills: storeSkills,
+  saveSkillsRemote,
+  setSkillsLocal,
+  loading: storeLoading,
+ } = useResumeStore();
  const [skills, setSkills] = useState<Skill[]>([]);
  const [snapshot, setSnapshot] = useState<Skill[]>([]);
  const [isLoading, setIsLoading] = useState(true);
@@ -66,24 +75,24 @@ const SkillsEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
  const [isSaving, setIsSaving] = useState(false);
  const controls = useDragControls();
 
+ // Hydrate from store or initialSkills
  useEffect(() => {
-  if (!user) return;
-  setIsLoading(true);
-  fetchSkillsForUser(user.uid, lang)
-   .then((fetched) => {
-    const ordered = fetched.sort((a, b) => a.order - b.order);
-    setSkills(ordered);
-    setSnapshot(ordered);
-   })
-   .catch(() =>
-    setError(
-     lang === "pt-br"
-      ? "Falha ao carregar habilidades."
-      : "Failed to load skills."
-    )
-   )
-   .finally(() => setIsLoading(false));
- }, [user, lang]);
+  if (initialSkills) {
+   const ordered = [...initialSkills].sort((a, b) => a.order - b.order);
+   setSkills(ordered);
+   setSnapshot(ordered);
+   setIsLoading(false);
+  } else if (storeSkills && storeSkills.length > 0) {
+   const ordered = [...storeSkills].sort((a, b) => a.order - b.order);
+   setSkills(ordered);
+   setSnapshot(ordered);
+   setIsLoading(false);
+  } else if (storeLoading) {
+   setIsLoading(true);
+  } else {
+   setIsLoading(false);
+  }
+ }, [initialSkills, storeSkills, storeLoading]);
 
  const technicalSkills = skills.filter((s) => s.category !== PROFESSIONAL_KEY);
  const professionalSkills = skills.filter(
@@ -159,9 +168,11 @@ const SkillsEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
   if (!user) return;
   setIsSaving(true);
   try {
-   await saveSkills(user.uid, lang, skills);
+   await saveSkillsRemote(skills);
    setSnapshot([...skills]);
    setEditing(false);
+   setSkillsLocal(skills);
+   onSaved?.(skills.map((s, idx) => ({ ...s, order: idx })));
   } catch (e) {
    console.error(e);
   } finally {

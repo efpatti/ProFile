@@ -34,9 +34,9 @@ import {
  limit,
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
-import useSWR from "swr";
-import { fetchSkillsForUser } from "@/core/services/SkillsService";
+// Removed SWR and direct skills fetch (handled by store)
 import { Button } from "@/shared/components/Button";
+import { useResumeStore } from "@/core/store/useResumeStore"; // added
 
 const defaultBg: BgBannerColorName = "midnightSlate";
 
@@ -85,8 +85,6 @@ const ResumePage: React.FC = () => {
 
  // Loading flags for reliable export readiness
  const [skillsLoaded, setSkillsLoaded] = useState(false);
- const [profileLoaded, setProfileLoaded] = useState(false);
- const [headerLoaded, setHeaderLoaded] = useState(false);
  const [experienceLoaded, setExperienceLoaded] = useState(false);
  const [languagesLoaded, setLanguagesLoaded] = useState(false);
  const [educationLoaded, setEducationLoaded] = useState(false);
@@ -101,8 +99,6 @@ const ResumePage: React.FC = () => {
  useEffect(() => {
   const allLoaded =
    skillsLoaded &&
-   profileLoaded &&
-   headerLoaded &&
    experienceLoaded &&
    languagesLoaded &&
    educationLoaded &&
@@ -115,8 +111,6 @@ const ResumePage: React.FC = () => {
   setReady(allLoaded);
  }, [
   skillsLoaded,
-  profileLoaded,
-  headerLoaded,
   experienceLoaded,
   languagesLoaded,
   educationLoaded,
@@ -143,345 +137,6 @@ const ResumePage: React.FC = () => {
   }
   // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [paletteFromQuery, bannerColorFromQuery]);
-
- // SWR cache for skills (no real-time needed)
- const { data: rawSkills } = useSWR(
-  effectiveUserId ? ["skills", effectiveUserId, language] : null,
-  () => fetchSkillsForUser(effectiveUserId!, language, 50),
-  { revalidateOnFocus: false }
- );
-
- useEffect(() => {
-  if (!rawSkills) return;
-  // Agrupa e ordena por categoria
-  const grouped = rawSkills.reduce((acc, { category, item }) => {
-   if (!acc[category]) acc[category] = { title: category, items: [] };
-   acc[category].items.push(item);
-   return acc;
-  }, {} as Record<string, { title: string; items: string[] }>);
-  const orderedCategories = [...new Set(rawSkills.map((s) => s.category))];
-  const formatted = orderedCategories.map((c) => grouped[c]);
-  setSkills(formatted);
-  setSkillsLoaded(true);
- }, [rawSkills]);
-
- useEffect(() => {
-  if (!effectiveUserId) return;
-  const uid = effectiveUserId;
-
-  // Reset flags on dependency change
-  setSkillsLoaded(false);
-  setProfileLoaded(false);
-  setHeaderLoaded(false);
-  setExperienceLoaded(false);
-  setLanguagesLoaded(false);
-  setEducationLoaded(false);
-  setProjectsLoaded(false);
-  setCertificationsLoaded(false);
-  setInterestsLoaded(false);
-  setRecommendationsLoaded(false);
-  setAwardsLoaded(false);
-  setUserLoaded(false);
-
-  const fetchTopLevelUser = async () => {
-   try {
-    const userDocRef = doc(db, "users", uid);
-    const userSnap = await getDoc(userDocRef);
-    if (userSnap.exists()) {
-     const data = userSnap.data() as any;
-     const fromDoc =
-      (typeof data.name === "string" && data.name.trim()) ||
-      (typeof data.displayName === "string" && data.displayName.trim()) ||
-      undefined;
-     if (fromDoc) setDisplayName(fromDoc);
-    }
-   } catch (e) {
-    console.error("Error fetching top-level user doc:", e);
-   } finally {
-    setUserLoaded(true);
-   }
-  };
-
-  const fetchProfile = async () => {
-   try {
-    const profileRef = doc(db, "users", uid, "profile", language);
-    const docSnap = await getDoc(profileRef);
-    if (docSnap.exists()) {
-     setProfile(docSnap.data());
-    } else {
-     console.log("No such document!");
-    }
-   } finally {
-    setProfileLoaded(true);
-   }
-  };
-
-  const fetchHeader = async () => {
-   try {
-    const headerDocRef = doc(db, "users", uid, "header", language);
-    const headerDocSnap = await getDoc(headerDocRef);
-
-    let subtitle = "";
-    if (headerDocSnap.exists()) {
-     subtitle = headerDocSnap.data().subtitle || "";
-    }
-
-    const contactsColRef = collection(
-     db,
-     "users",
-     uid,
-     "header",
-     language,
-     "contacts"
-    );
-    const q = query(contactsColRef);
-    const contactsSnapshot = await getDocs(q);
-    const contacts = contactsSnapshot.docs.map((doc) => doc.data());
-
-    setHeader({ subtitle, contacts });
-   } catch (error) {
-    console.error("Error fetching header:", error);
-    setHeader(null); // Reset on error
-   } finally {
-    setHeaderLoaded(true);
-   }
-  };
-
-  const fetchExperience = async () => {
-   try {
-    const experienceRef = collection(db, "users", uid, "experience");
-    const q = query(
-     experienceRef,
-     where("language", "==", language),
-     orderBy("order", "asc"),
-     limit(50)
-    );
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-     const experienceData = querySnapshot.docs.map((doc) => doc.data());
-     setExperience(experienceData);
-    } else {
-     console.log("No experience documents found!");
-     setExperience([]);
-    }
-   } finally {
-    setExperienceLoaded(true);
-   }
-  };
-
-  const fetchLanguages = async () => {
-   try {
-    const langDocRef = doc(db, "users", uid, "languages", language);
-    const docSnap = await getDoc(langDocRef);
-
-    if (docSnap.exists()) {
-     const data = docSnap.data();
-     setLanguages({
-      title: data.title || "Idiomas",
-      items: data.items || [],
-     });
-    } else {
-     console.log("No languages document found!");
-     setLanguages({ title: "Idiomas", items: [] });
-    }
-   } finally {
-    setLanguagesLoaded(true);
-   }
-  };
-
-  const fetchEducation = async () => {
-   try {
-    const educationRef = collection(db, "users", uid, "education");
-    const q = query(
-     educationRef,
-     where("language", "==", language),
-     orderBy("order", "asc"),
-     limit(50)
-    );
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-     const educationData = querySnapshot.docs.map((doc) => doc.data());
-     setEducation(educationData);
-    } else {
-     console.log("No education documents found!");
-     setEducation([]);
-    }
-   } finally {
-    setEducationLoaded(true);
-   }
-  };
-
-  const fetchProjects = async () => {
-   try {
-    const projectsRef = collection(db, "users", uid, "projects");
-    const q = query(
-     projectsRef,
-     where("language", "==", language),
-     orderBy("order", "asc"),
-     limit(50)
-    );
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-     const projectsData = querySnapshot.docs.map((doc) => doc.data());
-     setProjects(projectsData);
-    } else {
-     console.log("No projects documents found!");
-     setProjects([]);
-    }
-   } finally {
-    setProjectsLoaded(true);
-   }
-  };
-
-  const fetchCertifications = async () => {
-   try {
-    const certificationsRef = collection(db, "users", uid, "certifications");
-    const q = query(
-     certificationsRef,
-     where("language", "==", language),
-     orderBy("order", "asc"),
-     limit(50)
-    );
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-     const certificationsData = querySnapshot.docs.map((doc) => doc.data());
-     setCertifications(certificationsData);
-    } else {
-     console.log("No certifications documents found!");
-     setCertifications([]);
-    }
-   } finally {
-    setCertificationsLoaded(true);
-   }
-  };
-
-  const fetchInterests = async () => {
-   try {
-    const interestsRef = collection(db, "users", uid, "interests");
-    const q = query(
-     interestsRef,
-     where("language", "==", language),
-     orderBy("order", "asc"),
-     limit(100)
-    );
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-     const interestsData = querySnapshot.docs.map(
-      (doc) => doc.data() as { category: string; item: string; order: number }
-     );
-
-     const groupedInterests = interestsData.reduce((acc, interest) => {
-      if (!acc[interest.category]) {
-       acc[interest.category] = [];
-      }
-      acc[interest.category].push(interest.item);
-      return acc;
-     }, {} as Record<string, string[]>);
-
-     const formattedInterests = Object.entries(groupedInterests)
-      .map(([title, items]) => ({
-       title,
-       items,
-      }))
-      .sort((a, b) => {
-       const orderA =
-        interestsData.find((s) => s.category === a.title)?.order || 0;
-       const orderB =
-        interestsData.find((s) => s.category === b.title)?.order || 0;
-       return orderA - orderB;
-      });
-
-     setInterests(formattedInterests);
-    } else {
-     console.log("No interests documents found!");
-     setInterests([]);
-    }
-   } finally {
-    setInterestsLoaded(true);
-   }
-  };
-
-  const fetchRecommendations = async () => {
-   try {
-    const recommendationsRef = collection(db, "users", uid, "recommendations");
-    const q = query(
-     recommendationsRef,
-     where("language", "==", language),
-     orderBy("order", "asc"),
-     limit(50)
-    );
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-     const recommendationsData = querySnapshot.docs.map((doc) => doc.data());
-     setRecommendations(recommendationsData);
-    } else {
-     console.log("No recommendations documents found!");
-     setRecommendations([]);
-    }
-   } finally {
-    setRecommendationsLoaded(true);
-   }
-  };
-
-  const fetchAwards = async () => {
-   try {
-    const awardsRef = collection(db, "users", uid, "awards");
-    const q = query(
-     awardsRef,
-     where("language", "==", language),
-     orderBy("order", "asc"),
-     limit(50)
-    );
-    const querySnapshot = await getDocs(q);
-    if (!querySnapshot.empty) {
-     const awardsData = querySnapshot.docs.map((doc) => doc.data());
-     setAwards(awardsData);
-    } else {
-     console.log("No awards documents found!");
-     setAwards([]);
-    }
-   } finally {
-    setAwardsLoaded(true);
-   }
-  };
-
-  fetchTopLevelUser();
-  fetchProfile();
-  fetchExperience();
-  fetchLanguages();
-  fetchEducation();
-  fetchProjects();
-  fetchCertifications();
-  fetchInterests();
-  fetchRecommendations();
-  fetchAwards();
-  fetchHeader();
- }, [effectiveUserId, language]);
-
- useEffect(() => {
-  if (bannerColor) setSelectedBg(bannerColor);
- }, [bannerColor]);
-
- // Função utilitária para obter o objeto de cor do bg
- function getBgColorObj(bgName: BgBannerColorName) {
-  const bgObj = bgBannerColor[bgName];
-  const colorsArr = bgObj.colors;
-  const bg = (
-   colorsArr.find((c) => Object.prototype.hasOwnProperty.call(c, "bg")) as {
-    bg: string;
-   }
-  ).bg;
-  const text = (
-   colorsArr.find((c) => Object.prototype.hasOwnProperty.call(c, "text")) as {
-    text: string;
-   }
-  ).text;
-  return { bg, text };
- }
- const effectiveBgColor = getBgColorObj(selectedBg);
-
- // Add handler for background selection
- const handleSelectBg = (bg: BgBannerColorName) => setSelectedBg(bg);
 
  // --- PDF Handlers ---
  const handleGeneratePDFPuppeteer = () => {
@@ -600,6 +255,259 @@ const ResumePage: React.FC = () => {
  useEffect(() => {
   if (bannerColor) setSelectedBg(bannerColor);
  }, [bannerColor]);
+
+ const {
+  loadResume,
+  skills: storeSkills,
+  experience: storeExperience,
+  education: storeEducation,
+  languages: storeLanguages,
+  projects: storeProjects,
+  certifications: storeCertifications,
+  interests: storeInterests,
+  recommendations: storeRecommendations,
+  awards: storeAwards,
+  profile: storeProfile,
+  header: storeHeader,
+  loading: resumeLoading,
+  language: storeLang,
+ } = useResumeStore();
+
+ // Trigger aggregated load (id + language) when dependencies change
+ useEffect(() => {
+  if (effectiveUserId) {
+   loadResume(effectiveUserId, language);
+  }
+ }, [effectiveUserId, language, loadResume]);
+
+ // Derive grouped skills from store
+ useEffect(() => {
+  if (!storeSkills) return;
+  const grouped = storeSkills.reduce(
+   (
+    acc: Record<string, { title: string; items: string[] }>,
+    { category, item }
+   ) => {
+    if (!acc[category]) acc[category] = { title: category, items: [] };
+    acc[category].items.push(item);
+    return acc;
+   },
+   {} as Record<string, { title: string; items: string[] }>
+  );
+  const ordered = [...new Set(storeSkills.map((s) => s.category))].map(
+   (c) => grouped[c]
+  );
+  setSkills(ordered);
+  if (!resumeLoading) setSkillsLoaded(true);
+ }, [storeSkills, resumeLoading]);
+
+ // Sync experience from store
+ useEffect(() => {
+  if (storeExperience) {
+   setExperience(storeExperience);
+   if (!resumeLoading) setExperienceLoaded(true);
+  }
+ }, [storeExperience, resumeLoading]);
+
+ // Sync education from store
+ useEffect(() => {
+  if (storeEducation) {
+   setEducation(storeEducation);
+   if (!resumeLoading) setEducationLoaded(true);
+  }
+ }, [storeEducation, resumeLoading]);
+
+ // Sync languages from store
+ useEffect(() => {
+  if (storeLanguages) {
+   setLanguages(storeLanguages);
+   if (!resumeLoading) setLanguagesLoaded(true);
+  }
+ }, [storeLanguages, resumeLoading]);
+
+ // Sync projects from store
+ useEffect(() => {
+  if (storeProjects) {
+   setProjects(storeProjects);
+   if (!resumeLoading) setProjectsLoaded(true);
+  }
+ }, [storeProjects, resumeLoading]);
+
+ // Sync certifications from store
+ useEffect(() => {
+  if (storeCertifications) {
+   setCertifications(storeCertifications);
+   if (!resumeLoading) setCertificationsLoaded(true);
+  }
+ }, [storeCertifications, resumeLoading]);
+
+ // Sync interests from store
+ useEffect(() => {
+  if (storeInterests) {
+   // group by category -> { title, items[] } similar to previous logic
+   const grouped = storeInterests.reduce(
+    (
+     acc: Record<string, { title: string; items: string[]; order: number }>,
+     { category, item, order }
+    ) => {
+     if (!acc[category]) acc[category] = { title: category, items: [], order };
+     acc[category].items.push(item);
+     return acc;
+    },
+    {} as Record<string, { title: string; items: string[]; order: number }>
+   );
+   const ordered = Object.values(grouped).sort((a, b) => a.order - b.order);
+   setInterests(ordered.map(({ title, items }) => ({ title, items })));
+   if (!resumeLoading) setInterestsLoaded(true);
+  }
+ }, [storeInterests, resumeLoading]);
+
+ // Sync recommendations from store
+ useEffect(() => {
+  if (storeRecommendations) {
+   setRecommendations(storeRecommendations);
+   if (!resumeLoading) setRecommendationsLoaded(true);
+  }
+ }, [storeRecommendations, resumeLoading]);
+
+ // Sync awards from store
+ useEffect(() => {
+  if (storeAwards) {
+   setAwards(storeAwards);
+   if (!resumeLoading) setAwardsLoaded(true);
+  }
+ }, [storeAwards, resumeLoading]);
+
+ // Sync profile from store
+ useEffect(() => {
+  if (storeProfile !== undefined) {
+   setProfile(storeProfile);
+  }
+ }, [storeProfile]);
+
+ // Sync header from store
+ useEffect(() => {
+  if (storeHeader !== undefined) {
+   setHeader(storeHeader);
+  }
+ }, [storeHeader]);
+
+ useEffect(() => {
+  if (!effectiveUserId) return;
+  const uid = effectiveUserId;
+
+  setSkillsLoaded(false);
+  setExperienceLoaded(false);
+  setLanguagesLoaded(false);
+  setEducationLoaded(false);
+  setProjectsLoaded(false);
+  setCertificationsLoaded(false);
+  setInterestsLoaded(false);
+  setRecommendationsLoaded(false);
+  setAwardsLoaded(false);
+  setUserLoaded(false);
+
+  const fetchTopLevelUser = async () => {
+   try {
+    const userDocRef = doc(db, "users", uid);
+    const userSnap = await getDoc(userDocRef);
+    if (userSnap.exists()) {
+     const data = userSnap.data() as any;
+     const fromDoc =
+      (typeof data.name === "string" && data.name.trim()) ||
+      (typeof data.displayName === "string" && data.displayName.trim()) ||
+      undefined;
+     if (fromDoc) setDisplayName(fromDoc);
+    }
+   } catch (e) {
+    console.error("Error fetching top-level user doc:", e);
+   } finally {
+    setUserLoaded(true);
+   }
+  };
+
+  const fetchProfile = async () => {
+   if (storeProfile !== undefined) setProfile(storeProfile);
+  };
+
+  const fetchHeader = async () => {
+   if (storeHeader !== undefined) setHeader(storeHeader);
+  };
+
+  const fetchCertifications = async () => {
+   // moved to store; keep compatibility for any legacy callers
+   if (storeCertifications) {
+    setCertifications(storeCertifications);
+    setCertificationsLoaded(true);
+   }
+  };
+
+  const fetchInterests = async () => {
+   if (storeInterests) {
+    const grouped = storeInterests.reduce(
+     (
+      acc: Record<string, { title: string; items: string[]; order: number }>,
+      { category, item, order }
+     ) => {
+      if (!acc[category]) acc[category] = { title: category, items: [], order };
+      acc[category].items.push(item);
+      return acc;
+     },
+     {} as Record<string, { title: string; items: string[]; order: number }>
+    );
+    const ordered = Object.values(grouped).sort((a, b) => a.order - b.order);
+    setInterests(ordered.map(({ title, items }) => ({ title, items })));
+    setInterestsLoaded(true);
+   }
+  };
+
+  const fetchRecommendations = async () => {
+   if (storeRecommendations) {
+    setRecommendations(storeRecommendations);
+    setRecommendationsLoaded(true);
+   }
+  };
+
+  const fetchAwards = async () => {
+   if (storeAwards) {
+    setAwards(storeAwards);
+    setAwardsLoaded(true);
+   }
+  };
+
+  fetchTopLevelUser();
+  fetchProfile();
+  fetchCertifications();
+  fetchInterests();
+  fetchRecommendations();
+  fetchAwards();
+  fetchHeader();
+ }, [effectiveUserId, language]);
+
+ useEffect(() => {
+  if (bannerColor) setSelectedBg(bannerColor);
+ }, [bannerColor]);
+
+ // Função utilitária para obter o objeto de cor do bg
+ function getBgColorObj(bgName: BgBannerColorName) {
+  const bgObj = bgBannerColor[bgName];
+  const colorsArr = bgObj.colors;
+  const bg = (
+   colorsArr.find((c) => Object.prototype.hasOwnProperty.call(c, "bg")) as {
+    bg: string;
+   }
+  ).bg;
+  const text = (
+   colorsArr.find((c) => Object.prototype.hasOwnProperty.call(c, "text")) as {
+    text: string;
+   }
+  ).text;
+  return { bg, text };
+ }
+ const effectiveBgColor = getBgColorObj(selectedBg);
+
+ // Add handler for background selection
+ const handleSelectBg = (bg: BgBannerColorName) => setSelectedBg(bg);
 
  if (!isClient) {
   return null;

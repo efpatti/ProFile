@@ -1,7 +1,7 @@
 // components/SettingsPanel.tsx
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { SettingsBanner } from "./SettingsBanner";
 import { DownloadButton } from "@/components/DownloadButton";
 import { BgBannerColorName } from "@/styles/sharedStyleConstants";
@@ -11,6 +11,8 @@ import EducationEditor from "./EducationEditor";
 import LanguagesEditor from "./LanguagesEditor";
 import { useLanguage } from "@/core/services/LanguageProvider";
 import ExperienceEditor from "./ExperienceEditor";
+import { useResumeStore } from "@/core/store/useResumeStore";
+import { useAuth } from "@/core/services/AuthProvider";
 
 interface SettingsPanelProps {
  selectedBg: BgBannerColorName;
@@ -33,9 +35,47 @@ export const SettingsPanel = ({
 }: SettingsPanelProps) => {
  const [isOpen, setIsOpen] = useState(false);
  const { language } = useLanguage();
+ const { user } = useAuth();
+ const {
+  loadResume,
+  skills,
+  experience,
+  education,
+  languages: languagesData,
+  setSkillsLocal,
+  setExperienceLocal,
+  setEducationLocal,
+  setLanguagesLocal,
+  saveSkillsRemote,
+  saveExperienceRemote,
+  saveEducationRemote,
+  saveLanguagesRemote,
+  loading,
+ } = useResumeStore();
+
+ useEffect(() => {
+  if (user) loadResume(user.uid, language);
+ }, [user, language, loadResume]);
 
  const handleLogoSelect = (url: string) => {
   onLogoSelect?.(url);
+ };
+
+ const handleSkillsSaved = async (updated: any) => {
+  setSkillsLocal(updated);
+  await saveSkillsRemote(updated);
+ };
+ const handleExperienceSaved = async (updated: any) => {
+  setExperienceLocal(updated);
+  await saveExperienceRemote(updated);
+ };
+ const handleEducationSaved = async (updated: any) => {
+  setEducationLocal(updated);
+  await saveEducationRemote(updated);
+ };
+ const handleLanguagesSaved = async (updated: any) => {
+  setLanguagesLocal(updated);
+  await saveLanguagesRemote(updated);
  };
 
  return (
@@ -88,29 +128,49 @@ export const SettingsPanel = ({
     <div className="space-y-8">
      <div>
       <h3 className="text-xl font-semibold mb-4 border-b-2 border-gray-700 pb-2">
-       Skills
+       Skills{" "}
+       {loading && <span className="text-xs text-gray-500 ml-2">...</span>}
       </h3>
-      <SkillsEditor lang={language} />
+      <SkillsEditor
+       lang={language}
+       initialSkills={skills}
+       onSaved={handleSkillsSaved}
+      />
      </div>
 
      <div>
       <h3 className="text-xl font-semibold mb-4 border-b-2 border-gray-700 pb-2">
-       {language === "pt-br" ? "Experiência" : "Experience"}
+       {language === "pt-br" ? "Experiência" : "Experience"}{" "}
+       {loading && <span className="text-xs text-gray-500 ml-2">...</span>}
       </h3>
-      <ExperienceEditor lang={language} />
+      <ExperienceEditor
+       lang={language}
+       initialItems={experience}
+       onSaved={handleExperienceSaved}
+      />
      </div>
 
      <div>
       <h3 className="text-xl font-semibold mb-4 border-b-2 border-gray-700 pb-2">
-       Education
+       Education{" "}
+       {loading && <span className="text-xs text-gray-500 ml-2">...</span>}
       </h3>
-      <EducationEditor lang={language} />
+      <EducationEditor
+       lang={language}
+       initialItems={education}
+       onSaved={handleEducationSaved}
+      />
      </div>
      <div>
       <h3 className="text-xl font-semibold mb-4 border-b-2 border-gray-700 pb-2">
-       Languages
+       Languages{" "}
+       {loading && <span className="text-xs text-gray-500 ml-2">...</span>}
       </h3>
-      <LanguagesEditor lang={language} />
+      <LanguagesEditor
+       lang={language}
+       initialData={languagesData}
+       onSaved={handleLanguagesSaved}
+      />
      </div>
     </div>
    </div>

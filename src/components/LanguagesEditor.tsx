@@ -2,8 +2,6 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from "react";
 import { useAuth } from "@/core/services/AuthProvider";
-import { db } from "@/lib/firebase";
-import { doc, getDoc, setDoc } from "firebase/firestore";
 import { motion, Reorder, useDragControls } from "framer-motion";
 import {
  FaTrash,
@@ -13,45 +11,63 @@ import {
  FaEdit,
  FaUndo,
 } from "react-icons/fa";
+import { useResumeStore } from "@/core/store/useResumeStore";
 
 interface LanguagesEditorProps {
  lang: "pt-br" | "en";
+ initialData?: { title: string; items: string[] };
+ onSaved?: (data: { title: string; items: string[] }) => void;
 }
 
-const LanguagesEditor: React.FC<LanguagesEditorProps> = ({ lang }) => {
+const LanguagesEditor: React.FC<LanguagesEditorProps> = ({
+ lang,
+ initialData,
+ onSaved,
+}) => {
  const { user } = useAuth();
+ const {
+  languages: storeLanguages,
+  saveLanguagesRemote,
+  setLanguagesLocal,
+  loading: storeLoading,
+ } = useResumeStore();
  const [items, setItems] = useState<string[]>([]);
- const [title, setTitle] = useState("Idiomas");
+ const [title, setTitle] = useState(lang === "pt-br" ? "Idiomas" : "Languages");
  const [isLoading, setIsLoading] = useState(true);
  const [editing, setEditing] = useState(false);
  const [newItem, setNewItem] = useState("");
  const [isSaving, setIsSaving] = useState(false);
  const [snapshot, setSnapshot] = useState<string[]>([]);
- const [titleSnapshot, setTitleSnapshot] = useState("");
+ const [titleSnapshot, setTitleSnapshot] = useState(
+  lang === "pt-br" ? "Idiomas" : "Languages"
+ );
  const controls = useDragControls();
 
  useEffect(() => {
-  if (user) {
+  if (initialData) {
+   setItems(initialData.items || []);
+   setTitle(initialData.title || (lang === "pt-br" ? "Idiomas" : "Languages"));
+   setSnapshot(initialData.items || []);
+   setTitleSnapshot(
+    initialData.title || (lang === "pt-br" ? "Idiomas" : "Languages")
+   );
+   setIsLoading(false);
+  } else if (storeLanguages) {
+   setItems(storeLanguages.items || []);
+   setTitle(
+    storeLanguages.title || (lang === "pt-br" ? "Idiomas" : "Languages")
+   );
+   setSnapshot(storeLanguages.items || []);
+   setTitleSnapshot(
+    storeLanguages.title || (lang === "pt-br" ? "Idiomas" : "Languages")
+   );
+   setIsLoading(false);
+  } else if (storeLoading) {
    setIsLoading(true);
-   const docRef = doc(db, "users", user.uid, "languages", lang);
-   getDoc(docRef)
-    .then((docSnap) => {
-     if (docSnap.exists()) {
-      const data = docSnap.data();
-      setItems(data.items || []);
-      setTitle(data.title || (lang === "pt-br" ? "Idiomas" : "Languages"));
-      setSnapshot(data.items || []);
-      setTitleSnapshot(
-       data.title || (lang === "pt-br" ? "Idiomas" : "Languages")
-      );
-     } else {
-      setTitle(lang === "pt-br" ? "Idiomas" : "Languages");
-      setTitleSnapshot(lang === "pt-br" ? "Idiomas" : "Languages");
-     }
-    })
-    .finally(() => setIsLoading(false));
+  } else {
+   setIsLoading(false);
   }
- }, [user, lang]);
+ }, [initialData, storeLanguages, storeLoading, lang]);
 
  const hasChanges = useMemo(() => {
   return (
@@ -82,18 +98,19 @@ const LanguagesEditor: React.FC<LanguagesEditorProps> = ({ lang }) => {
  const handleSave = useCallback(async () => {
   if (!user) return;
   setIsSaving(true);
-  const docRef = doc(db, "users", user.uid, "languages", lang);
   try {
-   await setDoc(docRef, { title, items, language: lang }, { merge: true });
-   setSnapshot(items);
+   await saveLanguagesRemote({ title, items });
+   setSnapshot([...items]);
    setTitleSnapshot(title);
    setEditing(false);
-  } catch (error) {
-   console.error("Erro ao salvar idiomas:", error);
+   setLanguagesLocal({ title, items });
+   onSaved?.({ title, items });
+  } catch (e) {
+   console.error(e);
   } finally {
    setIsSaving(false);
   }
- }, [user, lang, title, items]);
+ }, [user, title, items, saveLanguagesRemote, setLanguagesLocal, onSaved]);
 
  const handleRevert = () => {
   setItems(snapshot);

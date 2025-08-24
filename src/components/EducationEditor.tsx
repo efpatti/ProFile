@@ -8,11 +8,8 @@ import React, {
  useMemo,
 } from "react";
 import { useAuth } from "@/core/services/AuthProvider";
-import {
- fetchEducationForUser,
- saveEducation,
- type EducationItem,
-} from "@/core/services/EducationService";
+import { useResumeStore } from "@/core/store/useResumeStore";
+import { type EducationItem } from "@/core/services/EducationService";
 import { motion, Reorder, useDragControls } from "framer-motion";
 import {
  FaTrash,
@@ -56,8 +53,22 @@ const AutoResizeTextarea = ({
  );
 };
 
-const EducationEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
+const EducationEditor = ({
+ lang,
+ initialItems,
+ onSaved,
+}: {
+ lang: "pt-br" | "en";
+ initialItems?: EducationItem[];
+ onSaved?: (items: EducationItem[]) => void;
+}) => {
  const { user } = useAuth();
+ const {
+  education: storeEducation,
+  saveEducationRemote,
+  setEducationLocal,
+  loading: storeLoading,
+ } = useResumeStore();
  const [educationItems, setEducationItems] = useState<EducationItem[]>([]);
  const [isLoading, setIsLoading] = useState(true);
  const [error, setError] = useState<string | null>(null);
@@ -67,26 +78,22 @@ const EducationEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
  const controls = useDragControls();
 
  useEffect(() => {
-  if (user) {
+  if (initialItems) {
+   const ordered = [...initialItems].sort((a, b) => a.order - b.order);
+   setEducationItems(ordered);
+   setSnapshot(ordered);
+   setIsLoading(false);
+  } else if (storeEducation && storeEducation.length > 0) {
+   const ordered = [...storeEducation].sort((a, b) => a.order - b.order);
+   setEducationItems(ordered);
+   setSnapshot(ordered);
+   setIsLoading(false);
+  } else if (storeLoading) {
    setIsLoading(true);
-   fetchEducationForUser(user.uid, lang)
-    .then((fetchedItems) => {
-     const ordered = fetchedItems.sort((a, b) => a.order - b.order);
-     setEducationItems(ordered);
-     setSnapshot(ordered);
-     setIsLoading(false);
-    })
-    .catch((err) => {
-     console.error(err);
-     setError(
-      lang === "pt-br"
-       ? "Falha ao carregar educação."
-       : "Failed to load education."
-     );
-     setIsLoading(false);
-    });
+  } else {
+   setIsLoading(false);
   }
- }, [user, lang]);
+ }, [initialItems, storeEducation, storeLoading]);
 
  const hasChanges = useMemo(() => {
   if (snapshot.length !== educationItems.length) return true;
@@ -134,15 +141,17 @@ const EducationEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
   if (!user) return;
   setIsSaving(true);
   try {
-   await saveEducation(user.uid, educationItems, []);
+   await saveEducationRemote(educationItems);
    setSnapshot([...educationItems]);
    setEditing(false);
+   setEducationLocal(educationItems);
+   onSaved?.(educationItems.map((e, idx) => ({ ...e, order: idx })));
   } catch (e) {
    console.error(e);
   } finally {
    setIsSaving(false);
   }
- }, [educationItems, user]);
+ }, [educationItems, user, saveEducationRemote, setEducationLocal, onSaved]);
 
  const handleRevert = () => {
   setEducationItems(snapshot);

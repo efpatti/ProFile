@@ -5,9 +5,6 @@ import {
  getDocs,
  query,
  where,
- deleteDoc,
- addDoc,
- updateDoc,
  orderBy,
  limit,
 } from "firebase/firestore";
@@ -45,13 +42,15 @@ export const fetchSkillsForUser = async (
 export const saveSkills = async (
  userId: string,
  language: "pt-br" | "en",
- skills: Skill[]
+ skills: Skill[],
+ existingSnapshot?: Skill[]
 ) => {
  const batch = writeBatch(db);
  const skillsRef = collection(db, "users", userId, "skills");
 
- // Pega as skills existentes para comparar
- const existingSkills = await fetchSkillsForUser(userId, language);
+ // Use provided existing snapshot (already loaded) to avoid a second read
+ const existingSkills =
+  existingSnapshot ?? (await fetchSkillsForUser(userId, language));
  const existingSkillIds = new Set(existingSkills.map((s) => s.id));
  const newSkillIds = new Set(skills.map((s) => s.id).filter(Boolean));
 

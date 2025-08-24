@@ -8,11 +8,7 @@ import React, {
  useMemo,
 } from "react";
 import { useAuth } from "@/core/services/AuthProvider";
-import {
- fetchExperienceForUser,
- saveExperience,
- type Experience,
-} from "../core/services/ExperienceService";
+import { useResumeStore } from "@/core/store/useResumeStore";
 import { motion, Reorder, useDragControls } from "framer-motion";
 import {
  FaEdit,
@@ -23,6 +19,7 @@ import {
  FaUndo,
 } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
+import type { Experience } from "@/core/services/ExperienceService";
 
 // Auto-resize textarea like other editors
 const AutoResizeTextarea = ({
@@ -57,8 +54,22 @@ const AutoResizeTextarea = ({
  );
 };
 
-const ExperienceEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
+const ExperienceEditor = ({
+ lang,
+ initialItems,
+ onSaved,
+}: {
+ lang: "pt-br" | "en";
+ initialItems?: Experience[];
+ onSaved?: (items: Experience[]) => void;
+}) => {
  const { user } = useAuth();
+ const {
+  experience: storeExperience,
+  saveExperienceRemote,
+  setExperienceLocal,
+  loading: storeLoading,
+ } = useResumeStore();
  const [items, setItems] = useState<Experience[]>([]);
  const [isLoading, setIsLoading] = useState(true);
  const [error, setError] = useState<string | null>(null);
@@ -68,26 +79,22 @@ const ExperienceEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
  const controls = useDragControls();
 
  useEffect(() => {
-  if (!user) return;
-  setIsLoading(true);
-  fetchExperienceForUser(user.uid, lang)
-   .then((fetched: Experience[]) => {
-    const ordered = fetched.sort(
-     (a: Experience, b: Experience) => a.order - b.order
-    );
-    setItems(ordered);
-    setSnapshot(ordered);
-   })
-   .catch((e: unknown) => {
-    console.error(e);
-    setError(
-     lang === "pt-br"
-      ? "Falha ao carregar experiências."
-      : "Failed to load experience."
-    );
-   })
-   .finally(() => setIsLoading(false));
- }, [user, lang]);
+  if (initialItems) {
+   const ordered = [...initialItems].sort((a, b) => a.order - b.order);
+   setItems(ordered);
+   setSnapshot(ordered);
+   setIsLoading(false);
+  } else if (storeExperience && storeExperience.length > 0) {
+   const ordered = [...storeExperience].sort((a, b) => a.order - b.order);
+   setItems(ordered);
+   setSnapshot(ordered);
+   setIsLoading(false);
+  } else if (storeLoading) {
+   setIsLoading(true);
+  } else {
+   setIsLoading(false);
+  }
+ }, [initialItems, storeExperience, storeLoading]);
 
  const hasChanges = useMemo(() => {
   if (snapshot.length !== items.length) return true;
@@ -187,15 +194,17 @@ const ExperienceEditor = ({ lang }: { lang: "pt-br" | "en" }) => {
   if (!user) return;
   setIsSaving(true);
   try {
-   await saveExperience(user.uid, lang, items);
+   await saveExperienceRemote(items);
    setSnapshot([...items]);
    setEditing(false);
+   setExperienceLocal(items);
+   onSaved?.(items.map((it, idx) => ({ ...it, order: idx })));
   } catch (e) {
    console.error(e);
   } finally {
    setIsSaving(false);
   }
- }, [items, user, lang]);
+ }, [items, user, saveExperienceRemote, setExperienceLocal, onSaved]);
 
  const handleRevert = () => setItems(snapshot);
 

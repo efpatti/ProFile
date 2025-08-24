@@ -10,24 +10,20 @@ import {
 } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 
-export interface Experience {
+export interface Interests {
  id?: string;
- title: string;
- company: string;
- period: string;
- description: string;
+ category: string;
+ item: string;
  language: "pt-br" | "en";
  order: number;
- locate?: string;
- details?: string[];
 }
 
-export const fetchExperienceForUser = async (
+export const fetchInterestsForUser = async (
  userId: string,
  language: "pt-br" | "en",
  pageSize = 100
-): Promise<Experience[]> => {
- const ref = collection(db, "users", userId, "experience");
+): Promise<Interests[]> => {
+ const ref = collection(db, "users", userId, "interests");
  const q = query(
   ref,
   where("language", "==", language),
@@ -37,53 +33,47 @@ export const fetchExperienceForUser = async (
  const snap = await getDocs(q);
  return snap.docs.map((d) => ({
   id: d.id,
-  ...(d.data() as Omit<Experience, "id">),
+  ...(d.data() as Omit<Interests, "id">),
  }));
 };
 
-export const saveExperience = async (
+export const saveInterests = async (
  userId: string,
  language: "pt-br" | "en",
- items: Experience[],
- existingSnapshot?: Experience[]
+ items: Interests[],
+ existingSnapshot?: Interests[]
 ) => {
  const batch = writeBatch(db);
 
  const existing =
-  existingSnapshot ?? (await fetchExperienceForUser(userId, language));
+  existingSnapshot ?? (await fetchInterestsForUser(userId, language));
  const existingIds = new Set(existing.map((e) => e.id));
  const newIds = new Set(items.map((e) => e.id).filter(Boolean));
 
  // Deletions
  for (const e of existing) {
   if (!newIds.has(e.id)) {
-   const ref = doc(db, "users", userId, "experience", e.id!);
+   const ref = doc(db, "users", userId, "interests", e.id!);
    batch.delete(ref);
   }
  }
 
  const s = (v?: string) => (typeof v === "string" ? v : "");
- const sanitizeDetails = (arr?: string[]) =>
-  Array.isArray(arr) ? arr.map((d) => (typeof d === "string" ? d : "")) : [];
 
  // Upserts according to array order
  items.forEach((e, index) => {
   const data = {
-   title: s(e.title),
-   company: s(e.company),
-   period: s(e.period),
-   description: s(e.description),
+   category: s(e.category) || (language === "pt-br" ? "Categoria" : "Category"),
+   item: s(e.item),
    language,
    order: index,
-   locate: s(e.locate),
-   details: sanitizeDetails(e.details),
   };
 
   if (e.id && existingIds.has(e.id)) {
-   const ref = doc(db, "users", userId, "experience", e.id);
+   const ref = doc(db, "users", userId, "interests", e.id);
    batch.set(ref, data);
   } else {
-   const ref = doc(collection(db, "users", userId, "experience"));
+   const ref = doc(collection(db, "users", userId, "interests"));
    batch.set(ref, data);
   }
  });
