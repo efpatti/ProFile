@@ -51,15 +51,16 @@ const AutoResizeTextarea = ({
  );
 };
 
-const PROFESSIONAL_KEY = "Profissionais";
+
 
 interface SkillsEditorProps {
- lang: "pt-br" | "en";
- initialSkills?: Skill[]; // optional externally provided skills (raw docs with id)
- onSaved?: (skills: Skill[]) => void; // callback after successful save
+  lang: "pt-br" | "en";
+  initialSkills?: Skill[]; // optional externally provided skills (raw docs with id)
+  onSaved?: (skills: Skill[]) => void; // callback after successful save
 }
 
 const SkillsEditor = ({ lang, initialSkills, onSaved }: SkillsEditorProps) => {
+const PROFESSIONAL_KEY = lang === "pt-br" ? "Profissionais" : "Professional";
  const { user } = useAuth();
  const {
   skills: storeSkills,
@@ -94,10 +95,9 @@ const SkillsEditor = ({ lang, initialSkills, onSaved }: SkillsEditorProps) => {
   }
  }, [initialSkills, storeSkills, storeLoading]);
 
- const technicalSkills = skills.filter((s) => s.category !== PROFESSIONAL_KEY);
- const professionalSkills = skills.filter(
-  (s) => s.category === PROFESSIONAL_KEY
- );
+  const technicalSkills = skills.filter((s) => s.category !== PROFESSIONAL_KEY);
+  const professionalSkills = skills.filter((s) => s.category === PROFESSIONAL_KEY);
+
 
  const groupedTechnical = useMemo(() => {
   return technicalSkills.reduce((acc, s) => {
@@ -142,12 +142,9 @@ const SkillsEditor = ({ lang, initialSkills, onSaved }: SkillsEditorProps) => {
  const addSkill = (type: "technical" | "professional") => {
   const newSkill: Skill = {
    id: generateTempId(),
-   category:
-    type === "technical"
-     ? lang === "pt-br"
-       ? "Nova Categoria"
-       : "New Category"
-     : PROFESSIONAL_KEY,
+  category: type === "technical"
+    ? (lang === "pt-br" ? "Nova Categoria" : "New Category")
+    : PROFESSIONAL_KEY,
    item: lang === "pt-br" ? "Nova Habilidade" : "New Skill",
    language: lang,
    order: skills.length,
@@ -176,6 +173,7 @@ const SkillsEditor = ({ lang, initialSkills, onSaved }: SkillsEditorProps) => {
   } catch (e) {
    console.error(e);
   } finally {
+   const PROFESSIONAL_KEY = lang === "pt-br" ? "Profissionais" : "Professional";
    setIsSaving(false);
   }
  };
