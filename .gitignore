@@ -34,6 +34,8 @@ pglite-debug.log
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.local.example
+!.env.docker.example
 
 # vercel
 .vercel
@@ -44,3 +46,12 @@ next-env.d.ts
 
 # Firebase service account key (NUNCA suba para o git!)
 serviceAccountKey.json
+
+# Docker
+volumes/
+.docker/
+docker-compose.override.yml
+
+# Prisma
+prisma/*.db
+prisma/*.db-journal

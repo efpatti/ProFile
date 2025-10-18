@@ -46,7 +46,7 @@ const ResumePage: React.FC = () => {
   bannerColorFromQuery || bannerColor || defaultBg
  );
  const { user } = useAuth();
- const effectiveUserId = forcedUserId || user?.uid || undefined;
+ const effectiveUserId = forcedUserId || user?.id || undefined;
  const [displayName, setDisplayName] = useState<string | undefined>(
   user?.displayName || undefined
  );
@@ -126,119 +126,9 @@ const ResumePage: React.FC = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
  }, [paletteFromQuery, bannerColorFromQuery]);
 
- // --- PDF Handlers ---
- const handleGeneratePDFPuppeteer = () => {
-  window.open(
-   `/api/download-resume?palette=${palette}&lang=${language}&bannerColor=${selectedBg}${
-    effectiveUserId ? `&user=${effectiveUserId}` : ""
-   }`,
-   "_blank"
-  );
- };
-
- const handleGeneratePDFHtml2Pdf = async () => {
-  if (typeof window === "undefined") return;
-  const el = document.getElementById("resume");
-  if (!el) return alert("Resume element not found");
-  const clone = el.cloneNode(true) as HTMLElement;
-  document.body.appendChild(clone);
-
-  // Freeze computed styles into inline styles to preserve CSS variables/oklch
-  const freezeComputed = (root: HTMLElement) => {
-   const apply = (node: HTMLElement) => {
-    const cs = window.getComputedStyle(node);
-    node.style.color = cs.color;
-    node.style.backgroundColor = cs.backgroundColor;
-    node.style.borderColor = cs.borderColor;
-   };
-   apply(root);
-   root.querySelectorAll<HTMLElement>("*").forEach(apply);
-  };
-  freezeComputed(clone);
-
-  // @ts-ignore
-  const html2pdf = (await import("html2pdf.js")).default;
-  // Render from the cloned, style-frozen node
-  // @ts-ignore
-  await html2pdf().from(clone).save("resume-html2pdf.pdf");
-  clone.remove();
- };
-
- const handleGeneratePDFJsPDF = async () => {
-  if (typeof window === "undefined") return;
-  const el = document.getElementById("resume");
-  if (!el) return alert("Resume element not found");
-  const clone = el.cloneNode(true) as HTMLElement;
-  document.body.appendChild(clone);
-
-  // Freeze computed styles into inline styles
-  const freezeComputed = (root: HTMLElement) => {
-   const apply = (node: HTMLElement) => {
-    const cs = window.getComputedStyle(node);
-    node.style.color = cs.color;
-    node.style.backgroundColor = cs.backgroundColor;
-    node.style.borderColor = cs.borderColor;
-   };
-   apply(root);
-   root.querySelectorAll<HTMLElement>("*").forEach(apply);
-  };
-  freezeComputed(clone);
-
-  const { jsPDF } = await import("jspdf");
-  // @ts-ignore
-  await doc.html(clone, {
-   callback: function (doc: any) {
-    doc.save("resume-jspdf.pdf");
-    clone.remove();
-   },
-  });
- };
-
- const handleGeneratePDFPdfLib = async () => {
-  if (typeof window === "undefined") return;
-  const el = document.getElementById("resume");
-  if (!el) return alert("Resume element not found");
-  const clone = el.cloneNode(true) as HTMLElement;
-  document.body.appendChild(clone);
-
-  // Freeze computed styles into inline styles
-  const freezeComputed = (root: HTMLElement) => {
-   const apply = (node: HTMLElement) => {
-    const cs = window.getComputedStyle(node);
-    node.style.color = cs.color;
-    node.style.backgroundColor = cs.backgroundColor;
-    node.style.borderColor = cs.borderColor;
-   };
-   apply(root);
-   root.querySelectorAll<HTMLElement>("*").forEach(apply);
-  };
-  freezeComputed(clone);
-
-  const { PDFDocument } = await import("pdf-lib");
-  const html2canvas = (await import("html2canvas")).default;
-  const canvas = await html2canvas(clone);
-  const imgData = canvas.toDataURL("image/png");
-  const pdfDoc = await PDFDocument.create();
-  const page = pdfDoc.addPage([canvas.width, canvas.height]);
-  const pngImage = await pdfDoc.embedPng(imgData);
-  page.drawImage(pngImage, {
-   x: 0,
-   y: 0,
-   width: canvas.width,
-   height: canvas.height,
-  });
-  const pdfBytes = await pdfDoc.save();
-  const blob = new Blob([pdfBytes], { type: "application/pdf" });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement("a");
-  a.href = url;
-  a.download = "resume-pdflib.pdf";
-  document.body.appendChild(a);
-  a.click();
-  a.remove();
-  clone.remove();
-  URL.revokeObjectURL(url);
- };
+ // --- PDF/DOCX Handlers (migrated to server-side export via /api/resume/export) ---
+ // Os handlers antigos (html2pdf/jspdf/pdf-lib) foram removidos para evitar dependências pesadas.
+ // Utilize a rota /api/resume/export para gerar arquivos com qualidade consistente.
 
  useEffect(() => {
   if (bannerColor) setSelectedBg(bannerColor);
