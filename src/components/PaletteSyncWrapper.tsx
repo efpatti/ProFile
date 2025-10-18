@@ -1,9 +1,11 @@
 "use client";
-import { useUserPaletteSync } from "@/features/palette/hooks/useUserPaletteSync";
-import { usePaletteFirestoreSync } from "@/features/palette/hooks/usePaletteFirestoreSync";
 
-export function PaletteSyncWrapper() {
- useUserPaletteSync();
- usePaletteFirestoreSync();
- return null;
-}
+// Sincronização de paleta agora é feita pelo PaletteProvider via API
+// Este componente é mantido apenas para compatibilidade
+export const PaletteSyncWrapper = ({
+ children,
+}: {
+ children: React.ReactNode;
+}) => {
+ return <>{children}</>;
+};

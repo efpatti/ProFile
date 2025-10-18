@@ -21,8 +21,6 @@ import { FiImage as ImageIcon, FiEdit3 as EditIcon } from "react-icons/fi";
 import { FaPaintRoller as PaintIcon } from "react-icons/fa";
 import { usePalette } from "@/styles/PaletteProvider";
 import { useAuth } from "@/core/services/AuthProvider";
-import { doc, updateDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { PaletteSelector } from "./PaletteSelector";
 import { BgBannerSelector } from "./BgBannerSelector";
 import { LogoSearch } from "./LogoSearch";
@@ -100,10 +98,13 @@ export const SettingsBanner: React.FC<SettingsBannerProps> = ({
 
   setIsSaving(true);
   try {
-   await updateDoc(doc(db, "users", user.id), {
-    palette,
-    bannerColor: selectedBg,
-    updatedAt: new Date().toISOString(),
+   await fetch("/api/user/preferences", {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+     palette,
+     bannerColor: selectedBg,
+    }),
    });
 
    setShowSuccess(true);

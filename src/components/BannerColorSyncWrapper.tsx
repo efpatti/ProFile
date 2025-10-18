@@ -1,10 +1,11 @@
-// src/components/BannerColorSyncWrapper.tsx
 "use client";
-import { useUserBannerColorSync } from "@/features/palette/hooks/useUserBannerColorSync";
-import { useBannerColorFirestoreSync } from "@/features/palette/hooks/useBannerColorFirestoreSync";
 
-export function BannerColorSyncWrapper() {
- useUserBannerColorSync();
- useBannerColorFirestoreSync();
- return null;
-}
+// Sincronização de banner color agora é feita pelo PaletteProvider via API
+// Este componente é mantido apenas para compatibilidade
+export const BannerColorSyncWrapper = ({
+ children,
+}: {
+ children: React.ReactNode;
+}) => {
+ return <>{children}</>;
+};

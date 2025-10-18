@@ -19,15 +19,15 @@ import {
  BgBannerColorName,
 } from "@/styles/sharedStyleConstants";
 
-import type { User } from "firebase/auth";
 import { usePalette } from "@/styles/PaletteProvider";
+import { type UserWithProfile } from "@/core/services/AuthProvider";
 
 interface BannerProps {
  logoUrl?: string;
  bgColor?: { bg: string; text: string };
  selectedBg?: BgBannerColorName;
  onSelectBg?: (color: BgBannerColorName) => void;
- user?: User | null;
+ user?: UserWithProfile | null;
 }
 
 export function getBgColorObj(bgName: BgBannerColorName) {

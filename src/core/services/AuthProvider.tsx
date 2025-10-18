@@ -2,19 +2,18 @@
 
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { useSession, SessionProvider } from "next-auth/react";
-import { db } from "@/lib/firebase";
-import { doc, onSnapshot } from "firebase/firestore";
 
-// Dados extras do Firestore para o usuário
+// Dados extras do perfil do usuário
 export type UserProfileData = {
  displayName?: string | null;
  photoURL?: string | null;
- bannerColor?: string | null; // paleta ativa do usuário
- // Adicione outros campos customizados do Firestore aqui
+ bannerColor?: string | null;
+ palette?: string | null;
 };
 
 export type UserWithProfile = {
  id: string;
+ uid: string; // Alias para compatibilidade
  email?: string | null;
  name?: string | null;
  image?: string | null;
@@ -44,39 +43,46 @@ const AuthProviderInner = ({ children }: { children: React.ReactNode }) => {
 
   if (session?.user) {
    const userId = session.user.id;
-   const userDoc = doc(db, "users", userId);
 
-   const unsubscribeSnapshot = onSnapshot(
-    userDoc,
-    (docSnapshot) => {
-     const userData = docSnapshot.exists()
-      ? (docSnapshot.data() as UserProfileData)
-      : {};
-
+   // Buscar preferências do usuário da API
+   const fetchUserPreferences = async () => {
+    try {
+     const response = await fetch("/api/user/preferences");
+     if (response.ok) {
+      const preferences = await response.json();
+      setUser({
+       id: userId,
+       uid: userId, // Alias
+       email: session.user.email,
+       name: session.user.name,
+       image: session.user.image,
+       ...preferences,
+      });
+     } else {
+      // Fallback se não conseguir ler as preferências
+      setUser({
+       id: userId,
+       uid: userId, // Alias
+       email: session.user.email,
+       name: session.user.name,
+       image: session.user.image,
+      });
+     }
+    } catch (error) {
+     console.error("Error fetching user preferences:", error);
      setUser({
       id: userId,
+      uid: userId, // Alias
       email: session.user.email,
       name: session.user.name,
       image: session.user.image,
-      ...userData,
      });
-     setLoading(false);
-    },
-    () => {
-     // Fallback se não conseguir ler o Firestore
-     setUser({
-      id: userId,
-      email: session.user.email,
-      name: session.user.name,
-      image: session.user.image,
-     });
+    } finally {
      setLoading(false);
     }
-   );
-
-   return () => {
-    unsubscribeSnapshot();
    };
+
+   fetchUserPreferences();
   } else {
    setUser(null);
    setLoading(false);

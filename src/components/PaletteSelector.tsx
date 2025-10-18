@@ -5,8 +5,6 @@ import { ColorSelector } from "./ColorSelector";
 import type { PaletteName } from "@/styles/PaletteProvider";
 import { BgBannerColorName } from "@/styles/sharedStyleConstants";
 import { useEffect, useCallback } from "react";
-import { doc, updateDoc, getDoc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { useAuth } from "@/core/services/AuthProvider";
 
 const PALETTE_OPTIONS = (Object.keys(paletteTokens) as PaletteName[]).map(
@@ -39,12 +37,20 @@ export const PaletteSelector = ({
 }: PaletteSelectorProps) => {
  const { user } = useAuth();
 
- // Atualiza Firestore ao mudar a cor
+ // Atualiza banco ao mudar a cor
  const handleSelect = useCallback(
   async (palette: PaletteName) => {
    onSelect(palette);
    if (user) {
-    await updateDoc(doc(db, "users", user.id), { palette });
+    try {
+     await fetch("/api/user/preferences", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ palette }),
+     });
+    } catch (error) {
+     console.error("Error updating palette:", error);
+    }
    }
   },
   [user, onSelect]
@@ -54,12 +60,16 @@ export const PaletteSelector = ({
   if (!user) return;
   // One-time fetch instead of realtime subscription
   (async () => {
-   const docSnap = await getDoc(doc(db, "users", user.id));
-   if (docSnap.exists()) {
-    const data = docSnap.data() as { palette?: PaletteName };
-    if (data.palette && data.palette !== selected) {
-     onSelect(data.palette);
+   try {
+    const response = await fetch("/api/user/preferences");
+    if (response.ok) {
+     const data = await response.json();
+     if (data.palette && data.palette !== selected) {
+      onSelect(data.palette);
+     }
     }
+   } catch (error) {
+    console.error("Error fetching palette:", error);
    }
   })();
  }, [user]);

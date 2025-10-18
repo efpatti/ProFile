@@ -1,8 +1,8 @@
 // src/core/services/signOut.ts
 "use client";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebase";
+// src/core/services/signOut.ts
+import { signOut as nextAuthSignOut } from "next-auth/react";
 
-export async function handleSignOut() {
- await signOut(auth);
+export default async function signOut() {
+ await nextAuthSignOut({ callbackUrl: "/" });
 }

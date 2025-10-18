@@ -6,8 +6,6 @@ import {
  bgBannerColor,
 } from "./sharedStyleConstants";
 import { useAuth } from "@/core/services/AuthProvider";
-import { db } from "@/lib/firebase";
-import { doc, getDoc } from "firebase/firestore";
 
 // Adaptando os tipos para manter compatibilidade
 export type PaletteName = SharedPaletteName;
@@ -86,21 +84,29 @@ export const PaletteProvider: React.FC<{
    setLoading(false);
    return;
   }
+
   let ignore = false;
   const fetchPalette = async () => {
-   const userDoc = await getDoc(doc(db, "users", user.uid));
-   if (userDoc.exists()) {
-    const data = userDoc.data();
-    if (data.palette && !ignore) setPalette(data.palette as PaletteName);
-    else if (!ignore) setPalette("darkGreen");
-    if (data.bannerColor && !ignore)
-     setBannerColor(data.bannerColor as BannerColorName);
-    else if (!ignore) setBannerColor("pureWhite");
-   } else {
+   try {
+    const response = await fetch("/api/user/preferences");
+    if (response.ok) {
+     const data = await response.json();
+     if (data.palette && !ignore) setPalette(data.palette as PaletteName);
+     else if (!ignore) setPalette("darkGreen");
+     if (data.bannerColor && !ignore)
+      setBannerColor(data.bannerColor as BannerColorName);
+     else if (!ignore) setBannerColor("pureWhite");
+    } else {
+     if (!ignore) setPalette("darkGreen");
+     if (!ignore) setBannerColor("pureWhite");
+    }
+   } catch (error) {
+    console.error("Error fetching palette:", error);
     if (!ignore) setPalette("darkGreen");
     if (!ignore) setBannerColor("pureWhite");
+   } finally {
+    setLoading(false);
    }
-   setLoading(false);
   };
   fetchPalette();
   return () => {

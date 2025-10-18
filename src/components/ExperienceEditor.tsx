@@ -22,7 +22,7 @@ import {
 } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
 import type { Experience } from "@/core/services/ExperienceService";
-import { Timestamp } from "firebase/firestore";
+import { Timestamp } from "@/lib/timestamp";
 
 // Auto-resize textarea like other editors
 const AutoResizeTextarea = ({

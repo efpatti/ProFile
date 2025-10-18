@@ -13,9 +13,9 @@ const AppProvidersBase: React.FC<{ children: React.ReactNode }> = ({
   <AuthProvider>
    <PaletteProvider>
     <LanguageProvider>
-     <PaletteSyncWrapper />
-     <BannerColorSyncWrapper />
-     {children}
+     <PaletteSyncWrapper>
+      <BannerColorSyncWrapper>{children}</BannerColorSyncWrapper>
+     </PaletteSyncWrapper>
     </LanguageProvider>
    </PaletteProvider>
   </AuthProvider>

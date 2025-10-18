@@ -7,7 +7,7 @@ import { profileRoute } from "@/constants/routes";
 import { colorPalettes, PaletteName } from "@/styles/sharedStyleConstants";
 import { usePalette } from "@/styles/PaletteProvider";
 import type { UserWithProfile } from "@/core/services/AuthProvider";
-import { handleSignOut } from "@/core/services/signOut";
+import signOut from "@/core/services/signOut";
 
 const getPaletteInfo = (palette: string | undefined) => {
  if (!palette || !(palette in colorPalettes)) return null;
@@ -127,7 +127,7 @@ export const ProfileMenu = ({ user }: { user: UserWithProfile | null }) => {
        My Profile
       </Link>
       <button
-       onClick={handleSignOut}
+       onClick={signOut}
        className="w-full text-center text-xs font-medium rounded-lg px-4 py-2 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition focus:outline-none focus-ring"
        role="menuitem"
       >
