@@ -2,268 +2,210 @@
 
 import { create } from "zustand";
 import { devtools } from "zustand/middleware";
-import { db } from "@/lib/firebase";
-import { doc, getDoc, collection, getDocs } from "firebase/firestore";
-import {
- fetchSkillsForUser,
- saveSkills,
- type Skill,
-} from "@/core/services/SkillsService";
-import {
- fetchExperienceForUser,
- saveExperience,
- type Experience,
-} from "@/core/services/ExperienceService";
-import {
- fetchEducationForUser,
- saveEducation,
- type EducationItem,
-} from "@/core/services/EducationService";
-import {
- fetchProjectsForUser,
- type ProjectItem,
-} from "@/core/services/ProjectsService";
-import {
- fetchCertificationsForUser,
- type CertificationItem,
-} from "@/core/services/CertificationsService";
-import {
- fetchInterestsForUser,
- saveInterests,
- type Interests,
-} from "@/core/services/InterestsService";
-import {
- fetchRecommendationsForUser,
- type RecommendationItem,
-} from "@/core/services/RecommendationsService";
-import {
- fetchAwardsForUser,
- type AwardItem,
-} from "@/core/services/AwardsService";
-import { fetchProfile, saveProfile } from "@/core/services/ProfileService";
-import {
- fetchHeader,
- saveHeader,
- saveContacts,
-} from "@/core/services/HeaderService";
 
-export interface LanguagesData {
- // changed to export
+export interface Skill {
+ id?: string;
+ category: string;
+ item?: string;
+ name?: string;
+ order?: number;
+ language?: string;
+}
+
+export interface Experience {
+ id: string;
+ company: string;
+ role: string;
+ startDate: string;
+ endDate: string | null;
+ isCurrentJob: boolean;
+ technologies: string[];
+ description?: string;
+}
+
+export interface EducationItem {
+ id: string;
+ institution: string;
+ degree: string;
+ field: string;
+ startDate: string;
+ endDate: string | null;
+ description?: string;
+}
+
+export interface ProjectItem {
+ id: string;
+ name: string;
+ description: string;
+ technologies: string[];
+ url?: string;
+ startDate: string;
+ endDate?: string;
+}
+
+export interface CertificationItem {
+ id: string;
+ name: string;
+ issuer: string;
+ date: string;
+ url?: string;
+}
+
+export interface AwardItem {
+ id: string;
  title: string;
+ issuer: string;
+ date: string;
+ description?: string;
+}
+
+export interface RecommendationItem {
+ id: string;
+ recommenderName: string;
+ relationship: string;
+ text: string;
+ date?: string;
+}
+
+export interface Interests {
  items: string[];
 }
 
-interface ResumeStoreState {
- userId?: string;
- language: "pt-br" | "en";
- loading: boolean;
- error?: string;
- skills: Skill[];
- experience: Experience[];
- education: EducationItem[];
- languages?: LanguagesData;
- projects: ProjectItem[];
- certifications: CertificationItem[];
- interests: Interests[];
- recommendations: RecommendationItem[];
- awards: AwardItem[];
- profile: any | null;
- header: { subtitle: string; contacts: any[] } | null;
- lastLoadedAt?: number;
- // actions
- loadResume: (userId: string, language: "pt-br" | "en") => Promise<void>;
- setSkillsLocal: (skills: Skill[]) => void;
- setExperienceLocal: (items: Experience[]) => void;
- setEducationLocal: (items: EducationItem[]) => void;
- setLanguagesLocal: (data: LanguagesData) => void;
- setProjectsLocal: (items: ProjectItem[]) => void;
- setCertificationsLocal: (items: CertificationItem[]) => void;
- setInterestsLocal: (items: Interests[]) => void;
- setRecommendationsLocal: (items: RecommendationItem[]) => void;
- setAwardsLocal: (items: AwardItem[]) => void;
- setProfileLocal: (data: any | null) => void;
- setHeaderLocal: (data: { subtitle: string; contacts: any[] } | null) => void;
- saveSkillsRemote: (skills: Skill[]) => Promise<void>;
- saveExperienceRemote: (items: Experience[]) => Promise<void>;
- saveEducationRemote: (items: EducationItem[]) => Promise<void>;
- saveLanguagesRemote: (data: LanguagesData) => Promise<void>;
- saveInterestsRemote: (items: Interests[]) => Promise<void>;
- saveProfileRemote?: (data: any) => Promise<void>;
- saveHeaderRemote?: (data: {
-  subtitle: string;
-  contacts: any[];
- }) => Promise<void>;
+export interface Profile {
+ bio?: string;
+ location?: string;
+ phone?: string;
+ website?: string;
+ linkedin?: string;
+ github?: string;
 }
 
-export const useResumeStore = create<ResumeStoreState>()(
+export interface Header {
+ name: string;
+ title: string;
+ email: string;
+}
+
+interface ResumeState {
+ header: Header | null;
+ profile: Profile | null;
+ skills: Skill[];
+ experiences: Experience[];
+ education: EducationItem[];
+ projects: ProjectItem[];
+ certifications: CertificationItem[];
+ awards: AwardItem[];
+ recommendations: RecommendationItem[];
+ interests: Interests;
+ languages: string[];
+ isLoading: boolean;
+ error: string | null;
+ loadResume: (userId: string) => Promise<void>;
+ saveResume: (userId: string) => Promise<void>;
+ updateHeader: (header: Header) => void;
+ updateProfile: (profile: Profile) => void;
+ updateSkills: (skills: Skill[]) => void;
+ updateExperiences: (experiences: Experience[]) => void;
+ updateEducation: (education: EducationItem[]) => void;
+ updateProjects: (projects: ProjectItem[]) => void;
+ updateCertifications: (certifications: CertificationItem[]) => void;
+ updateAwards: (awards: AwardItem[]) => void;
+ updateRecommendations: (recommendations: RecommendationItem[]) => void;
+ updateInterests: (interests: Interests) => void;
+ updateLanguages: (languages: string[]) => void;
+}
+
+const useResumeStore = create<ResumeState>()(
  devtools((set, get) => ({
-  userId: undefined,
-  language: "pt-br",
-  loading: false,
+  header: null,
+  profile: null,
   skills: [],
-  experience: [],
+  experiences: [],
   education: [],
-  languages: undefined,
   projects: [],
   certifications: [],
-  interests: [],
-  recommendations: [],
   awards: [],
-  profile: null,
-  header: null,
-  async loadResume(userId, language) {
-   const current = get();
-   if (current.loading) return; // avoid duplicate
-   set({ loading: true, error: undefined, userId, language });
+  recommendations: [],
+  interests: { items: [] },
+  languages: [],
+  isLoading: false,
+  error: null,
+
+  loadResume: async (userId: string) => {
+   set({ isLoading: true, error: null });
    try {
-    const [
-     skills,
-     experience,
-     education,
-     languagesDoc,
-     projects,
-     certifications,
-     interests,
-     recommendations,
-     awards,
-     profile,
-     header,
-    ] = await Promise.all([
-     fetchSkillsForUser(userId, language, 200),
-     fetchExperienceForUser(userId, language, 200),
-     fetchEducationForUser(userId, language),
-     (async () => {
-      const ref = doc(db, "users", userId, "languages", language);
-      const snap = await getDoc(ref);
-      if (snap.exists()) {
-       const d = snap.data() as any;
-       return {
-        title: d.title || (language === "pt-br" ? "Idiomas" : "Languages"),
-        items: d.items || [],
-       } as LanguagesData;
-      }
-      return {
-       title: language === "pt-br" ? "Idiomas" : "Languages",
-       items: [],
-      } as LanguagesData;
-     })(),
-     fetchProjectsForUser(userId, language, 100),
-     fetchCertificationsForUser(userId, language, 100),
-     fetchInterestsForUser(userId, language, 200),
-     fetchRecommendationsForUser(userId, language, 100),
-     fetchAwardsForUser(userId, language, 100),
-     fetchProfile(userId, language),
-     fetchHeader(userId, language),
-    ]);
-    set({
-     skills,
-     experience,
-     education,
-     languages: languagesDoc,
-     projects,
-     certifications,
-     interests,
-     recommendations,
-     awards,
-     profile,
-     header,
-     loading: false,
-     lastLoadedAt: Date.now(),
-    });
-   } catch (e: any) {
-    console.error("[useResumeStore] loadResume error", e);
-    set({ error: e?.message || "Failed to load resume", loading: false });
+    const response = await fetch(`/api/resume?userId=${userId}`);
+    if (!response.ok) throw new Error("Failed to load resume");
+    const data = await response.json();
+    const resume = data.resumes?.[0];
+    if (resume) {
+     set({
+      header: resume.header || null,
+      profile: resume.profile || null,
+      skills: (resume.skills || []).map((s: any) => ({
+       ...s,
+       item: s?.item ?? s?.name ?? "",
+       name: s?.name ?? s?.item ?? "",
+      })),
+      experiences: resume.experiences || [],
+      education: resume.education || [],
+      projects: resume.projects || [],
+      certifications: resume.certifications || [],
+      awards: resume.awards || [],
+      recommendations: resume.recommendations || [],
+      interests: resume.interests || { items: [] },
+      languages: resume.languages || [],
+      isLoading: false,
+     });
+    } else {
+     set({ isLoading: false });
+    }
+   } catch (error) {
+    set({ error: (error as Error).message, isLoading: false });
    }
   },
-  setSkillsLocal(skills) {
-   set({ skills });
+
+  saveResume: async (userId: string) => {
+   set({ isLoading: true, error: null });
+   try {
+    const state = get();
+    const response = await fetch("/api/resume", {
+     method: "POST",
+     headers: { "Content-Type": "application/json" },
+     body: JSON.stringify({
+      userId,
+      header: state.header,
+      profile: state.profile,
+      skills: state.skills,
+      experiences: state.experiences,
+      education: state.education,
+      projects: state.projects,
+      certifications: state.certifications,
+      awards: state.awards,
+      recommendations: state.recommendations,
+      interests: state.interests,
+      languages: state.languages,
+     }),
+    });
+    if (!response.ok) throw new Error("Failed to save resume");
+    set({ isLoading: false });
+   } catch (error) {
+    set({ error: (error as Error).message, isLoading: false });
+   }
   },
-  setExperienceLocal(experience) {
-   set({ experience });
-  },
-  setEducationLocal(education) {
-   set({ education });
-  },
-  setLanguagesLocal(languages) {
-   set({ languages });
-  },
-  setProjectsLocal(projects) {
-   set({ projects });
-  },
-  setCertificationsLocal(certifications) {
-   set({ certifications });
-  },
-  setInterestsLocal(interests) {
-   set({ interests });
-  },
-  setRecommendationsLocal(recommendations) {
-   set({ recommendations });
-  },
-  setAwardsLocal(awards) {
-   set({ awards });
-  },
-  setProfileLocal(profile) {
-   set({ profile });
-  },
-  setHeaderLocal(header) {
-   set({ header });
-  },
-  async saveSkillsRemote(newSkills) {
-   const { userId, language, skills } = get();
-   if (!userId) return;
-   await saveSkills(userId, language, newSkills, skills);
-   set({ skills: newSkills });
-  },
-  async saveExperienceRemote(newItems) {
-   const { userId, language, experience } = get();
-   if (!userId) return;
-   await saveExperience(userId, language, newItems, experience);
-   set({ experience: newItems });
-  },
-  async saveEducationRemote(newItems) {
-   const { userId, education } = get();
-   if (!userId) return;
-   // compute deletions
-   const prevIds = new Set(education.map((e) => e.id));
-   const newIds = new Set(newItems.map((e) => e.id));
-   const deletions: string[] = [];
-   prevIds.forEach((id) => {
-    if (!newIds.has(id)) deletions.push(id);
-   });
-   await saveEducation(userId, newItems, deletions);
-   set({ education: newItems });
-  },
-  async saveLanguagesRemote(data) {
-   const { userId, language } = get();
-   if (!userId) return;
-   const ref = doc(db, "users", userId, "languages", language);
-   // dynamic import to reduce initial bundle if desired
-   const { setDoc } = await import("firebase/firestore");
-   await setDoc(
-    ref,
-    { title: data.title, items: data.items, language },
-    { merge: true }
-   );
-   set({ languages: data });
-  },
-  async saveInterestsRemote(newItems) {
-   const { userId, language, interests } = get();
-   if (!userId) return;
-   await saveInterests(userId, language, newItems, interests);
-   set({ interests: newItems });
-  },
-  async saveProfileRemote(data) {
-   const { userId, language } = get();
-   if (!userId) return;
-   await saveProfile(userId, language, data);
-   set({ profile: data });
-  },
-  async saveHeaderRemote(data) {
-   const { userId, language } = get();
-   if (!userId) return;
-   await saveHeader(userId, language, { subtitle: data.subtitle });
-   await saveContacts(userId, language, data.contacts);
-   set({ header: data });
-  },
+
+  updateHeader: (header) => set({ header }),
+  updateProfile: (profile) => set({ profile }),
+  updateSkills: (skills) => set({ skills }),
+  updateExperiences: (experiences) => set({ experiences }),
+  updateEducation: (education) => set({ education }),
+  updateProjects: (projects) => set({ projects }),
+  updateCertifications: (certifications) => set({ certifications }),
+  updateAwards: (awards) => set({ awards }),
+  updateRecommendations: (recommendations) => set({ recommendations }),
+  updateInterests: (interests) => set({ interests }),
+  updateLanguages: (languages) => set({ languages }),
  }))
 );
+
+export default useResumeStore;

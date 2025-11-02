@@ -21,10 +21,8 @@ const SettingsShell = dynamic(
 import { usePalette } from "@/styles/PaletteProvider";
 import { useSearchParams } from "next/navigation";
 import { useLanguage } from "@/core/services/LanguageProvider";
-import { getDoc, doc } from "firebase/firestore";
-import { db } from "@/lib/firebase";
 import { Button } from "@/shared/components/Button";
-import { useResumeStore } from "@/core/store/useResumeStore"; // added
+import useResumeStore from "@/core/store/useResumeStore";
 
 const defaultBg: BgBannerColorName = "midnightSlate";
 
@@ -54,8 +52,11 @@ const ResumePage: React.FC = () => {
   undefined
  );
  const [header, setHeader] = useState<{
-  subtitle: string;
-  contacts: any[];
+  name: string;
+  title: string;
+  email: string;
+  subtitle?: string;
+  contacts?: any[];
  } | null>(null);
  const [experience, setExperience] = useState<any[]>();
  const [skills, setSkills] = useState<any[]>();
@@ -137,7 +138,7 @@ const ResumePage: React.FC = () => {
  const {
   loadResume,
   skills: storeSkills,
-  experience: storeExperience,
+  experiences: storeExperience,
   education: storeEducation,
   languages: storeLanguages,
   projects: storeProjects,
@@ -147,16 +148,15 @@ const ResumePage: React.FC = () => {
   awards: storeAwards,
   profile: storeProfile,
   header: storeHeader,
-  loading: resumeLoading,
-  language: storeLang,
+  isLoading: resumeLoading,
  } = useResumeStore();
 
  // Trigger aggregated load (id + language) when dependencies change
  useEffect(() => {
   if (effectiveUserId) {
-   loadResume(effectiveUserId, language);
+   loadResume(effectiveUserId);
   }
- }, [effectiveUserId, language, loadResume]);
+ }, [effectiveUserId, loadResume]);
 
  // Derive grouped skills from store
  useEffect(() => {
@@ -164,10 +164,10 @@ const ResumePage: React.FC = () => {
   const grouped = storeSkills.reduce(
    (
     acc: Record<string, { title: string; items: string[] }>,
-    { category, item }
+    { category, name = "" }
    ) => {
     if (!acc[category]) acc[category] = { title: category, items: [] };
-    acc[category].items.push(item);
+    acc[category].items.push(name ?? "");
     return acc;
    },
    {} as Record<string, { title: string; items: string[] }>
@@ -198,7 +198,10 @@ const ResumePage: React.FC = () => {
  // Sync languages from store
  useEffect(() => {
   if (storeLanguages) {
-   setLanguages(storeLanguages);
+   setLanguages({
+    title: "Languages",
+    items: storeLanguages,
+   });
    if (!resumeLoading) setLanguagesLoaded(true);
   }
  }, [storeLanguages, resumeLoading]);
@@ -221,21 +224,14 @@ const ResumePage: React.FC = () => {
 
  // Sync interests from store
  useEffect(() => {
-  if (storeInterests) {
-   // group by category -> { title, items[] } similar to previous logic
-   const grouped = storeInterests.reduce(
-    (
-     acc: Record<string, { title: string; items: string[]; order: number }>,
-     { category, item, order }
-    ) => {
-     if (!acc[category]) acc[category] = { title: category, items: [], order };
-     acc[category].items.push(item);
-     return acc;
+  if (storeInterests && storeInterests.items) {
+   // Converter array simples para formato com categorias
+   setInterests([
+    {
+     title: "Interests",
+     items: storeInterests.items,
     },
-    {} as Record<string, { title: string; items: string[]; order: number }>
-   );
-   const ordered = Object.values(grouped).sort((a, b) => a.order - b.order);
-   setInterests(ordered.map(({ title, items }) => ({ title, items })));
+   ]);
    if (!resumeLoading) setInterestsLoaded(true);
   }
  }, [storeInterests, resumeLoading]);
@@ -287,18 +283,17 @@ const ResumePage: React.FC = () => {
 
   const fetchTopLevelUser = async () => {
    try {
-    const userDocRef = doc(db, "users", uid);
-    const userSnap = await getDoc(userDocRef);
-    if (userSnap.exists()) {
-     const data = userSnap.data() as any;
+    // Buscar dados do usuário via API
+    const response = await fetch("/api/user/preferences");
+    if (response.ok) {
+     const data = await response.json();
      const fromDoc =
-      (typeof data.name === "string" && data.name.trim()) ||
       (typeof data.displayName === "string" && data.displayName.trim()) ||
       undefined;
      if (fromDoc) setDisplayName(fromDoc);
     }
    } catch (e) {
-    console.error("Error fetching top-level user doc:", e);
+    console.error("Error fetching user data:", e);
    } finally {
     setUserLoaded(true);
    }
@@ -321,20 +316,13 @@ const ResumePage: React.FC = () => {
   };
 
   const fetchInterests = async () => {
-   if (storeInterests) {
-    const grouped = storeInterests.reduce(
-     (
-      acc: Record<string, { title: string; items: string[]; order: number }>,
-      { category, item, order }
-     ) => {
-      if (!acc[category]) acc[category] = { title: category, items: [], order };
-      acc[category].items.push(item);
-      return acc;
+   if (storeInterests && storeInterests.items) {
+    setInterests([
+     {
+      title: "Interests",
+      items: storeInterests.items,
      },
-     {} as Record<string, { title: string; items: string[]; order: number }>
-    );
-    const ordered = Object.values(grouped).sort((a, b) => a.order - b.order);
-    setInterests(ordered.map(({ title, items }) => ({ title, items })));
+    ]);
     setInterestsLoaded(true);
    }
   };

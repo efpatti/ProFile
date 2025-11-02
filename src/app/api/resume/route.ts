@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { FirebaseResumeRepository } from "@/infrastructure/repositories/FirebaseResumeRepository";
-import { CreateResumeUseCase } from "@/core/use-cases/CreateResume";
+import { PrismaClient } from "@prisma/client";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
 
-const repository = new FirebaseResumeRepository();
+const prisma = new PrismaClient();
 
 /**
  * API Route: Criar Currículo
@@ -10,15 +11,18 @@ const repository = new FirebaseResumeRepository();
  */
 export async function POST(request: Request) {
  try {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   const data = await request.json();
-
-  // TODO: Pegar userId do contexto de autenticação
-  const userId = "mock-user-id"; // Substituir por auth real
-
-  const useCase = new CreateResumeUseCase(repository);
-  const resume = await useCase.execute({
-   ...data,
-   userId,
+  const resume = await prisma.resume.create({
+   data: {
+    userId: session.user.id,
+    ...data,
+   },
   });
 
   return NextResponse.json(resume, { status: 201 });
@@ -32,17 +36,22 @@ export async function POST(request: Request) {
   );
  }
 }
-
 /**
  * API Route: Listar Currículos do Usuário
  * GET /api/resume
  */
 export async function GET() {
  try {
-  // TODO: Pegar userId do contexto de autenticação
-  const userId = "mock-user-id";
+  const session = await getServerSession(authOptions);
 
-  const resumes = await repository.findByUserId(userId);
+  if (!session?.user?.id) {
+   return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const resumes = await prisma.resume.findMany({
+   where: { userId: session.user.id },
+   orderBy: { updatedAt: "desc" },
+  });
 
   return NextResponse.json(resumes);
  } catch (error) {

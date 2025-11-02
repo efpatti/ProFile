@@ -9,8 +9,8 @@ import React, {
 } from "react";
 import { useUnsavedChangesStore } from "@/core/store/useUnsavedChangesStore";
 import { useAuth } from "@/core/services/AuthProvider";
-import { useResumeStore } from "@/core/store/useResumeStore";
-import { type EducationItem } from "@/core/services/EducationService";
+import useResumeStore from "@/core/store/useResumeStore";
+import EducationItem from "@/core/services/EducationService";
 import { motion, Reorder, useDragControls } from "framer-motion";
 import {
  FaTrash,
@@ -66,9 +66,9 @@ const EducationEditor = ({
  const { user } = useAuth();
  const {
   education: storeEducation,
-  saveEducationRemote,
-  setEducationLocal,
-  loading: storeLoading,
+  updateEducation,
+  saveResume,
+  isLoading: storeLoading,
  } = useResumeStore();
  const [educationItems, setEducationItems] = useState<EducationItem[]>([]);
  const [isLoading, setIsLoading] = useState(true);
@@ -81,14 +81,15 @@ const EducationEditor = ({
 
  useEffect(() => {
   if (initialItems) {
-   const ordered = [...initialItems].sort((a, b) => a.order - b.order);
+   const ordered = [...initialItems].sort(
+    (a, b) => (a.order || 0) - (b.order || 0)
+   );
    setEducationItems(ordered);
    setSnapshot(ordered);
    setIsLoading(false);
   } else if (storeEducation && storeEducation.length > 0) {
-   const ordered = [...storeEducation].sort((a, b) => a.order - b.order);
-   setEducationItems(ordered);
-   setSnapshot(ordered);
+   setEducationItems(storeEducation);
+   setSnapshot(storeEducation);
    setIsLoading(false);
   } else if (storeLoading) {
    setIsLoading(true);
@@ -133,6 +134,11 @@ const EducationEditor = ({
  const handleAddItem = useCallback(() => {
   const newItem: EducationItem = {
    id: uuidv4(),
+   institution: lang === "pt-br" ? "Nova Instituição" : "New Institution",
+   degree: lang === "pt-br" ? "Graduação" : "Bachelor",
+   field: lang === "pt-br" ? "Campo de Estudo" : "Field of Study",
+   startDate: new Date().toISOString().split("T")[0],
+   endDate: null,
    title: lang === "pt-br" ? "Nova Formação" : "New Education",
    period: lang === "pt-br" ? "Início - Fim" : "Start - End",
    language: lang,
@@ -146,17 +152,17 @@ const EducationEditor = ({
   if (!user) return;
   setIsSaving(true);
   try {
-   await saveEducationRemote(educationItems);
+   updateEducation(educationItems);
+   await saveResume(user.uid);
    setSnapshot([...educationItems]);
    setEditing(false);
-   setEducationLocal(educationItems);
    onSaved?.(educationItems.map((e, idx) => ({ ...e, order: idx })));
   } catch (e) {
    console.error(e);
   } finally {
    setIsSaving(false);
   }
- }, [educationItems, user, saveEducationRemote, setEducationLocal, onSaved]);
+ }, [educationItems, user, updateEducation, saveResume, onSaved]);
 
  const handleRevert = () => {
   setEducationItems(snapshot);

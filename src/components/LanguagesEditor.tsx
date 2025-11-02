@@ -12,7 +12,7 @@ import {
  FaEdit,
  FaUndo,
 } from "react-icons/fa";
-import { useResumeStore } from "@/core/store/useResumeStore";
+import useResumeStore from "@/core/store/useResumeStore";
 
 interface LanguagesEditorProps {
  lang: "pt-br" | "en";
@@ -29,9 +29,9 @@ const LanguagesEditor: React.FC<LanguagesEditorProps> = ({
  const { user } = useAuth();
  const {
   languages: storeLanguages,
-  saveLanguagesRemote,
-  setLanguagesLocal,
-  loading: storeLoading,
+  updateLanguages,
+  saveResume,
+  isLoading: storeLoading,
  } = useResumeStore();
  const [items, setItems] = useState<string[]>([]);
  const [title, setTitle] = useState(lang === "pt-br" ? "Idiomas" : "Languages");
@@ -47,22 +47,19 @@ const LanguagesEditor: React.FC<LanguagesEditorProps> = ({
 
  useEffect(() => {
   if (initialData) {
-   setItems(initialData.items || []);
-   setTitle(initialData.title || (lang === "pt-br" ? "Idiomas" : "Languages"));
-   setSnapshot(initialData.items || []);
-   setTitleSnapshot(
-    initialData.title || (lang === "pt-br" ? "Idiomas" : "Languages")
-   );
+   const dataItems = Array.isArray(initialData)
+    ? initialData
+    : initialData.items || [];
+   setItems(dataItems);
+   setTitle(lang === "pt-br" ? "Idiomas" : "Languages");
+   setSnapshot(dataItems);
+   setTitleSnapshot(lang === "pt-br" ? "Idiomas" : "Languages");
    setIsLoading(false);
   } else if (storeLanguages) {
-   setItems(storeLanguages.items || []);
-   setTitle(
-    storeLanguages.title || (lang === "pt-br" ? "Idiomas" : "Languages")
-   );
-   setSnapshot(storeLanguages.items || []);
-   setTitleSnapshot(
-    storeLanguages.title || (lang === "pt-br" ? "Idiomas" : "Languages")
-   );
+   setItems(storeLanguages);
+   setTitle(lang === "pt-br" ? "Idiomas" : "Languages");
+   setSnapshot(storeLanguages);
+   setTitleSnapshot(lang === "pt-br" ? "Idiomas" : "Languages");
    setIsLoading(false);
   } else if (storeLoading) {
    setIsLoading(true);
@@ -107,18 +104,18 @@ const LanguagesEditor: React.FC<LanguagesEditorProps> = ({
   if (!user) return;
   setIsSaving(true);
   try {
-   await saveLanguagesRemote({ title, items });
+   updateLanguages(items);
+   await saveResume(user.uid);
    setSnapshot([...items]);
    setTitleSnapshot(title);
    setEditing(false);
-   setLanguagesLocal({ title, items });
-   onSaved?.({ title, items });
+   onSaved?.(items as any);
   } catch (e) {
    console.error(e);
   } finally {
    setIsSaving(false);
   }
- }, [user, title, items, saveLanguagesRemote, setLanguagesLocal, onSaved]);
+ }, [user, title, items, updateLanguages, saveResume, onSaved]);
 
  const handleRevert = () => {
   setItems(snapshot);

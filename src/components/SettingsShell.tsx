@@ -1,7 +1,7 @@
 // components/SettingsShell.tsx
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { SettingsBanner } from "./SettingsBanner";
 import { DownloadButton } from "@/components/DownloadButton";
 import { BgBannerColorName } from "@/styles/sharedStyleConstants";
@@ -11,7 +11,7 @@ import EducationEditor from "./EducationEditor";
 import LanguagesEditor from "./LanguagesEditor";
 import { useLanguage } from "@/core/services/LanguageProvider";
 import ExperienceEditor from "./ExperienceEditor";
-import { useResumeStore } from "@/core/store/useResumeStore";
+import useResumeStore from "@/core/store/useResumeStore";
 import { useAuth } from "@/core/services/AuthProvider";
 
 interface SettingsShellProps {
@@ -39,22 +39,28 @@ export const SettingsShell = ({
  const {
   loadResume,
   skills,
-  experience,
+  experiences,
   education,
   languages: languagesData,
-  setSkillsLocal,
-  setExperienceLocal,
-  setEducationLocal,
-  setLanguagesLocal,
-  saveSkillsRemote,
-  saveExperienceRemote,
-  saveEducationRemote,
-  saveLanguagesRemote,
-  loading,
+  updateSkills,
+  updateExperiences,
+  updateEducation,
+  updateLanguages,
+  saveResume,
+  isLoading: loading,
  } = useResumeStore();
 
+ // Transform languages array to object format for LanguagesEditor
+ const languagesForEditor = useMemo(
+  () => ({
+   title: language === "pt-br" ? "Idiomas" : "Languages",
+   items: languagesData || [],
+  }),
+  [languagesData, language]
+ );
+
  useEffect(() => {
-  if (user) loadResume(user.uid, language);
+  if (user) loadResume(user.uid);
  }, [user, language, loadResume]);
 
  const handleLogoSelect = (url: string) => {
@@ -62,20 +68,20 @@ export const SettingsShell = ({
  };
 
  const handleSkillsSaved = async (updated: any) => {
-  setSkillsLocal(updated);
-  await saveSkillsRemote(updated);
+  updateSkills(updated);
+  if (user) await saveResume(user.uid);
  };
  const handleExperienceSaved = async (updated: any) => {
-  setExperienceLocal(updated);
-  await saveExperienceRemote(updated);
+  updateExperiences(updated);
+  if (user) await saveResume(user.uid);
  };
  const handleEducationSaved = async (updated: any) => {
-  setEducationLocal(updated);
-  await saveEducationRemote(updated);
+  updateEducation(updated);
+  if (user) await saveResume(user.uid);
  };
  const handleLanguagesSaved = async (updated: any) => {
-  setLanguagesLocal(updated);
-  await saveLanguagesRemote(updated);
+  updateLanguages(updated);
+  if (user) await saveResume(user.uid);
  };
 
  return (
@@ -145,7 +151,7 @@ export const SettingsShell = ({
       </h3>
       <ExperienceEditor
        lang={language}
-       initialItems={experience}
+       initialItems={experiences}
        onSaved={handleExperienceSaved}
       />
      </div>
@@ -168,7 +174,7 @@ export const SettingsShell = ({
       </h3>
       <LanguagesEditor
        lang={language}
-       initialData={languagesData}
+       initialData={languagesForEditor}
        onSaved={handleLanguagesSaved}
       />
      </div>

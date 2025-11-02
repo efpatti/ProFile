@@ -8,7 +8,7 @@ import React, {
  useMemo,
 } from "react";
 import { useAuth } from "@/core/services/AuthProvider";
-import { useResumeStore } from "@/core/store/useResumeStore";
+import useResumeStore from "@/core/store/useResumeStore";
 import { motion, Reorder, useDragControls } from "framer-motion";
 import {
  FaTrash,
@@ -18,7 +18,7 @@ import {
  FaEdit,
  FaUndo,
 } from "react-icons/fa";
-import type { Skill } from "@/core/services/SkillsService";
+import Skill from "@/core/services/SkillsService";
 
 // Auto-resize textarea
 const AutoResizeTextarea = ({
@@ -63,9 +63,9 @@ const SkillsEditor = ({ lang, initialSkills, onSaved }: SkillsEditorProps) => {
  const { user } = useAuth();
  const {
   skills: storeSkills,
-  saveSkillsRemote,
-  setSkillsLocal,
-  loading: storeLoading,
+  updateSkills,
+  saveResume,
+  isLoading: storeLoading,
  } = useResumeStore();
  const [skills, setSkills] = useState<Skill[]>([]);
  const [snapshot, setSnapshot] = useState<Skill[]>([]);
@@ -78,14 +78,15 @@ const SkillsEditor = ({ lang, initialSkills, onSaved }: SkillsEditorProps) => {
  // Hydrate from store or initialSkills
  useEffect(() => {
   if (initialSkills) {
-   const ordered = [...initialSkills].sort((a, b) => a.order - b.order);
+   const ordered = [...initialSkills].sort(
+    (a, b) => (a.order || 0) - (b.order || 0)
+   );
    setSkills(ordered);
    setSnapshot(ordered);
    setIsLoading(false);
   } else if (storeSkills && storeSkills.length > 0) {
-   const ordered = [...storeSkills].sort((a, b) => a.order - b.order);
-   setSkills(ordered);
-   setSnapshot(ordered);
+   setSkills(storeSkills);
+   setSnapshot(storeSkills);
    setIsLoading(false);
   } else if (storeLoading) {
    setIsLoading(true);
@@ -102,7 +103,8 @@ const SkillsEditor = ({ lang, initialSkills, onSaved }: SkillsEditorProps) => {
  const groupedTechnical = useMemo(() => {
   return technicalSkills.reduce((acc, s) => {
    acc[s.category] = acc[s.category] || [];
-   acc[s.category].push(s.item);
+   const val: string = s.item ?? "";
+   acc[s.category].push(val);
    return acc;
   }, {} as Record<string, string[]>);
  }, [technicalSkills]);
@@ -117,16 +119,20 @@ const SkillsEditor = ({ lang, initialSkills, onSaved }: SkillsEditorProps) => {
  }, [skills, snapshot]);
 
  const updateSkill = useCallback(
-  (id: string, item: string, category: string) => {
+  (id: string | undefined, item: string, category: string) => {
+   if (!id) return;
    setSkills((prev) =>
-    prev.map((sk) => (sk.id === id ? { ...sk, item, category } : sk))
+    prev.map((sk) =>
+     sk.id === id ? { ...sk, item, name: item, category } : sk
+    )
    );
   },
   []
  );
 
  const removeSkill = useCallback(
-  (id: string) => {
+  (id?: string) => {
+   if (!id) return;
    if (!confirm(lang === "pt-br" ? "Remover habilidade?" : "Remove skill?"))
     return;
    setSkills((prev) => prev.filter((sk) => sk.id !== id));
@@ -149,6 +155,7 @@ const SkillsEditor = ({ lang, initialSkills, onSaved }: SkillsEditorProps) => {
        : "New Category"
      : PROFESSIONAL_KEY,
    item: lang === "pt-br" ? "Nova Habilidade" : "New Skill",
+   name: lang === "pt-br" ? "Nova Habilidade" : "New Skill",
    language: lang,
    order: skills.length,
   };
@@ -168,10 +175,18 @@ const SkillsEditor = ({ lang, initialSkills, onSaved }: SkillsEditorProps) => {
   if (!user) return;
   setIsSaving(true);
   try {
-   await saveSkillsRemote(skills);
+   // normalize to include both item and name
+   updateSkills(
+    skills.map((s, idx) => ({
+     ...s,
+     order: idx,
+     item: s.item ?? s.name ?? "",
+     name: s.name ?? s.item ?? "",
+    }))
+   );
+   await saveResume(user.uid);
    setSnapshot([...skills]);
    setEditing(false);
-   setSkillsLocal(skills);
    onSaved?.(skills.map((s, idx) => ({ ...s, order: idx })));
   } catch (e) {
    console.error(e);
@@ -259,8 +274,8 @@ const SkillsEditor = ({ lang, initialSkills, onSaved }: SkillsEditorProps) => {
            value={skill.category}
            onChange={(e) =>
             updateSkill(
-             skill.id!,
-             skill.item,
+             skill.id,
+             skill.item ?? "",
              e.target.value.trim() ||
               (lang === "pt-br" ? "Categoria" : "Category")
             )
@@ -269,16 +284,16 @@ const SkillsEditor = ({ lang, initialSkills, onSaved }: SkillsEditorProps) => {
            className="md:col-span-2 bg-zinc-700/70 focus:bg-zinc-700 text-gray-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500"
           />
           <AutoResizeTextarea
-           value={skill.item}
+           value={skill.item ?? ""}
            onChange={(e) =>
-            updateSkill(skill.id!, e.target.value, skill.category)
+            updateSkill(skill.id, e.target.value, skill.category)
            }
            placeholder={lang === "pt-br" ? "Habilidade" : "Skill"}
            className="md:col-span-3 bg-zinc-700/70 focus:bg-zinc-700 text-gray-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500 whitespace-normal break-words"
           />
          </div>
          <button
-          onClick={() => removeSkill(skill.id!)}
+          onClick={() => removeSkill(skill.id)}
           className="absolute -right-2 -top-2 bg-red-600/80 hover:bg-red-600 text-white rounded-full p-1 shadow"
           aria-label="Remove"
          >
@@ -328,9 +343,9 @@ const SkillsEditor = ({ lang, initialSkills, onSaved }: SkillsEditorProps) => {
          </motion.div>
          <div className="pl-4">
           <AutoResizeTextarea
-           value={skill.item}
+           value={skill.item ?? ""}
            onChange={(e) =>
-            updateSkill(skill.id!, e.target.value, PROFESSIONAL_KEY)
+            updateSkill(skill.id, e.target.value, PROFESSIONAL_KEY)
            }
            placeholder={
             lang === "pt-br" ? "Habilidade Profissional" : "Professional Skill"
@@ -339,7 +354,7 @@ const SkillsEditor = ({ lang, initialSkills, onSaved }: SkillsEditorProps) => {
           />
          </div>
          <button
-          onClick={() => removeSkill(skill.id!)}
+          onClick={() => removeSkill(skill.id)}
           className="absolute -right-2 -top-2 bg-red-600/80 hover:bg-red-600 text-white rounded-full p-1 shadow"
           aria-label="Remove"
          >

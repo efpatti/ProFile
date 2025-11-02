@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import { useUnsavedChangesStore } from "@/core/store/useUnsavedChangesStore";
 import { useAuth } from "@/core/services/AuthProvider";
-import { useResumeStore } from "@/core/store/useResumeStore";
+import useResumeStore from "@/core/store/useResumeStore";
 import { motion, Reorder, useDragControls } from "framer-motion";
 import {
  FaEdit,
@@ -21,7 +21,9 @@ import {
  FaCalendar,
 } from "react-icons/fa";
 import { v4 as uuidv4 } from "uuid";
-import type { Experience } from "@/core/services/ExperienceService";
+// Update the import path below to the correct location if needed
+// Update the import path below to the correct location if needed
+import Experience from "@/core/services/ExperienceService";
 import { Timestamp } from "@/lib/timestamp";
 
 // Auto-resize textarea like other editors
@@ -112,10 +114,10 @@ const ExperienceEditor = ({
 }) => {
  const { user } = useAuth();
  const {
-  experience: storeExperience,
-  saveExperienceRemote,
-  setExperienceLocal,
-  loading: storeLoading,
+  experiences: storeExperiences,
+  updateExperiences,
+  saveResume,
+  isLoading: storeLoading,
  } = useResumeStore();
  const [items, setItems] = useState<Experience[]>([]);
  const [isLoading, setIsLoading] = useState(true);
@@ -129,21 +131,22 @@ const ExperienceEditor = ({
 
  useEffect(() => {
   if (initialItems) {
-   const ordered = [...initialItems].sort((a, b) => a.order - b.order);
+   const ordered = [...initialItems].sort(
+    (a, b) => (a.order || 0) - (b.order || 0)
+   );
    setItems(ordered);
    setSnapshot(ordered);
    setIsLoading(false);
-  } else if (storeExperience && storeExperience.length > 0) {
-   const ordered = [...storeExperience].sort((a, b) => a.order - b.order);
-   setItems(ordered);
-   setSnapshot(ordered);
+  } else if (storeExperiences && storeExperiences.length > 0) {
+   setItems(storeExperiences);
+   setSnapshot(storeExperiences);
    setIsLoading(false);
   } else if (storeLoading) {
    setIsLoading(true);
   } else {
    setIsLoading(false);
   }
- }, [initialItems, storeExperience, storeLoading]);
+ }, [initialItems, storeExperiences, storeLoading]);
 
  const hasChanges = useMemo(() => {
   if (snapshot.length !== items.length) return true;
@@ -158,12 +161,8 @@ const ExperienceEditor = ({
     JSON.stringify(it.details) !== JSON.stringify(s.details) ||
     it.order !== s.order ||
     it.isCurrent !== s.isCurrent ||
-    (it.startDate instanceof Timestamp && s.startDate instanceof Timestamp
-     ? !it.startDate.isEqual(s.startDate)
-     : it.startDate !== s.startDate) ||
-    (it.endDate instanceof Timestamp && s.endDate instanceof Timestamp
-     ? !it.endDate.isEqual(s.endDate)
-     : it.endDate !== s.endDate)
+    it.startDate !== s.startDate ||
+    it.endDate !== s.endDate
    );
   });
  }, [items, snapshot]);
@@ -263,16 +262,17 @@ const ExperienceEditor = ({
    id: uuidv4(),
    title: lang === "pt-br" ? "Novo Cargo" : "New Role",
    company: lang === "pt-br" ? "Empresa" : "Company",
+   role: lang === "pt-br" ? "Cargo" : "Role",
    locate: lang === "pt-br" ? "Cidade, País" : "City, Country",
-   period: lang === "pt-br" ? "Início - Fim" : "Start - End",
    description: lang === "pt-br" ? "Descrição" : "Description",
    language: lang,
    order: items.length,
    details: lang === "pt-br" ? defaultDetailsPt : defaultDetailsEn,
-   startDate: Timestamp.now(),
+   startDate: new Date().toISOString().split("T")[0],
    isCurrent: true,
+   isCurrentJob: true,
+   technologies: [],
    endDate: null,
-   periodDisplay: lang === "pt-br" ? "Atual" : "Present",
   };
   setItems((prev) => [...prev, newItem]);
   setUnsavedChanges(true);
@@ -291,7 +291,10 @@ const ExperienceEditor = ({
  // Função para converter Timestamp para Date (se necessário)
  const convertToDate = (date: any): Date | null => {
   if (!date) return null;
-  if (date instanceof Timestamp) return date.toDate();
+  if (typeof date === "string") {
+   const d = new Date(date);
+   return isNaN(d.getTime()) ? null : d;
+  }
   if (date instanceof Date) return date;
   return null;
  };
@@ -393,7 +396,7 @@ const ExperienceEditor = ({
             handleUpdate(
              it.id,
              "startDate",
-             date ? Timestamp.fromDate(date) : null
+             date ? date.toISOString().split("T")[0] : null
             )
            }
            placeholder={lang === "pt-br" ? "Início" : "Start"}
@@ -409,7 +412,7 @@ const ExperienceEditor = ({
               handleUpdate(
                it.id,
                "endDate",
-               date ? Timestamp.fromDate(date) : null
+               date ? date.toISOString().split("T")[0] : null
               )
              }
              placeholder={lang === "pt-br" ? "Fim" : "End"}
@@ -440,7 +443,7 @@ const ExperienceEditor = ({
           </div>
          </div>
          <AutoResizeTextarea
-          value={it.description}
+          value={it.description ?? ""}
           onChange={(e) => handleUpdate(it.id, "description", e.target.value)}
           placeholder={lang === "pt-br" ? "Descrição" : "Description"}
           className="md:col-span-12 bg-zinc-700/70 focus:bg-zinc-700 text-gray-100 text-xs rounded px-2 py-1.5 outline-none focus:ring-1 focus:ring-blue-500 whitespace-pre-wrap"
@@ -450,7 +453,7 @@ const ExperienceEditor = ({
            {lang === "pt-br" ? "Detalhes" : "Details"}
           </p>
           <div className="space-y-2">
-           {(it.details ?? []).map((d, idx) => (
+           {(it.details ?? []).map((d: string, idx: number) => (
             <div key={idx} className="flex gap-2 items-start">
              <AutoResizeTextarea
               value={d}
@@ -497,7 +500,25 @@ const ExperienceEditor = ({
           ) : null}
          </p>
          <p className="text-[11px] text-gray-400 mt-0.5">
-          {it.periodDisplay || it.period}
+          {(() => {
+           const start = it.startDate
+            ? new Date(it.startDate).toLocaleDateString(
+               lang === "pt-br" ? "pt-BR" : "en-US",
+               { year: "numeric", month: "short" }
+              )
+            : "";
+           const end = it.isCurrent
+            ? lang === "pt-br"
+              ? "Atual"
+              : "Current"
+            : it.endDate
+            ? new Date(it.endDate).toLocaleDateString(
+               lang === "pt-br" ? "pt-BR" : "en-US",
+               { year: "numeric", month: "short" }
+              )
+            : "";
+           return start && end ? `${start} - ${end}` : start || end;
+          })()}
           {it.isCurrent && (
            <span className="ml-2 bg-green-600/20 text-green-400 text-[10px] px-1.5 py-0.5 rounded">
             {lang === "pt-br" ? "Atual" : "Current"}
@@ -511,7 +532,7 @@ const ExperienceEditor = ({
          )}
          {Array.isArray(it.details) && it.details.length > 0 && (
           <ul className="list-disc pl-4 mt-2 space-y-0.5 text-[11px] text-gray-400">
-           {it.details.map((d, i) => (
+           {it.details.map((d: string, i: number) => (
             <li key={i}>{d}</li>
            ))}
           </ul>

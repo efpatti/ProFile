@@ -1,86 +1,11 @@
-import {
- collection,
- writeBatch,
- doc,
- getDocs,
- query,
- where,
- orderBy,
- limit,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
-
+// Stub for backward compatibility - migrated to Prisma
 export interface Skill {
- id?: string; // Firestore document ID
+ id?: string;
  category: string;
- item: string;
- language: "pt-br" | "en";
- order: number;
+ name?: string;
+ item?: string;
+ order?: number;
+ language?: string;
 }
 
-// Busca todas as skills para um usuário e idioma
-export const fetchSkillsForUser = async (
- userId: string,
- language: "pt-br" | "en",
- pageSize = 100
-): Promise<Skill[]> => {
- const skillsRef = collection(db, "users", userId, "skills");
- const q = query(
-  skillsRef,
-  where("language", "==", language),
-  orderBy("order", "asc"),
-  limit(pageSize)
- );
- const querySnapshot = await getDocs(q);
- return querySnapshot.docs.map((doc) => ({
-  id: doc.id,
-  ...(doc.data() as Omit<Skill, "id">),
- }));
-};
-
-// Salva todas as alterações (adições, atualizações, remoções)
-export const saveSkills = async (
- userId: string,
- language: "pt-br" | "en",
- skills: Skill[],
- existingSnapshot?: Skill[]
-) => {
- const batch = writeBatch(db);
- const skillsRef = collection(db, "users", userId, "skills");
-
- // Use provided existing snapshot (already loaded) to avoid a second read
- const existingSkills =
-  existingSnapshot ?? (await fetchSkillsForUser(userId, language));
- const existingSkillIds = new Set(existingSkills.map((s) => s.id));
- const newSkillIds = new Set(skills.map((s) => s.id).filter(Boolean));
-
- // 1. Deletar skills que foram removidas
- for (const skill of existingSkills) {
-  if (!newSkillIds.has(skill.id)) {
-   const docRef = doc(db, "users", userId, "skills", skill.id!);
-   batch.delete(docRef);
-  }
- }
-
- // 2. Adicionar ou atualizar skills
- skills.forEach((skill, index) => {
-  const skillData = {
-   category: skill.category,
-   item: skill.item,
-   language: language,
-   order: index, // A ordem é definida pela posição no array
-  };
-
-  if (skill.id && existingSkillIds.has(skill.id)) {
-   // Atualiza skill existente
-   const docRef = doc(db, "users", userId, "skills", skill.id);
-   batch.update(docRef, skillData);
-  } else {
-   // Adiciona nova skill
-   const newDocRef = doc(collection(db, "users", userId, "skills"));
-   batch.set(newDocRef, skillData);
-  }
- });
-
- await batch.commit();
-};
+export type { Skill as default };
