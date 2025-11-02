@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Banner, getBgColorObj } from "@/components/Banner";
-import { BgBannerColorName } from "@/styles/sharedStyleConstants";
+import { BgBannerColorName } from "@/styles/shared_style_constants";
 import { useAuth } from "@/core/services/AuthProvider";
 
 export default function Home() {

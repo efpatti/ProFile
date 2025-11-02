@@ -1,9 +1,9 @@
 import { pdf } from "@react-pdf/renderer";
 import { IExportService } from "@/core/interfaces/IExportService";
 import { Resume } from "@/core/entities/Resume";
-import { ClassicResumePDF } from "@/presentation/templates/pdf/ClassicResumePDF";
-import { ModernResumePDF } from "@/presentation/templates/pdf/ModernResumePDF";
-import { CreativeResumePDF } from "@/presentation/templates/pdf/CreativeResumePDF";
+import { ClassicResumePDF } from "@/presentation/templates/pdf/classic_resume_pdf";
+import { ModernResumePDF } from "@/presentation/templates/pdf/modern_resume_pdf";
+import { CreativeResumePDF } from "@/presentation/templates/pdf/creative_resume_pdf";
 
 /**
  * Serviço de exportação usando @react-pdf/renderer

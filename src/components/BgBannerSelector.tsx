@@ -4,7 +4,7 @@
 import {
  bgBannerColor,
  BgBannerColorName,
-} from "@/styles/sharedStyleConstants";
+} from "@/styles/shared_style_constants";
 import { ColorSelector } from "./ColorSelector";
 
 export const BgBannerSelector = ({

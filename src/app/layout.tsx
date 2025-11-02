@@ -1,7 +1,7 @@
 import { siteMetadata } from "@/shared/config/metadata";
 import { inter, manrope, jetbrains } from "@/shared/config/fonts";
 import "./globals.css";
-import { AppProviders } from "@/shared/providers/RootProviders";
+import { AppProviders } from "@/shared/providers/root_provider";
 import Navbar from "@/components/Navbar";
 
 export const metadata = siteMetadata;

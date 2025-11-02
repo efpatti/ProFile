@@ -2,7 +2,7 @@
 import Link from "next/link";
 import { authRoutes } from "@/constants/routes";
 import { useLanguage } from "@/core/services/LanguageProvider";
-import { Button } from "@/shared/components/Button";
+import { Button } from "@/shared/components/button";
 
 export const AuthLinks = () => {
  const { t } = useLanguage();

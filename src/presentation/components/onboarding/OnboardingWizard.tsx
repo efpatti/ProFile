@@ -3,7 +3,7 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { useResumeStore } from "@/presentation/stores/resumeStore";
+import useResumeStore from "@/core/store/useResumeStore";
 import { FiCheck, FiArrowRight, FiArrowLeft } from "react-icons/fi";
 
 const STEPS = [
@@ -33,7 +33,7 @@ const STEPS = [
 export function OnboardingWizard() {
  const [currentStep, setCurrentStep] = useState(0);
  const router = useRouter();
- const { draft, updateDraft } = useResumeStore();
+ const store = useResumeStore();
 
  const isLastStep = currentStep === STEPS.length - 1;
  const canGoNext = true; // TODO: Validar step atual

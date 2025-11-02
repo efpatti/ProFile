@@ -4,7 +4,7 @@
 import { useState, useEffect, useMemo } from "react";
 import { SettingsBanner } from "./SettingsBanner";
 import { DownloadButton } from "@/components/DownloadButton";
-import { BgBannerColorName } from "@/styles/sharedStyleConstants";
+import { BgBannerColorName } from "@/styles/shared_style_constants";
 import { FaCog, FaTimes } from "react-icons/fa";
 import SkillsEditor from "./SkillsEditor";
 import EducationEditor from "./EducationEditor";

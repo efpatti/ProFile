@@ -4,7 +4,7 @@ import {
  colorPalettes,
  defaultPalette,
  PaletteName,
-} from "@/styles/sharedStyleConstants";
+} from "@/styles/shared_style_constants";
 
 export interface IFormatter {
  format(

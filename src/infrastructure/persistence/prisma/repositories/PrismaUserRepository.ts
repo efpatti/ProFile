@@ -1,18 +1,22 @@
 // src/infrastructure/persistence/prisma/repositories/PrismaUserRepository.ts
-import { PrismaClient } from "@prisma/client";
+import { prisma } from "@/lib/db";
+import type { User } from "@prisma/client";
+import type {
+ IUserRepository,
+ UserPreferences,
+} from "@/core/interfaces/IUserRepository";
 
-const prisma = new PrismaClient();
+export class PrismaUserRepository implements IUserRepository {
+ constructor(private readonly db = prisma) {}
 
-export interface UserPreferences {
- palette?: string | null;
- bannerColor?: string | null;
- displayName?: string | null;
- photoURL?: string | null;
-}
+ async getUser(userId: string): Promise<User | null> {
+  return await this.db.user.findUnique({
+   where: { id: userId },
+  });
+ }
 
-export class PrismaUserRepository {
  async getUserPreferences(userId: string): Promise<UserPreferences | null> {
-  const user = await prisma.user.findUnique({
+  const user = await this.db.user.findUnique({
    where: { id: userId },
    select: {
     palette: true,
@@ -29,31 +33,50 @@ export class PrismaUserRepository {
   userId: string,
   preferences: Partial<UserPreferences>
  ): Promise<void> {
-  await prisma.user.update({
+  await this.db.user.update({
    where: { id: userId },
    data: preferences,
   });
  }
 
  async updatePalette(userId: string, palette: string): Promise<void> {
-  await prisma.user.update({
+  await this.db.user.update({
    where: { id: userId },
    data: { palette },
   });
  }
 
  async updateBannerColor(userId: string, bannerColor: string): Promise<void> {
-  await prisma.user.update({
+  await this.db.user.update({
    where: { id: userId },
    data: { bannerColor },
   });
  }
 
- async getUser(userId: string) {
-  return await prisma.user.findUnique({
+ async createUser(userData: {
+  id: string;
+  email: string;
+  displayName?: string;
+  photoURL?: string;
+ }): Promise<User> {
+  return await this.db.user.create({
+   data: userData,
+  });
+ }
+
+ async updateUser(userId: string, userData: Partial<User>): Promise<User> {
+  return await this.db.user.update({
+   where: { id: userId },
+   data: userData,
+  });
+ }
+
+ async deleteUser(userId: string): Promise<void> {
+  await this.db.user.delete({
    where: { id: userId },
   });
  }
 }
 
+// Singleton instance para uso direto (pode ser substituído por DI)
 export const userRepository = new PrismaUserRepository();

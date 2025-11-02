@@ -1,9 +1,9 @@
 "use client";
 
-import { paletteTokens } from "@/styles/PaletteProvider";
+import { paletteTokens } from "@/styles/pallete_provider";
 import { ColorSelector } from "./ColorSelector";
-import type { PaletteName } from "@/styles/PaletteProvider";
-import { BgBannerColorName } from "@/styles/sharedStyleConstants";
+import type { PaletteName } from "@/styles/pallete_provider";
+import { BgBannerColorName } from "@/styles/shared_style_constants";
 import { useEffect, useCallback } from "react";
 import { useAuth } from "@/core/services/AuthProvider";
 

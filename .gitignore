@@ -36,6 +36,7 @@ pglite-debug.log
 .env*
 !.env.local.example
 !.env.docker.example
+.vscode
 
 # vercel
 .vercel

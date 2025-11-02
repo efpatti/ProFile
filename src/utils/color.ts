@@ -1,5 +1,5 @@
 // src/utils/color.ts (ou onde preferir organizar utilitários)
-import { BgBannerColorName } from "@/styles/sharedStyleConstants";
+import { BgBannerColorName } from "@/styles/shared_style_constants";
 
 // Função para determinar se uma cor hex é clara ou escura (com base na luminância)
 export const isLightColor = (hexColor: string): boolean => {

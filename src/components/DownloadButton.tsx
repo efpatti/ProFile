@@ -2,8 +2,8 @@
 "use client";
 
 import { useState } from "react";
-import { usePalette } from "@/styles/PaletteProvider";
-import { BgBannerColorName } from "@/styles/sharedStyleConstants";
+import { usePalette } from "@/styles/pallete_provider";
+import { BgBannerColorName } from "@/styles/shared_style_constants";
 import { FloatingActionButton } from "./FloatingActionButton";
 import { GoDownload as DownloadIcon } from "react-icons/go";
 import { useAuth } from "@/core/services/AuthProvider";

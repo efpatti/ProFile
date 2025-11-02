@@ -1,7 +1,7 @@
 "use client";
 
 // components/ColorSelector.tsx
-import { BgBannerColorName } from "@/styles/sharedStyleConstants";
+import { BgBannerColorName } from "@/styles/shared_style_constants";
 import {
  Listbox,
  ListboxButton,

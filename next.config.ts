@@ -12,12 +12,6 @@ const nextConfig: NextConfig = {
  // Docker: standalone output para otimizar imagem
  output: "standalone",
 
- // TEMPORÁRIO: Desabilita dev overlay para evitar erro de localStorage no SSR
- devIndicators: {
-  buildActivity: false,
-  buildActivityPosition: "bottom-right",
- },
-
  images: {
   domains: ["logo.dev", "img.logo.dev"],
   remotePatterns: [

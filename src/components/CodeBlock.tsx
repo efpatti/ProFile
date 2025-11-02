@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { HtmlFormatter } from "@/core/formatters/HtmlFormatter";
 import { Developer } from "@/core/models/Developer";
-import { usePalette } from "@/styles/PaletteProvider";
+import { usePalette } from "@/styles/pallete_provider";
 
 interface CodeBlockProps {
  dev: Developer;

@@ -1,8 +1,9 @@
 // Versão TypeScript migrada do PuppeteerService.js
 import puppeteer from "puppeteer";
 import { BannerService } from "@/core/services/BannerService";
-import { colorPalettes, PaletteName } from "@/styles/sharedStyleConstants";
-import { paletteActiveState } from "@/styles/PaletteProvider";
+import { colorPalettes, PaletteName } from "@/styles/shared_style_constants";
+import { paletteActiveState } from "@/styles/pallete_provider";
+import { VIEWPORT, PDF, TIMEOUT, DEBUG_PATH, DEFAULT } from "@/constants/ui";
 
 // Properly typed browser reference reused across calls
 type PuppeteerBrowser = import("puppeteer").Browser;
@@ -30,26 +31,33 @@ export class PuppeteerService {
   const browser = await getBrowser();
   const page = await browser.newPage();
   // Aumenta a resolução para máxima qualidade
-  await page.setViewport({ width: 1584, height: 396, deviceScaleFactor: 4 });
+  await page.setViewport({
+   width: VIEWPORT.BANNER.WIDTH,
+   height: VIEWPORT.BANNER.HEIGHT,
+   deviceScaleFactor: VIEWPORT.BANNER.SCALE_FACTOR,
+  });
   // Use BannerService to generate the correct URL
   const pageUrl = BannerService.getBannerUrl({
    palette,
    logo: logoUrl,
-   host: "127.0.0.1",
-   port: 3000,
+   host: DEFAULT.HOST,
+   port: DEFAULT.PORT,
   });
   try {
-   await page.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 60000 }); // 60s timeout
+   await page.goto(pageUrl, {
+    waitUntil: "domcontentloaded",
+    timeout: TIMEOUT.PAGE_LOAD,
+   });
   } catch (err) {
    // DEBUG: Take screenshot on navigation error
-   await page.screenshot({ path: "/tmp/banner_debug_goto_error.png" });
+   await page.screenshot({ path: DEBUG_PATH.BANNER_GOTO_ERROR });
    // eslint-disable-next-line no-console
    console.error("[PuppeteerService] Error during page.goto:", err);
    throw err;
   }
 
   // DEBUG: Take screenshot after goto
-  await page.screenshot({ path: "/tmp/banner_debug_after_goto.png" });
+  await page.screenshot({ path: DEBUG_PATH.BANNER_AFTER_GOTO });
 
   // DEBUG: Log HTML after goto
   const html = await page.content();
@@ -58,11 +66,9 @@ export class PuppeteerService {
 
   // Espera pelo #banner com timeout maior e debug limpo
   try {
-   await page.waitForSelector("#banner", { timeout: 60000 });
+   await page.waitForSelector("#banner", { timeout: TIMEOUT.SELECTOR_WAIT });
   } catch (err) {
-   await page.screenshot({
-    path: "/tmp/banner_debug_waitforselector_error.png",
-   });
+   await page.screenshot({ path: DEBUG_PATH.BANNER_WAIT_ERROR });
    const html = await page.content();
    // Tenta extrair só o trecho do #banner ou um resumo do body
    const bannerMatch = html.match(
@@ -85,7 +91,7 @@ export class PuppeteerService {
 
   // Aguarda a logo carregar, se existir
   if (logoUrl) {
-   await page.waitForSelector("#company-logo", { timeout: 5000 });
+   await page.waitForSelector("#company-logo", { timeout: TIMEOUT.LOGO_LOAD });
    await page.waitForFunction(
     () => {
      const img = document.getElementById(
@@ -93,12 +99,12 @@ export class PuppeteerService {
      ) as HTMLImageElement | null;
      return img ? img.complete && img.naturalWidth > 0 : true;
     },
-    { timeout: 5000 }
+    { timeout: TIMEOUT.LOGO_LOAD }
    );
   }
 
   // DEBUG: Screenshot before waiting for code block
-  await page.screenshot({ path: "/tmp/banner_debug_before_wait_code.png" });
+  await page.screenshot({ path: DEBUG_PATH.BANNER_BEFORE_CODE });
 
   // DEBUG: Log code block contents before waiting
   const codeBlockBefore = await page.$eval(
@@ -117,11 +123,11 @@ export class PuppeteerService {
     const code = document.getElementById("code");
     return code && code.innerHTML.trim().length > 0;
    },
-   { timeout: 20000 }
+   { timeout: TIMEOUT.CODE_BLOCK_RENDER }
   );
 
   // DEBUG: Screenshot after waiting for code block
-  await page.screenshot({ path: "/tmp/banner_debug_after_wait_code.png" });
+  await page.screenshot({ path: DEBUG_PATH.BANNER_AFTER_CODE });
 
   // DEBUG: Log code block contents after waiting
   const codeBlockAfter = await page.$eval(
@@ -173,31 +179,42 @@ export class PuppeteerService {
 
  static async captureResumePDF(
   palette: string = paletteActiveState.value,
-  lang: string = "pt-br",
+  lang: string = DEFAULT.LANGUAGE,
   bannerColor?: string,
   userId?: string
  ): Promise<Buffer> {
   const browser = await getBrowser();
   const page = await browser.newPage();
-  await page.setViewport({ width: 1123, height: 1588, deviceScaleFactor: 2 });
+  await page.setViewport({
+   width: VIEWPORT.RESUME.WIDTH,
+   height: VIEWPORT.RESUME.HEIGHT,
+   deviceScaleFactor: VIEWPORT.RESUME.SCALE_FACTOR,
+  });
 
-  let pageUrl = `http://127.0.0.1:3000/protected/resume?export=1&palette=${encodeURIComponent(
+  let pageUrl = `http://${DEFAULT.HOST}:${
+   DEFAULT.PORT
+  }/protected/resume?export=1&palette=${encodeURIComponent(
    palette
   )}&lang=${encodeURIComponent(lang)}`;
   if (bannerColor) pageUrl += `&bannerColor=${encodeURIComponent(bannerColor)}`;
   if (userId) pageUrl += `&user=${encodeURIComponent(userId)}`;
 
   try {
-   await page.goto(pageUrl, { waitUntil: "domcontentloaded", timeout: 60000 });
+   await page.goto(pageUrl, {
+    waitUntil: "domcontentloaded",
+    timeout: TIMEOUT.PAGE_LOAD,
+   });
   } catch (err) {
-   await page.screenshot({ path: "/tmp/resume_debug_goto_error.png" });
+   await page.screenshot({ path: DEBUG_PATH.RESUME_GOTO_ERROR });
    console.error("[PuppeteerService] Error during resume page.goto:", err);
    throw err;
   }
 
   // Wait for resume container and readiness flag populated by the app
-  await page.waitForSelector("#resume", { timeout: 60000 });
-  await page.waitForSelector('#resume[data-ready="1"]', { timeout: 60000 });
+  await page.waitForSelector("#resume", { timeout: TIMEOUT.SELECTOR_WAIT });
+  await page.waitForSelector('#resume[data-ready="1"]', {
+   timeout: TIMEOUT.SELECTOR_WAIT,
+  });
 
   // Extract only the necessary parts to render #resume identically
   const origin = new URL(pageUrl).origin;
@@ -263,7 +280,7 @@ export class PuppeteerService {
   // Ensure print styles and fonts are applied in the new content
   await page.emulateMediaType("print");
   await page.evaluateHandle("document.fonts.ready");
-  await new Promise((resolve) => setTimeout(resolve, 400));
+  await new Promise((resolve) => setTimeout(resolve, TIMEOUT.FONT_READY));
 
   // Compute exact content height (in mm) to force a single-page PDF without breaks
   const contentHeightMm = await page.evaluate(() => {
@@ -279,10 +296,10 @@ export class PuppeteerService {
    await page.pdf({
     printBackground: true,
     // A3 width portrait is 297mm; height dynamically measured to fit exactly one page
-    width: "297mm",
+    width: `${PDF.A3_WIDTH_MM}mm`,
     height: `${contentHeightMm}mm`,
     preferCSSPageSize: false,
-    margin: { top: 0, right: 0, bottom: 0, left: 0 },
+    margin: PDF.MARGIN,
    })
   );
   await page.close();

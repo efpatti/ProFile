@@ -19,13 +19,13 @@ import { GoGear as SettingsIcon } from "react-icons/go";
 import clsx from "clsx";
 import { FiImage as ImageIcon, FiEdit3 as EditIcon } from "react-icons/fi";
 import { FaPaintRoller as PaintIcon } from "react-icons/fa";
-import { usePalette } from "@/styles/PaletteProvider";
+import { usePalette } from "@/styles/pallete_provider";
 import { useAuth } from "@/core/services/AuthProvider";
 import { PaletteSelector } from "./PaletteSelector";
 import { BgBannerSelector } from "./BgBannerSelector";
 import { LogoSearch } from "./LogoSearch";
 import { FiX as CloseIcon, FiCheck, FiAlertTriangle } from "react-icons/fi";
-import { BgBannerColorName } from "@/styles/sharedStyleConstants";
+import { BgBannerColorName } from "@/styles/shared_style_constants";
 
 const LazySkeleton = () => (
  <div className="animate-pulse space-y-3 p-4 rounded-lg border border-zinc-800 bg-zinc-900/40">

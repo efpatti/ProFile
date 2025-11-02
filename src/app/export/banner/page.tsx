@@ -2,7 +2,7 @@
 
 import { Banner } from "../../../components/Banner";
 import { useSearchParams } from "next/navigation";
-import { BgBannerColorName } from "../../../styles/sharedStyleConstants";
+import { BgBannerColorName } from "../../../styles/shared_style_constants";
 
 export default function BannerExport() {
  const searchParams = useSearchParams();

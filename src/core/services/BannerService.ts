@@ -1,21 +1,15 @@
 // Versão TypeScript migrada do BannerService.js
 import { Developer } from "../models/Developer";
 import { HtmlFormatter } from "../formatters/HtmlFormatter";
-import { PaletteName } from "@/styles/sharedStyleConstants";
+import { PaletteName } from "@/styles/shared_style_constants";
+import type {
+ IBannerService,
+ DeveloperLike,
+ FormatterLike,
+ BannerUrlOptions,
+} from "@/core/interfaces/IBannerService";
 
-export interface DeveloperLike {
- toJSON(): Record<string, unknown>;
-}
-
-export interface FormatterLike {
- format(
-  data: Record<string, unknown>,
-  paletteName: PaletteName,
-  textColor?: string
- ): string;
-}
-
-export class BannerService {
+export class BannerService implements IBannerService {
  formatter: FormatterLike;
  dev: DeveloperLike;
 
@@ -40,12 +34,7 @@ export class BannerService {
   logo = "",
   host = "127.0.0.1",
   port = 3000,
- }: {
-  palette?: string;
-  logo?: string;
-  host?: string;
-  port?: number;
- }) {
+ }: BannerUrlOptions) {
   let url = `http://${host}:${port}/?palette=${encodeURIComponent(palette)}`;
   if (logo) {
    url += `&logo=${encodeURIComponent(logo)}`;
@@ -53,7 +42,7 @@ export class BannerService {
   return url;
  }
 
- renderTo(elementId: string, paletteName: PaletteName) {
+ renderTo(elementId: string, paletteName: PaletteName): void {
   const element =
    typeof document !== "undefined" ? document.getElementById(elementId) : null;
   if (element) {

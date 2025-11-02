@@ -2,7 +2,7 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { BgBannerColorName } from "@/styles/sharedStyleConstants";
+import { BgBannerColorName } from "@/styles/shared_style_constants";
 import { ReactNode } from "react";
 import { isDarkBackground } from "@/utils/color"; // Import the utility function
 

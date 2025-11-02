@@ -4,8 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { profileRoute } from "@/constants/routes";
-import { colorPalettes, PaletteName } from "@/styles/sharedStyleConstants";
-import { usePalette } from "@/styles/PaletteProvider";
+import { colorPalettes, PaletteName } from "@/styles/shared_style_constants";
+import { usePalette } from "@/styles/pallete_provider";
 import type { UserWithProfile } from "@/core/services/AuthProvider";
 import signOut from "@/core/services/signOut";
 

@@ -1,9 +1,7 @@
 import { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { PrismaClient } from "@prisma/client";
 import { PublicResumeViewer } from "@/presentation/components/resume/PublicResumeViewer";
-
-const prisma = new PrismaClient();
+import { prisma } from "@/lib/db";
 
 interface Props {
  params: Promise<{ username: string }>;

@@ -17,9 +17,9 @@ import { FaAward as AwardIcon } from "react-icons/fa";
 import {
  bgBannerColor,
  BgBannerColorName,
-} from "@/styles/sharedStyleConstants";
+} from "@/styles/shared_style_constants";
 
-import { usePalette } from "@/styles/PaletteProvider";
+import { usePalette } from "@/styles/pallete_provider";
 import { type UserWithProfile } from "@/core/services/AuthProvider";
 
 interface BannerProps {
