@@ -1,4 +1,3 @@
-// src/app/users/page.tsx
 import React from "react";
 
 interface User {
@@ -12,7 +11,6 @@ interface User {
 }
 
 async function getUsers(): Promise<Record<string, User>> {
- // Use a REST API do Firebase Realtime Database
  const databaseUrl = process.env.NEXT_PUBLIC_FIREBASE_DATABASE_URL;
  if (!databaseUrl)
   throw new Error("NEXT_PUBLIC_FIREBASE_DATABASE_URL não definida");

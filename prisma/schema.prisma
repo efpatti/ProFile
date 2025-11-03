@@ -107,10 +107,13 @@ model Resume {
   projects      Project[]
   certifications Certification[]
   awards        Award[]
+  recommendations Recommendation[]
+  interests     Interest[]
   
   @@index([userId])
   @@index([slug])
   @@index([isPublic])
+  @@index([createdAt])
 }
 
 model Experience {
@@ -134,6 +137,8 @@ model Experience {
   
   @@index([resumeId])
   @@index([order])
+  @@index([resumeId, order])
+  @@index([isCurrent])
 }
 
 model Education {
@@ -158,6 +163,8 @@ model Education {
   
   @@index([resumeId])
   @@index([order])
+  @@index([resumeId, order])
+  @@index([isCurrent])
 }
 
 model Skill {
@@ -176,6 +183,8 @@ model Skill {
   
   @@index([resumeId])
   @@index([category])
+  @@index([resumeId, category])
+  @@index([resumeId, order])
 }
 
 model Language {
@@ -192,6 +201,7 @@ model Language {
   updatedAt     DateTime @updatedAt
   
   @@index([resumeId])
+  @@index([resumeId, order])
 }
 
 model Project {
@@ -213,6 +223,8 @@ model Project {
   updatedAt     DateTime @updatedAt
   
   @@index([resumeId])
+  @@index([resumeId, order])
+  @@index([isCurrent])
 }
 
 model Certification {
@@ -233,6 +245,7 @@ model Certification {
   updatedAt     DateTime @updatedAt
   
   @@index([resumeId])
+  @@index([resumeId, order])
 }
 
 model Award {
@@ -251,4 +264,42 @@ model Award {
   updatedAt     DateTime @updatedAt
   
   @@index([resumeId])
+  @@index([order])
+}
+
+model Recommendation {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  author        String
+  position      String?
+  company       String?
+  content       String   @db.Text
+  date          DateTime?
+  
+  order         Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([resumeId])
+  @@index([order])
+}
+
+model Interest {
+  id            String   @id @default(cuid())
+  resumeId      String
+  resume        Resume   @relation(fields: [resumeId], references: [id], onDelete: Cascade)
+  
+  name          String
+  description   String?  @db.Text
+  
+  order         Int      @default(0)
+  
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  @@index([resumeId])
+  @@index([order])
 }

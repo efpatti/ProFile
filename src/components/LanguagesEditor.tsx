@@ -3,7 +3,7 @@
 import React from "react";
 import { GenericEditor } from "@/components/shared/GenericEditor";
 import useResumeStore from "@/core/store/useResumeStore";
-import { useAuth } from "@/core/services/AuthProvider";
+import { useResumeEditor } from "@/presentation/hooks/useResumeEditor";
 
 interface LanguagesEditorProps {
  lang: "pt-br" | "en";
@@ -16,24 +16,12 @@ export const LanguagesEditor: React.FC<LanguagesEditorProps> = ({
  initialData,
  onSaved,
 }) => {
- const { user } = useAuth();
- const {
-  languages: storeLanguages,
-  updateLanguages,
-  saveResume,
-  isLoading,
- } = useResumeStore();
- const items = initialData?.items || storeLanguages || [];
-
- const handleSave = async (updatedItems: string[]) => {
-  if (!user?.id) return;
-  updateLanguages(updatedItems);
-  await saveResume(user.id);
-  onSaved?.({
-   title: lang === "pt-br" ? "Idiomas" : "Languages",
-   items: updatedItems,
-  });
- };
+ const { items, handleSave, isLoading } = useResumeEditor({
+  storeSelector: (s) => s.languages || [],
+  updateFn: (items) => useResumeStore.getState().updateLanguages(items),
+  initialItems: initialData?.items,
+  onSaved: (items) => onSaved?.({ title: initialData?.title || "", items }),
+ });
 
  return (
   <GenericEditor
