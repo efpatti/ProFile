@@ -1,4 +1,3 @@
-// src/app/api/user/preferences/route.ts
 import { NextRequest, NextResponse } from "next/server";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
@@ -41,7 +40,6 @@ export async function PATCH(request: NextRequest) {
    );
   }
 
-  // Valida o body da requisição
   const validation = await validateRequestBody(request, userPreferencesSchema);
 
   if (isValidationError(validation)) {

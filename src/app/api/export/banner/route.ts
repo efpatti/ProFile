@@ -12,7 +12,8 @@ export async function GET(req: NextRequest) {
  const logo = searchParams.get("logo") || undefined;
  try {
   const buffer = await PuppeteerService.captureBanner(palette, logo);
-  return new NextResponse(buffer, {
+  // Cast Buffer to BodyInit to satisfy TS
+  return new NextResponse(buffer as unknown as BodyInit, {
    status: 200,
    headers: {
     "Content-Type": "image/png",

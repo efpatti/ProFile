@@ -29,12 +29,39 @@ export default function SignInPage() {
  const { data: session, status } = useSession();
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState("");
+ const [email, setEmail] = useState("");
+ const [password, setPassword] = useState("");
 
  useEffect(() => {
   if (status === "authenticated") {
    router.push("/protected/resume");
   }
  }, [status, router]);
+
+ const handleEmailSignIn = async (e: React.FormEvent) => {
+  e.preventDefault();
+  try {
+   setLoading(true);
+   setError("");
+
+   const result = await signIn("credentials", {
+    email,
+    password,
+    redirect: false,
+   });
+
+   if (result?.error) {
+    setError("Invalid email or password");
+   } else if (result?.ok) {
+    router.push("/protected/resume");
+   }
+  } catch (err) {
+   setError("Failed to sign in. Please try again.");
+   console.error("Sign-in error:", err);
+  } finally {
+   setLoading(false);
+  }
+ };
 
  const handleOAuthSignIn = async (provider: "google" | "github") => {
   try {
@@ -82,6 +109,61 @@ export default function SignInPage() {
     )}
 
     <motion.div variants={itemVariants} className="px-8 space-y-4">
+     <form onSubmit={handleEmailSignIn} className="space-y-4">
+      <div>
+       <label
+        htmlFor="email"
+        className="block text-sm font-medium text-zinc-400 mb-2"
+       >
+        Email
+       </label>
+       <input
+        id="email"
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        className="w-full px-4 py-3 rounded-xl bg-zinc-700 border border-zinc-600 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        placeholder="your@email.com"
+       />
+      </div>
+
+      <div>
+       <label
+        htmlFor="password"
+        className="block text-sm font-medium text-zinc-400 mb-2"
+       >
+        Password
+       </label>
+       <input
+        id="password"
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+        className="w-full px-4 py-3 rounded-xl bg-zinc-700 border border-zinc-600 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        placeholder="••••••••"
+       />
+      </div>
+
+      <button
+       type="submit"
+       disabled={loading}
+       className="w-full p-4 rounded-xl bg-blue-600 hover:bg-blue-700 transition-colors text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+       {loading ? "Signing in..." : "Sign in with Email"}
+      </button>
+     </form>
+
+     <div className="relative">
+      <div className="absolute inset-0 flex items-center">
+       <div className="w-full border-t border-zinc-700"></div>
+      </div>
+      <div className="relative flex justify-center text-sm">
+       <span className="px-4 bg-zinc-800 text-zinc-500">Or continue with</span>
+      </div>
+     </div>
+
      <button
       onClick={() => handleOAuthSignIn("google")}
       disabled={loading}

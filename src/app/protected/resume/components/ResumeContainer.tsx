@@ -1,14 +1,3 @@
-/**
- * ResumeContainer - Single Responsibility
- *
- * Responsabilidade ÚNICA:
- * - Container principal com background e border
- * - Integração com SettingsShell
- * - Atributo data-ready para Puppeteer
- *
- * Uncle Bob: "Keep components small and focused"
- */
-
 "use client";
 
 import React from "react";

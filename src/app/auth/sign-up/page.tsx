@@ -29,12 +29,66 @@ export default function SignUpPage() {
  const { data: session, status } = useSession();
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState("");
+ const [email, setEmail] = useState("");
+ const [password, setPassword] = useState("");
+ const [confirmPassword, setConfirmPassword] = useState("");
 
  useEffect(() => {
   if (status === "authenticated") {
    router.push("/onboarding");
   }
  }, [status, router]);
+
+ const handleEmailSignUp = async (e: React.FormEvent) => {
+  e.preventDefault();
+
+  if (password !== confirmPassword) {
+   setError("Passwords don't match");
+   return;
+  }
+
+  if (password.length < 8) {
+   setError("Password must be at least 8 characters");
+   return;
+  }
+
+  try {
+   setLoading(true);
+   setError("");
+
+   // Create user via API
+   const response = await fetch("/api/auth/signup", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email, password }),
+   });
+
+   if (!response.ok) {
+    const data = await response.json();
+    throw new Error(data.error || "Failed to create account");
+   }
+
+   // Auto sign-in after successful registration
+   const result = await signIn("credentials", {
+    email,
+    password,
+    redirect: false,
+   });
+
+   if (result?.ok) {
+    router.push("/onboarding");
+   } else {
+    setError("Account created but sign-in failed. Please try signing in.");
+   }
+  } catch (err) {
+   setError(
+    err instanceof Error ? err.message : "Failed to sign up. Please try again."
+   );
+   console.error("Sign-up error:", err);
+  } finally {
+   setLoading(false);
+  }
+ };
 
  const handleOAuthSignUp = async (provider: "google" | "github") => {
   try {
@@ -84,6 +138,81 @@ export default function SignUpPage() {
     )}
 
     <motion.div variants={itemVariants} className="px-8 space-y-4">
+     <form onSubmit={handleEmailSignUp} className="space-y-4">
+      <div>
+       <label
+        htmlFor="email"
+        className="block text-sm font-medium text-zinc-400 mb-2"
+       >
+        Email
+       </label>
+       <input
+        id="email"
+        type="email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        className="w-full px-4 py-3 rounded-xl bg-zinc-700 border border-zinc-600 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        placeholder="your@email.com"
+       />
+      </div>
+
+      <div>
+       <label
+        htmlFor="password"
+        className="block text-sm font-medium text-zinc-400 mb-2"
+       >
+        Password
+       </label>
+       <input
+        id="password"
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+        minLength={8}
+        className="w-full px-4 py-3 rounded-xl bg-zinc-700 border border-zinc-600 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        placeholder="••••••••"
+       />
+      </div>
+
+      <div>
+       <label
+        htmlFor="confirmPassword"
+        className="block text-sm font-medium text-zinc-400 mb-2"
+       >
+        Confirm Password
+       </label>
+       <input
+        id="confirmPassword"
+        type="password"
+        value={confirmPassword}
+        onChange={(e) => setConfirmPassword(e.target.value)}
+        required
+        minLength={8}
+        className="w-full px-4 py-3 rounded-xl bg-zinc-700 border border-zinc-600 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        placeholder="••••••••"
+       />
+      </div>
+
+      <button
+       type="submit"
+       disabled={loading}
+       className="w-full p-4 rounded-xl bg-blue-600 hover:bg-blue-700 transition-colors text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+       {loading ? "Creating account..." : "Sign up with Email"}
+      </button>
+     </form>
+
+     <div className="relative">
+      <div className="absolute inset-0 flex items-center">
+       <div className="w-full border-t border-zinc-700"></div>
+      </div>
+      <div className="relative flex justify-center text-sm">
+       <span className="px-4 bg-zinc-800 text-zinc-500">Or continue with</span>
+      </div>
+     </div>
+
      <button
       onClick={() => handleOAuthSignUp("google")}
       disabled={loading}

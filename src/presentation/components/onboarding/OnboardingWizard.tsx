@@ -1,67 +1,110 @@
 "use client";
 
+/**
+ * Onboarding Wizard
+ * Uncle Bob: "Functions should do one thing"
+ */
+
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import useResumeStore from "@/core/store/useResumeStore";
-import { FiCheck, FiArrowRight, FiArrowLeft } from "react-icons/fi";
+import { ONBOARDING_STEPS, canSkipStep } from "@/types/onboarding";
+import type {
+ PersonalInfo,
+ ProfessionalProfile,
+ Experience,
+ Education,
+ TemplateSelection,
+ OnboardingData,
+} from "@/types/onboarding";
 
-const STEPS = [
- {
-  id: "personal",
-  title: "Informações Pessoais",
-  description: "Vamos começar com o básico",
- },
- {
-  id: "professional",
-  title: "Perfil Profissional",
-  description: "Conte sua história",
- },
- {
-  id: "experience",
-  title: "Experiência",
-  description: "Suas conquistas anteriores",
- },
- { id: "education", title: "Formação", description: "Sua jornada acadêmica" },
- {
-  id: "template",
-  title: "Escolha seu Estilo",
-  description: "Qual design combina com você?",
- },
-] as const;
+import { PersonalInfoStep } from "./PersonalInfoStep";
+import { ProfessionalProfileStep } from "./ProfessionalProfileStep";
+import { ExperienceStep } from "./ExperienceStep";
+import { EducationStep } from "./EducationStep";
+import { TemplateSelectionStep } from "./TemplateSelectionStep";
+
+interface OnboardingState {
+ personalInfo?: PersonalInfo;
+ professionalProfile?: ProfessionalProfile;
+ experiences?: Experience[];
+ education?: Education[];
+ templateSelection?: TemplateSelection;
+}
 
 export function OnboardingWizard() {
  const [currentStep, setCurrentStep] = useState(0);
+ const [onboardingData, setOnboardingData] = useState<OnboardingState>({});
+ const [isSubmitting, setIsSubmitting] = useState(false);
+ const [error, setError] = useState<string | null>(null);
  const router = useRouter();
- const store = useResumeStore();
 
- const isLastStep = currentStep === STEPS.length - 1;
- const canGoNext = true; // TODO: Validar step atual
+ const currentStepConfig = ONBOARDING_STEPS[currentStep];
 
- const handleNext = () => {
-  if (isLastStep) {
-   handleComplete();
-  } else {
-   setCurrentStep((prev) => prev + 1);
-  }
+ const handlePersonalInfoNext = (data: PersonalInfo) => {
+  setOnboardingData((prev) => ({ ...prev, personalInfo: data }));
+  setCurrentStep((prev) => prev + 1);
+ };
+
+ const handleProfessionalProfileNext = (data: ProfessionalProfile) => {
+  setOnboardingData((prev) => ({ ...prev, professionalProfile: data }));
+  setCurrentStep((prev) => prev + 1);
+ };
+
+ const handleExperienceNext = (data: Experience[]) => {
+  setOnboardingData((prev) => ({ ...prev, experiences: data }));
+  setCurrentStep((prev) => prev + 1);
+ };
+
+ const handleEducationNext = (data: Education[]) => {
+  setOnboardingData((prev) => ({ ...prev, education: data }));
+  setCurrentStep((prev) => prev + 1);
+ };
+
+ const handleTemplateSelectionNext = async (data: TemplateSelection) => {
+  setOnboardingData((prev) => ({ ...prev, templateSelection: data }));
+  await handleComplete({ ...onboardingData, templateSelection: data });
  };
 
  const handleBack = () => {
   setCurrentStep((prev) => Math.max(0, prev - 1));
  };
 
- const handleComplete = async () => {
-  // TODO: Criar currículo via API
-  router.push("/dashboard");
+ const handleSkip = () => {
+  if (canSkipStep(currentStepConfig.id)) {
+   setCurrentStep((prev) => prev + 1);
+  }
+ };
+
+ const handleComplete = async (finalData: Partial<OnboardingData>) => {
+  setIsSubmitting(true);
+  setError(null);
+
+  try {
+   const response = await fetch("/api/onboarding", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(finalData),
+   });
+
+   if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || "Erro ao salvar onboarding");
+   }
+
+   router.push("/protected/resume");
+  } catch (err) {
+   setError(err instanceof Error ? err.message : "Erro desconhecido");
+   setIsSubmitting(false);
+  }
  };
 
  return (
   <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
    <div className="w-full max-w-3xl">
-    {/* Progress Bar */}
     <div className="mb-8">
      <div className="flex justify-between mb-2">
-      {STEPS.map((step, index) => (
+      {ONBOARDING_STEPS.map((step, index) => (
        <div
         key={step.id}
         className={`flex-1 h-2 rounded-full mx-1 transition-all ${
@@ -72,12 +115,11 @@ export function OnboardingWizard() {
      </div>
      <div className="text-center">
       <p className="text-sm text-gray-600">
-       Passo {currentStep + 1} de {STEPS.length}
+       Passo {currentStep + 1} de {ONBOARDING_STEPS.length}
       </p>
      </div>
     </div>
 
-    {/* Step Content */}
     <AnimatePresence mode="wait">
      <motion.div
       key={currentStep}
@@ -88,58 +130,63 @@ export function OnboardingWizard() {
       className="bg-white rounded-2xl shadow-xl p-8"
      >
       <h2 className="text-3xl font-bold text-gray-900 mb-2">
-       {STEPS[currentStep].title}
+       {currentStepConfig.title}
       </h2>
-      <p className="text-gray-600 mb-8">{STEPS[currentStep].description}</p>
+      <p className="text-gray-600 mb-8">{currentStepConfig.description}</p>
 
-      {/* Step Forms */}
+      {error && (
+       <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-lg">
+        <p className="text-red-800 text-sm">{error}</p>
+       </div>
+      )}
+
       <div className="min-h-[300px]">
-       {currentStep === 0 && <PersonalInfoStep />}
-       {currentStep === 1 && <ProfessionalStep />}
-       {currentStep === 2 && <ExperienceStep />}
-       {currentStep === 3 && <EducationStep />}
-       {currentStep === 4 && <TemplateSelectionStep />}
+       {currentStep === 0 && (
+        <PersonalInfoStep
+         initialData={onboardingData.personalInfo}
+         onNext={handlePersonalInfoNext}
+        />
+       )}
+       {currentStep === 1 && (
+        <ProfessionalProfileStep
+         initialData={onboardingData.professionalProfile}
+         onNext={handleProfessionalProfileNext}
+         onBack={handleBack}
+        />
+       )}
+       {currentStep === 2 && (
+        <ExperienceStep
+         initialData={onboardingData.experiences}
+         onNext={handleExperienceNext}
+         onBack={handleBack}
+         onSkip={handleSkip}
+        />
+       )}
+       {currentStep === 3 && (
+        <EducationStep
+         initialData={onboardingData.education}
+         onNext={handleEducationNext}
+         onBack={handleBack}
+         onSkip={handleSkip}
+        />
+       )}
+       {currentStep === 4 && (
+        <TemplateSelectionStep
+         initialData={onboardingData.templateSelection}
+         onNext={handleTemplateSelectionNext}
+         onBack={handleBack}
+        />
+       )}
       </div>
 
-      {/* Navigation */}
-      <div className="flex justify-between mt-8">
-       <button
-        onClick={handleBack}
-        disabled={currentStep === 0}
-        className="flex items-center gap-2 px-6 py-3 rounded-lg border border-gray-300 hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-       >
-        <FiArrowLeft />
-        Voltar
-       </button>
-
-       <button
-        onClick={handleNext}
-        disabled={!canGoNext}
-        className="flex items-center gap-2 px-6 py-3 rounded-lg bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-       >
-        {isLastStep ? (
-         <>
-          <FiCheck />
-          Finalizar
-         </>
-        ) : (
-         <>
-          Próximo
-          <FiArrowRight />
-         </>
-        )}
-       </button>
-      </div>
+      {isSubmitting && (
+       <div className="mt-8 flex justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+       </div>
+      )}
      </motion.div>
     </AnimatePresence>
    </div>
   </div>
  );
 }
-
-// Step Components (simplificados - expandir depois)
-const PersonalInfoStep = () => <div>Form de informações pessoais...</div>;
-const ProfessionalStep = () => <div>Form de perfil profissional...</div>;
-const ExperienceStep = () => <div>Form de experiências...</div>;
-const EducationStep = () => <div>Form de formação...</div>;
-const TemplateSelectionStep = () => <div>Seletor de templates...</div>;
