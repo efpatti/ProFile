@@ -72,6 +72,16 @@ export function OnboardingWizard() {
  };
 
  const handleComplete = async (finalData: Partial<OnboardingData>) => {
+  console.log("🟢 [ONBOARDING] Starting submission...");
+  console.log("🟢 [ONBOARDING] Data to submit:", {
+   personalInfo: finalData.personalInfo,
+   professionalProfile: finalData.professionalProfile,
+   experiencesCount: finalData.experiences?.length || 0,
+   educationCount: finalData.education?.length || 0,
+   template: finalData.templateSelection?.template,
+   palette: finalData.templateSelection?.palette,
+  });
+
   setIsSubmitting(true);
   setError(null);
 
@@ -82,6 +92,12 @@ export function OnboardingWizard() {
     body: JSON.stringify(finalData),
    });
 
+   console.log("🟢 [ONBOARDING] Response status:", response.status);
+   console.log(
+    "🟢 [ONBOARDING] Response headers:",
+    Object.fromEntries(response.headers.entries())
+   );
+
    if (!response.ok) {
     // Robust error parsing: handle non-JSON bodies like "Method Not Allowed"
     const contentType = response.headers.get("content-type") || "";
@@ -89,19 +105,27 @@ export function OnboardingWizard() {
     try {
      if (contentType.includes("application/json")) {
       const json = await response.json();
+      console.error("🔴 [ONBOARDING] Error JSON:", json);
       message = json?.error || message;
      } else {
       const text = await response.text();
+      console.error("🔴 [ONBOARDING] Error text:", text);
       message = text || message;
      }
-    } catch {
+    } catch (parseErr) {
+     console.error("🔴 [ONBOARDING] Parse error:", parseErr);
      // ignore parse errors and use default message
     }
     throw new Error(message);
    }
 
+   const data = await response.json();
+   console.log("🟢 [ONBOARDING] Success response:", data);
+   console.log("🟢 [ONBOARDING] Redirecting to /protected/resume...");
+
    router.push("/protected/resume");
   } catch (err) {
+   console.error("🔴 [ONBOARDING] Catch error:", err);
    setError(err instanceof Error ? err.message : "Erro desconhecido");
    setIsSubmitting(false);
   }

@@ -141,14 +141,11 @@ export async function POST(request: NextRequest) {
    }
   }
 
-  // 6. Save education (if any)
   if (validatedData.education && validatedData.education.length > 0) {
-   // Delete existing education
    await prisma.education.deleteMany({
     where: { resumeId: resume.id },
    });
 
-   // Filter and validate dates before creating
    const validEducation = validatedData.education
     .map((edu) => {
      const startDate = toUTCDate(edu.startDate);
@@ -183,7 +180,6 @@ export async function POST(request: NextRequest) {
    }
   }
 
-  // 7. Mark onboarding as complete and save palette preference
   console.log("[ONBOARDING] Marking onboarding as complete...");
   await prisma.user.update({
    where: { id: user.id },
@@ -194,7 +190,6 @@ export async function POST(request: NextRequest) {
    },
   });
 
-  // 🎯 FIX: Success checklist for debugging
   console.log("[ONBOARDING] ✅ SUCCESS CHECKLIST:");
   console.log("  - Resume ID:", resume.id);
   console.log("  - Experiences:", validatedData.experiences?.length || 0);

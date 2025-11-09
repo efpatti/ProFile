@@ -92,9 +92,11 @@ export async function middleware(request: NextRequest) {
    request.cookies.get("onboarding_attempts")?.value || "0"
   );
 
+  console.log(`[MIDDLEWARE] 🔢 Current onboarding attempts: ${attempts}`);
+
   if (attempts >= 3) {
    console.warn(
-    `[MIDDLEWARE] ⚠️ User stuck in onboarding loop (${attempts} attempts)`
+    `[MIDDLEWARE] ⚠️ User stuck in onboarding loop (${attempts} attempts) - ESCAPE HATCH ACTIVATED`
    );
    // Clear attempts and allow access (user can manually retry later)
    const response = NextResponse.next();
@@ -102,6 +104,10 @@ export async function middleware(request: NextRequest) {
    // You could also redirect to /auth/onboarding-help or force logout
    return response;
   }
+
+  console.log(
+   `[MIDDLEWARE] ↻ Incrementing attempts to ${attempts + 1}, redirecting...`
+  );
 
   const response = NextResponse.redirect(
    new URL(ONBOARDING_ROUTE, request.url)
