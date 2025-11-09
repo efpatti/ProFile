@@ -11,7 +11,8 @@ export const siteMetadata: Metadata = {
   "pdf export",
   "nextjs",
   "tailwind",
-  "firebase",
+  "prisma",
+  "postgresql",
  ],
  authors: [{ name: "ProFile" }],
  openGraph: {

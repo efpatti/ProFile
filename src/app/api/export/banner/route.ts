@@ -4,7 +4,7 @@ import {
  closeBrowser,
 } from "@/core/services/PuppeteerService";
 
-export const runtime = "nodejs"; // ensure node runtime for puppeteer
+export const runtime = "nodejs";
 
 export async function GET(req: NextRequest) {
  const { searchParams } = new URL(req.url);

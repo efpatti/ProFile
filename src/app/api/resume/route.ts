@@ -3,10 +3,6 @@ import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
-/**
- * API Route: Criar Currículo
- * POST /api/resume
- */
 export async function POST(request: Request) {
  try {
   const session = await getServerSession(authOptions);
@@ -34,10 +30,6 @@ export async function POST(request: Request) {
   );
  }
 }
-/**
- * API Route: Listar Currículos do Usuário
- * GET /api/resume
- */
 export async function GET() {
  try {
   const session = await getServerSession(authOptions);

@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * Education Step (OPTIONAL)
- * Uncle Bob: "Code should be written to minimize the time it would take for someone else to understand it"
- */
-
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -48,15 +43,27 @@ export function EducationStep({
   name: "education",
  });
 
+ const inputClass =
+  "w-full px-4 py-3 rounded-lg border border-slate-700/70 bg-slate-900/70 text-slate-100 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:border-transparent transition";
+ const selectClass =
+  "w-full px-4 py-3 rounded-lg border border-slate-700/70 bg-slate-900/70 text-slate-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:border-transparent transition";
+ const labelClass = "block text-sm font-medium text-slate-200 mb-2";
+ const checkboxClass =
+  "h-5 w-5 rounded border-slate-600 bg-slate-900 text-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 transition";
+ const cardClass =
+  "p-6 border border-slate-700/70 bg-slate-900/60 rounded-xl space-y-4 relative shadow-sm";
+ const neutralButtonClass =
+  "flex-1 px-6 py-3 border border-slate-700 text-slate-200 font-medium rounded-lg hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900";
+
  const onSubmit = (data: EducationForm) => {
   onNext(data.education);
  };
 
  return (
-  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-slate-100">
    <div className="mb-4">
-    <h3 className="text-lg font-semibold text-gray-900">Formação Acadêmica</h3>
-    <p className="text-sm text-gray-600 mt-1">
+    <h3 className="text-lg font-semibold text-slate-100">Formação Acadêmica</h3>
+    <p className="text-sm text-slate-300 mt-1">
      Adicione sua formação acadêmica. Você pode pular esta etapa e adicionar
      depois.
     </p>
@@ -66,15 +73,12 @@ export function EducationStep({
     const isCurrent = watch(`education.${index}.isCurrent`);
 
     return (
-     <div
-      key={field.id}
-      className="p-6 border border-gray-200 rounded-lg space-y-4 relative"
-     >
+     <div key={field.id} className={cardClass}>
       {fields.length > 1 && (
        <button
         type="button"
         onClick={() => remove(index)}
-        className="absolute top-4 right-4 text-red-600 hover:text-red-800 transition-colors"
+        className="absolute top-4 right-4 text-rose-400 hover:text-rose-300 transition-colors"
         aria-label="Remover formação"
        >
         <Trash2 size={20} />
@@ -85,7 +89,7 @@ export function EducationStep({
        <div>
         <label
          htmlFor={`education.${index}.institution`}
-         className="block text-sm font-medium text-gray-700 mb-2"
+         className={labelClass}
         >
          Instituição <span className="text-red-500">*</span>
         </label>
@@ -93,27 +97,24 @@ export function EducationStep({
          id={`education.${index}.institution`}
          type="text"
          {...register(`education.${index}.institution`)}
-         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+         className={inputClass}
          placeholder="Universidade de São Paulo"
         />
         {errors.education?.[index]?.institution && (
-         <p className="mt-1 text-sm text-red-600">
+         <p className="mt-1 text-sm text-red-400">
           {errors.education[index]?.institution?.message}
          </p>
         )}
        </div>
 
        <div>
-        <label
-         htmlFor={`education.${index}.degree`}
-         className="block text-sm font-medium text-gray-700 mb-2"
-        >
+        <label htmlFor={`education.${index}.degree`} className={labelClass}>
          Grau <span className="text-red-500">*</span>
         </label>
         <select
          id={`education.${index}.degree`}
          {...register(`education.${index}.degree`)}
-         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+         className={selectClass}
         >
          <option value="">Selecione...</option>
          <option value="Bacharelado">Bacharelado</option>
@@ -126,7 +127,7 @@ export function EducationStep({
          <option value="Especialização">Especialização</option>
         </select>
         {errors.education?.[index]?.degree && (
-         <p className="mt-1 text-sm text-red-600">
+         <p className="mt-1 text-sm text-red-400">
           {errors.education[index]?.degree?.message}
          </p>
         )}
@@ -134,21 +135,18 @@ export function EducationStep({
       </div>
 
       <div>
-       <label
-        htmlFor={`education.${index}.field`}
-        className="block text-sm font-medium text-gray-700 mb-2"
-       >
+       <label htmlFor={`education.${index}.field`} className={labelClass}>
         Área de Estudo <span className="text-red-500">*</span>
        </label>
        <input
         id={`education.${index}.field`}
         type="text"
         {...register(`education.${index}.field`)}
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className={inputClass}
         placeholder="Ciência da Computação"
        />
        {errors.education?.[index]?.field && (
-        <p className="mt-1 text-sm text-red-600">
+        <p className="mt-1 text-sm text-red-400">
          {errors.education[index]?.field?.message}
         </p>
        )}
@@ -156,30 +154,24 @@ export function EducationStep({
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
        <div>
-        <label
-         htmlFor={`education.${index}.startDate`}
-         className="block text-sm font-medium text-gray-700 mb-2"
-        >
+        <label htmlFor={`education.${index}.startDate`} className={labelClass}>
          Data Início <span className="text-red-500">*</span>
         </label>
         <input
          id={`education.${index}.startDate`}
          type="date"
          {...register(`education.${index}.startDate`)}
-         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+         className={inputClass}
         />
         {errors.education?.[index]?.startDate && (
-         <p className="mt-1 text-sm text-red-600">
+         <p className="mt-1 text-sm text-red-400">
           {errors.education[index]?.startDate?.message}
          </p>
         )}
        </div>
 
        <div>
-        <label
-         htmlFor={`education.${index}.endDate`}
-         className="block text-sm font-medium text-gray-700 mb-2"
-        >
+        <label htmlFor={`education.${index}.endDate`} className={labelClass}>
          Data Conclusão {isCurrent && "(Em andamento)"}
         </label>
         <input
@@ -187,10 +179,10 @@ export function EducationStep({
          type="date"
          {...register(`education.${index}.endDate`)}
          disabled={isCurrent}
-         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+         className={`${inputClass} disabled:bg-slate-800/60 disabled:text-slate-500 disabled:border-slate-700/60 disabled:cursor-not-allowed`}
         />
         {errors.education?.[index]?.endDate && (
-         <p className="mt-1 text-sm text-red-600">
+         <p className="mt-1 text-sm text-red-400">
           {errors.education[index]?.endDate?.message}
          </p>
         )}
@@ -201,9 +193,9 @@ export function EducationStep({
          <input
           type="checkbox"
           {...register(`education.${index}.isCurrent`)}
-          className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          className={checkboxClass}
          />
-         <span className="text-sm text-gray-700">Em andamento</span>
+         <span className="text-sm text-slate-300">Em andamento</span>
         </label>
        </div>
       </div>
@@ -214,31 +206,23 @@ export function EducationStep({
    <button
     type="button"
     onClick={() => append(getEmptyEducation())}
-    className="w-full px-4 py-3 border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-lg hover:border-blue-500 hover:text-blue-600 transition-colors flex items-center justify-center gap-2"
+    className="w-full px-4 py-3 border-2 border-dashed border-slate-600 text-slate-300 font-medium rounded-lg hover:border-indigo-500 hover:text-indigo-300 transition-colors flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
    >
     <Plus size={20} />
     Adicionar Outra Formação
    </button>
 
    <div className="flex gap-4">
-    <button
-     type="button"
-     onClick={onBack}
-     className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-    >
+    <button type="button" onClick={onBack} className={neutralButtonClass}>
      Voltar
     </button>
-    <button
-     type="button"
-     onClick={onSkip}
-     className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-    >
+    <button type="button" onClick={onSkip} className={neutralButtonClass}>
      Pular por Agora
     </button>
     <button
      type="submit"
      disabled={isSubmitting}
-     className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+     className="flex-1 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
     >
      {isSubmitting ? "Salvando..." : "Próximo"}
     </button>

@@ -36,7 +36,7 @@ const defaultBg: BgBannerColorName = "midnightSlate";
 
 const getBgColorObj = (bgName: BgBannerColorName) => {
  const bgObj = bgBannerColor[bgName];
- const bg = bgObj.colors.find((c) => "bg" in c)?.bg || "#000";
+ const bg = bgObj?.colors?.find((c) => "bg" in c)?.bg || "#000";
  return { bg };
 };
 

@@ -1,4 +1,3 @@
-// components/BgBannerSelector.tsx
 "use client";
 
 import {
@@ -15,12 +14,12 @@ export const BgBannerSelector = ({
  onSelect: (color: BgBannerColorName) => void;
 }) => {
  const colorOptions = Object.entries(bgBannerColor).map(([name, colorObj]) => {
-  const colorsArr = colorObj.colors;
+  const colorsArr = colorObj?.colors || [];
   const bgObj = colorsArr.find((c) =>
    Object.prototype.hasOwnProperty.call(c, "bg")
   );
   const bg = bgObj ? (bgObj as { bg: string }).bg : "#fff";
-  const colorName = colorObj.colorName[0]["pt-br"] ?? name;
+  const colorName = colorObj?.colorName?.[0]?.["pt-br"] ?? name;
   return {
    value: name as BgBannerColorName,
    color: bg,

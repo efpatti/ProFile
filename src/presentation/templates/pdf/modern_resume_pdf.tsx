@@ -9,8 +9,6 @@ import {
 } from "@react-pdf/renderer";
 import { Resume } from "@/core/entities/Resume";
 
-// ==================== STYLES ====================
-
 const createStyles = (colorScheme: Resume["colorScheme"]) =>
  StyleSheet.create({
   page: {

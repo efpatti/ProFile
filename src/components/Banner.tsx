@@ -32,17 +32,19 @@ interface BannerProps {
 
 export function getBgColorObj(bgName: BgBannerColorName) {
  const bgObj = bgBannerColor[bgName];
- const colorsArr = bgObj.colors;
- const bg = (
-  colorsArr.find((c) => Object.prototype.hasOwnProperty.call(c, "bg")) as {
-   bg: string;
-  }
- ).bg;
- const text = (
-  colorsArr.find((c) => Object.prototype.hasOwnProperty.call(c, "text")) as {
-   text: string;
-  }
- ).text;
+ const colorsArr = bgObj?.colors || [];
+ const bg =
+  (
+   colorsArr.find((c) => Object.prototype.hasOwnProperty.call(c, "bg")) as {
+    bg: string;
+   }
+  )?.bg || "#ffffff";
+ const text =
+  (
+   colorsArr.find((c) => Object.prototype.hasOwnProperty.call(c, "text")) as {
+    text: string;
+   }
+  )?.text || "#000000";
  return { bg, text };
 }
 

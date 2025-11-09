@@ -1,10 +1,5 @@
 "use client";
 
-/**
- * Experience Step (OPTIONAL)
- * Uncle Bob: "The proper use of comments is to compensate for our failure to express ourself in code"
- */
-
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -48,17 +43,29 @@ export function ExperienceStep({
   name: "experiences",
  });
 
+ const inputClass =
+  "w-full px-4 py-3 rounded-lg border border-slate-700/70 bg-slate-900/70 text-slate-100 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:border-transparent transition";
+ const textAreaClass =
+  "w-full px-4 py-3 rounded-lg border border-slate-700/70 bg-slate-900/70 text-slate-100 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:border-transparent transition resize-none";
+ const checkboxClass =
+  "h-5 w-5 rounded border-slate-600 bg-slate-900 text-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 transition";
+ const labelClass = "block text-sm font-medium text-slate-200 mb-2";
+ const cardClass =
+  "p-6 border border-slate-700/70 bg-slate-900/60 rounded-xl space-y-4 relative shadow-sm";
+ const neutralButtonClass =
+  "flex-1 px-6 py-3 border border-slate-700 text-slate-200 font-medium rounded-lg hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900";
+
  const onSubmit = (data: ExperiencesForm) => {
   onNext(data.experiences);
  };
 
  return (
-  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-slate-100">
    <div className="mb-4">
-    <h3 className="text-lg font-semibold text-gray-900">
+    <h3 className="text-lg font-semibold text-slate-100">
      Experiência Profissional
     </h3>
-    <p className="text-sm text-gray-600 mt-1">
+    <p className="text-sm text-slate-300 mt-1">
      Adicione suas experiências mais relevantes. Você pode pular esta etapa e
      adicionar depois.
     </p>
@@ -68,15 +75,12 @@ export function ExperienceStep({
     const isCurrent = watch(`experiences.${index}.isCurrent`);
 
     return (
-     <div
-      key={field.id}
-      className="p-6 border border-gray-200 rounded-lg space-y-4 relative"
-     >
+     <div key={field.id} className={cardClass}>
       {fields.length > 1 && (
        <button
         type="button"
         onClick={() => remove(index)}
-        className="absolute top-4 right-4 text-red-600 hover:text-red-800 transition-colors"
+        className="absolute top-4 right-4 text-rose-400 hover:text-rose-300 transition-colors"
         aria-label="Remover experiência"
        >
         <Trash2 size={20} />
@@ -85,42 +89,36 @@ export function ExperienceStep({
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
        <div>
-        <label
-         htmlFor={`experiences.${index}.company`}
-         className="block text-sm font-medium text-gray-700 mb-2"
-        >
+        <label htmlFor={`experiences.${index}.company`} className={labelClass}>
          Empresa <span className="text-red-500">*</span>
         </label>
         <input
          id={`experiences.${index}.company`}
          type="text"
          {...register(`experiences.${index}.company`)}
-         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+         className={inputClass}
          placeholder="Nome da Empresa"
         />
         {errors.experiences?.[index]?.company && (
-         <p className="mt-1 text-sm text-red-600">
+         <p className="mt-1 text-sm text-red-400">
           {errors.experiences[index]?.company?.message}
          </p>
         )}
        </div>
 
        <div>
-        <label
-         htmlFor={`experiences.${index}.position`}
-         className="block text-sm font-medium text-gray-700 mb-2"
-        >
+        <label htmlFor={`experiences.${index}.position`} className={labelClass}>
          Cargo <span className="text-red-500">*</span>
         </label>
         <input
          id={`experiences.${index}.position`}
          type="text"
          {...register(`experiences.${index}.position`)}
-         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+         className={inputClass}
          placeholder="Senior Developer"
         />
         {errors.experiences?.[index]?.position && (
-         <p className="mt-1 text-sm text-red-600">
+         <p className="mt-1 text-sm text-red-400">
           {errors.experiences[index]?.position?.message}
          </p>
         )}
@@ -131,7 +129,7 @@ export function ExperienceStep({
        <div>
         <label
          htmlFor={`experiences.${index}.startDate`}
-         className="block text-sm font-medium text-gray-700 mb-2"
+         className={labelClass}
         >
          Data Início <span className="text-red-500">*</span>
         </label>
@@ -139,20 +137,17 @@ export function ExperienceStep({
          id={`experiences.${index}.startDate`}
          type="date"
          {...register(`experiences.${index}.startDate`)}
-         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+         className={inputClass}
         />
         {errors.experiences?.[index]?.startDate && (
-         <p className="mt-1 text-sm text-red-600">
+         <p className="mt-1 text-sm text-red-400">
           {errors.experiences[index]?.startDate?.message}
          </p>
         )}
        </div>
 
        <div>
-        <label
-         htmlFor={`experiences.${index}.endDate`}
-         className="block text-sm font-medium text-gray-700 mb-2"
-        >
+        <label htmlFor={`experiences.${index}.endDate`} className={labelClass}>
          Data Fim {isCurrent && "(Atual)"}
         </label>
         <input
@@ -160,39 +155,36 @@ export function ExperienceStep({
          type="date"
          {...register(`experiences.${index}.endDate`)}
          disabled={isCurrent}
-         className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
+         className={`${inputClass} disabled:bg-slate-800/60 disabled:text-slate-500 disabled:cursor-not-allowed`}
         />
         {errors.experiences?.[index]?.endDate && (
-         <p className="mt-1 text-sm text-red-600">
+         <p className="mt-1 text-sm text-red-400">
           {errors.experiences[index]?.endDate?.message}
          </p>
         )}
        </div>
 
        <div className="flex items-center pt-8">
-        <label className="flex items-center space-x-2 cursor-pointer">
+        <label className="flex items-center space-x-2 cursor-pointer text-slate-200">
          <input
           type="checkbox"
           {...register(`experiences.${index}.isCurrent`)}
-          className="w-5 h-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+          className={checkboxClass}
          />
-         <span className="text-sm text-gray-700">Trabalho atual</span>
+         <span className="text-sm">Trabalho atual</span>
         </label>
        </div>
       </div>
 
       <div>
-       <label
-        htmlFor={`experiences.${index}.location`}
-        className="block text-sm font-medium text-gray-700 mb-2"
-       >
-        Localização <span className="text-gray-400">(opcional)</span>
+       <label htmlFor={`experiences.${index}.location`} className={labelClass}>
+        Localização <span className="text-slate-400">(opcional)</span>
        </label>
        <input
         id={`experiences.${index}.location`}
         type="text"
         {...register(`experiences.${index}.location`)}
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+        className={inputClass}
         placeholder="São Paulo, SP"
        />
       </div>
@@ -200,15 +192,15 @@ export function ExperienceStep({
       <div>
        <label
         htmlFor={`experiences.${index}.description`}
-        className="block text-sm font-medium text-gray-700 mb-2"
+        className={labelClass}
        >
-        Descrição <span className="text-gray-400">(opcional)</span>
+        Descrição <span className="text-slate-400">(opcional)</span>
        </label>
        <textarea
         id={`experiences.${index}.description`}
         rows={3}
         {...register(`experiences.${index}.description`)}
-        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
+        className={textAreaClass}
         placeholder="Suas responsabilidades e conquistas..."
        />
       </div>
@@ -219,31 +211,23 @@ export function ExperienceStep({
    <button
     type="button"
     onClick={() => append(getEmptyExperience())}
-    className="w-full px-4 py-3 border-2 border-dashed border-gray-300 text-gray-600 font-medium rounded-lg hover:border-blue-500 hover:text-blue-600 transition-colors flex items-center justify-center gap-2"
+    className="w-full px-4 py-3 border-2 border-dashed border-slate-600 text-slate-300 font-medium rounded-lg hover:border-indigo-500 hover:text-indigo-300 transition-colors flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
    >
     <Plus size={20} />
     Adicionar Outra Experiência
    </button>
 
    <div className="flex gap-4">
-    <button
-     type="button"
-     onClick={onBack}
-     className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-    >
+    <button type="button" onClick={onBack} className={neutralButtonClass}>
      Voltar
     </button>
-    <button
-     type="button"
-     onClick={onSkip}
-     className="flex-1 px-6 py-3 border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 transition-colors"
-    >
+    <button type="button" onClick={onSkip} className={neutralButtonClass}>
      Pular por Agora
     </button>
     <button
      type="submit"
      disabled={isSubmitting}
-     className="flex-1 px-6 py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+     className="flex-1 px-6 py-3 bg-indigo-600 text-white font-medium rounded-lg hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
     >
      {isSubmitting ? "Salvando..." : "Próximo"}
     </button>

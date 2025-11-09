@@ -45,9 +45,6 @@ pglite-debug.log
 *.tsbuildinfo
 next-env.d.ts
 
-# Firebase service account key (NUNCA suba para o git!)
-serviceAccountKey.json
-
 # Docker
 volumes/
 .docker/

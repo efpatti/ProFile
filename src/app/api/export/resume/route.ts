@@ -19,7 +19,6 @@ export async function GET(req: NextRequest) {
    bannerColor,
    user
   );
-  // Cast Buffer to BodyInit to satisfy TS (runtime supports Buffer)
   return new NextResponse(buffer as unknown as BodyInit, {
    status: 200,
    headers: {

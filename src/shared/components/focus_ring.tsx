@@ -1,6 +1,5 @@
 import React from "react";
 
-// Utility wrapper to apply a consistent focus ring
 export const FocusRing = ({
  children,
  className = "",

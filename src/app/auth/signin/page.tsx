@@ -1,7 +1,3 @@
-/**
- * Redirect route: /auth/signin → /auth/sign-in
- * NextAuth uses /signin by default, this redirects to our hyphenated route
- */
 import { redirect } from "next/navigation";
 
 export default async function SignInRedirect({

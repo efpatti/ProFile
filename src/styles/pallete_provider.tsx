@@ -48,7 +48,11 @@ export const usePalette = () => {
 
 // Utility to apply palette tokens as CSS vars (idempotent)
 function applyPaletteCSSVariables(palette: PaletteName) {
- const tokensArr = colorPalettes[palette].colors;
+ // Fallback gracefully if palette id is unknown (e.g., legacy values like "ocean")
+ const tokens =
+  colorPalettes[palette as keyof typeof colorPalettes] ||
+  colorPalettes["darkGreen"];
+ const tokensArr = tokens.colors;
  function getColor<T extends string>(name: T): string | undefined {
   const found = tokensArr.find((c) =>
    Object.prototype.hasOwnProperty.call(c, name)
@@ -91,11 +95,27 @@ export const PaletteProvider: React.FC<{
     const response = await fetch("/api/user/preferences");
     if (response.ok) {
      const data = await response.json();
-     if (data.palette && !ignore) setPalette(data.palette as PaletteName);
-     else if (!ignore) setPalette("darkGreen");
-     if (data.bannerColor && !ignore)
-      setBannerColor(data.bannerColor as BannerColorName);
-     else if (!ignore) setBannerColor("pureWhite");
+     // Validate palette id against supported tokens
+     const paletteId = data?.palette as string | undefined;
+     const isValidPalette =
+      paletteId && paletteId in (colorPalettes as Record<string, unknown>);
+     if (!ignore)
+      setPalette(
+       (isValidPalette
+        ? (paletteId as PaletteName)
+        : "darkGreen") as PaletteName
+      );
+
+     // Validate banner color id against supported bg colors
+     const bannerId = data?.bannerColor as string | undefined;
+     const isValidBanner =
+      bannerId && bannerId in (bgBannerColor as Record<string, unknown>);
+     if (!ignore)
+      setBannerColor(
+       (isValidBanner
+        ? (bannerId as BannerColorName)
+        : "pureWhite") as BannerColorName
+      );
     } else {
      if (!ignore) setPalette("darkGreen");
      if (!ignore) setBannerColor("pureWhite");

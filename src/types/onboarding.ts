@@ -40,8 +40,14 @@ export type ProfessionalProfile = z.infer<typeof professionalProfileSchema>;
 export const experienceSchema = z.object({
  company: z.string().min(1, "Empresa é obrigatória"),
  position: z.string().min(1, "Cargo é obrigatório"),
- startDate: z.string(), // ISO date
- endDate: z.string().optional(),
+ // Expect browser <input type="date"> format YYYY-MM-DD
+ startDate: z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Data inicial inválida (use YYYY-MM-DD)"),
+ endDate: z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Data final inválida (use YYYY-MM-DD)")
+  .optional(),
  isCurrent: z.boolean().default(false),
  description: z.string().optional(),
  location: z.string().optional(),
@@ -54,8 +60,13 @@ export const educationSchema = z.object({
  institution: z.string().min(1, "Instituição é obrigatória"),
  degree: z.string().min(1, "Grau é obrigatório"),
  field: z.string().min(1, "Área de estudo é obrigatória"),
- startDate: z.string(), // ISO date
- endDate: z.string().optional(),
+ startDate: z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Data inicial inválida (use YYYY-MM-DD)"),
+ endDate: z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Data final inválida (use YYYY-MM-DD)")
+  .optional(),
  isCurrent: z.boolean().default(false),
 });
 
@@ -63,7 +74,7 @@ export type Education = z.infer<typeof educationSchema>;
 
 // Step 5: Template Selection (REQUIRED)
 export const templateSelectionSchema = z.object({
- template: z.enum(["professional", "modern", "creative", "minimal"]),
+ template: z.enum(["professional", "modern", "minimalist"]),
  palette: z.string().min(1, "Selecione uma paleta de cores"),
 });
 

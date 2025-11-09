@@ -6,32 +6,39 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
+import { z } from "zod";
+
+const signupSchema = z.object({
+ email: z.string().email("Invalid email format"),
+ password: z.string().min(8, "Password must be at least 8 characters"),
+ name: z.string().optional(),
+});
 
 export async function POST(request: NextRequest) {
  try {
-  const { email, password } = await request.json();
+  const body = await request.json();
+  console.log("[SIGNUP] Received request:", { email: body.email });
 
-  // Validate input
-  if (!email || !password) {
+  // Validate input with Zod
+  const validation = signupSchema.safeParse(body);
+  if (!validation.success) {
+   console.error("[SIGNUP] Validation error:", validation.error.errors);
    return NextResponse.json(
-    { error: "Email and password are required" },
+    { error: validation.error.errors[0].message },
     { status: 400 }
    );
   }
 
-  if (password.length < 8) {
-   return NextResponse.json(
-    { error: "Password must be at least 8 characters" },
-    { status: 400 }
-   );
-  }
+  const { email, password, name } = validation.data;
 
   // Check if user already exists
+  console.log("[SIGNUP] Checking if user exists:", email);
   const existingUser = await prisma.user.findUnique({
    where: { email },
   });
 
   if (existingUser) {
+   console.log("[SIGNUP] User already exists:", email);
    return NextResponse.json(
     { error: "User with this email already exists" },
     { status: 409 }
@@ -39,16 +46,21 @@ export async function POST(request: NextRequest) {
   }
 
   // Hash password
+  console.log("[SIGNUP] Hashing password...");
   const hashedPassword = await bcrypt.hash(password, 12);
 
   // Create user
+  console.log("[SIGNUP] Creating user:", email);
   const user = await prisma.user.create({
    data: {
     email,
-    name: email.split("@")[0], // Use email prefix as initial name
+    name: name || email.split("@")[0],
     password: hashedPassword,
+    hasCompletedOnboarding: false,
    },
   });
+
+  console.log("[SIGNUP] User created successfully:", user.id);
 
   return NextResponse.json(
    {
@@ -56,12 +68,27 @@ export async function POST(request: NextRequest) {
     user: {
      id: user.id,
      email: user.email,
+     name: user.name,
     },
    },
    { status: 201 }
   );
  } catch (error) {
-  console.error("Signup error:", error);
-  return NextResponse.json({ error: "Internal server error" }, { status: 500 });
+  console.error("[SIGNUP] Error:", error);
+
+  // Check for specific Prisma errors
+  if (error instanceof Error) {
+   if (error.message.includes("Unique constraint")) {
+    return NextResponse.json({ error: "User already exists" }, { status: 409 });
+   }
+  }
+
+  return NextResponse.json(
+   {
+    error: "Internal server error",
+    details: error instanceof Error ? error.message : "Unknown error",
+   },
+   { status: 500 }
+  );
  }
 }

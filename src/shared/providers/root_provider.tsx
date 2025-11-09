@@ -5,6 +5,7 @@ import { PaletteProvider } from "@/styles/pallete_provider";
 import { LanguageProvider } from "@/core/services/LanguageProvider";
 import { PaletteSyncWrapper } from "@/components/PaletteSyncWrapper";
 import { BannerColorSyncWrapper } from "@/components/BannerColorSyncWrapper";
+import { ToastProvider } from "./ToastProvider";
 
 const AppProvidersBase: React.FC<{ children: React.ReactNode }> = ({
  children,
@@ -14,7 +15,10 @@ const AppProvidersBase: React.FC<{ children: React.ReactNode }> = ({
    <PaletteProvider>
     <LanguageProvider>
      <PaletteSyncWrapper>
-      <BannerColorSyncWrapper>{children}</BannerColorSyncWrapper>
+      <BannerColorSyncWrapper>
+       {children}
+       <ToastProvider />
+      </BannerColorSyncWrapper>
      </PaletteSyncWrapper>
     </LanguageProvider>
    </PaletteProvider>

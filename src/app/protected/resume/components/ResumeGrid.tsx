@@ -1,13 +1,3 @@
-/**
- * ResumeGrid - Single Responsibility
- *
- * Responsabilidade ÚNICA:
- * - Layout em grid de 2 colunas (responsivo)
- * - Organização das seções do currículo
- *
- * Uncle Bob: "Classes should be small"
- */
-
 "use client";
 
 import React from "react";

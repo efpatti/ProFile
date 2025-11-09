@@ -10,12 +10,12 @@ import { useAuth } from "@/core/services/AuthProvider";
 const PALETTE_OPTIONS = (Object.keys(paletteTokens) as PaletteName[]).map(
  (key) => {
   const palette = paletteTokens[key];
-  const colorsArr = palette.colors;
+  const colorsArr = palette?.colors || [];
   const accentObj = colorsArr.find((c) =>
    Object.prototype.hasOwnProperty.call(c, "accent")
   );
   const accent = accentObj ? (accentObj as { accent: string }).accent : "#000";
-  const colorName = palette.colorName[0]["pt-br"] ?? key;
+  const colorName = palette?.colorName?.[0]?.["pt-br"] ?? key;
   return {
    value: key,
    label: colorName,
