@@ -242,30 +242,6 @@ export const ONBOARDING_STEPS: StepConfig[] = [
   required: false,
  },
  {
-  id: "projects",
-  title: "Projetos",
-  description: "Mostre seus trabalhos (opcional)",
-  required: false,
- },
- {
-  id: "certifications",
-  title: "Certificações",
-  description: "Suas certificações e cursos (opcional)",
-  required: false,
- },
- {
-  id: "awards",
-  title: "Prêmios e Reconhecimentos",
-  description: "Suas conquistas (opcional)",
-  required: false,
- },
- {
-  id: "interests",
-  title: "Interesses",
-  description: "O que você gosta de fazer? (opcional)",
-  required: false,
- },
- {
   id: "template",
   title: "Revise seu Currículo",
   description: "Visualize como ficou seu currículo profissional",
