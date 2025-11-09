@@ -2,25 +2,18 @@
 
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { experienceSchema, type Experience } from "@/types/onboarding";
+import { experiencesStepSchema, type ExperiencesStep, type Experience } from "@/types/onboarding";
 import { Trash2, Plus } from "lucide-react";
 
-const experiencesFormSchema = z.object({
- experiences: z.array(experienceSchema),
-});
-
-type ExperiencesForm = z.infer<typeof experiencesFormSchema>;
-
 interface ExperienceStepProps {
- initialData?: Experience[];
- onNext: (data: Experience[]) => void;
+ initialData?: Partial<ExperiencesStep>;
+ onNext: (data: ExperiencesStep) => void;
  onBack: () => void;
  onSkip: () => void;
 }
 
 export function ExperienceStep({
- initialData = [],
+ initialData,
  onNext,
  onBack,
  onSkip,
@@ -30,11 +23,15 @@ export function ExperienceStep({
   control,
   handleSubmit,
   watch,
+  setValue,
   formState: { errors, isSubmitting },
- } = useForm<ExperiencesForm>({
-  resolver: zodResolver(experiencesFormSchema),
+ } = useForm<ExperiencesStep>({
+  resolver: zodResolver(experiencesStepSchema),
   defaultValues: {
-   experiences: initialData.length > 0 ? initialData : [getEmptyExperience()],
+   experiences: initialData?.experiences && initialData.experiences.length > 0 
+    ? initialData.experiences 
+    : [getEmptyExperience()],
+   noExperience: initialData?.noExperience || false,
   },
  });
 
@@ -42,6 +39,12 @@ export function ExperienceStep({
   control,
   name: "experiences",
  });
+
+ const noExperience = watch("noExperience");
+
+ const handleNoExperienceChange = (checked: boolean) => {
+  setValue("noExperience", checked, { shouldValidate: true });
+ };
 
  const inputClass =
   "w-full px-4 py-3 rounded-lg border border-slate-700/70 bg-slate-900/70 text-slate-100 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:border-transparent transition";
@@ -55,27 +58,48 @@ export function ExperienceStep({
  const neutralButtonClass =
   "flex-1 px-6 py-3 border border-slate-700 text-slate-200 font-medium rounded-lg hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900";
 
- const onSubmit = (data: ExperiencesForm) => {
-  onNext(data.experiences);
+ const onSubmit = (data: ExperiencesStep) => {
+  onNext(data);
  };
 
  return (
   <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-slate-100">
    <div className="mb-4">
     <h3 className="text-lg font-semibold text-slate-100">
-     Experiência Profissional
+     Experiência Profissional <span className="text-slate-400">(opcional)</span>
     </h3>
     <p className="text-sm text-slate-300 mt-1">
-     Adicione suas experiências mais relevantes. Você pode pular esta etapa e
-     adicionar depois.
+     Adicione suas experiências mais relevantes. Você pode pular esta etapa e adicionar depois.
     </p>
    </div>
 
-   {fields.map((field, index) => {
-    const isCurrent = watch(`experiences.${index}.isCurrent`);
+   {/* No Experience Option */}
+   <div className="bg-slate-800/40 border border-slate-700 rounded-lg p-4">
+    <label className="flex items-start gap-3 cursor-pointer">
+     <input
+      type="checkbox"
+      checked={noExperience}
+      onChange={(e) => handleNoExperienceChange(e.target.checked)}
+      className="mt-1 h-5 w-5 rounded border-slate-600 bg-slate-900 text-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 transition"
+     />
+     <div>
+      <span className="text-slate-200 font-medium">
+       Ainda não tenho experiência profissional
+      </span>
+      <p className="text-sm text-slate-400 mt-1">
+       Sem problema! Você pode adicionar suas experiências mais tarde no seu perfil.
+      </p>
+     </div>
+    </label>
+   </div>
 
-    return (
-     <div key={field.id} className={cardClass}>
+   {!noExperience && (
+    <>
+     {fields.map((field, index) => {
+      const isCurrent = watch(`experiences.${index}.isCurrent`);
+
+      return (
+       <div key={field.id} className={cardClass}>
       {fields.length > 1 && (
        <button
         type="button"
@@ -208,14 +232,16 @@ export function ExperienceStep({
     );
    })}
 
-   <button
-    type="button"
-    onClick={() => append(getEmptyExperience())}
-    className="w-full px-4 py-3 border-2 border-dashed border-slate-600 text-slate-300 font-medium rounded-lg hover:border-indigo-500 hover:text-indigo-300 transition-colors flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
-   >
-    <Plus size={20} />
-    Adicionar Outra Experiência
-   </button>
+     <button
+      type="button"
+      onClick={() => append(getEmptyExperience())}
+      className="w-full px-4 py-3 border-2 border-dashed border-slate-600 text-slate-300 font-medium rounded-lg hover:border-indigo-500 hover:text-indigo-300 transition-colors flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+     >
+      <Plus size={20} />
+      Adicionar Outra Experiência
+     </button>
+    </>
+   )}
 
    <div className="flex gap-4">
     <button type="button" onClick={onBack} className={neutralButtonClass}>

@@ -2,25 +2,18 @@
 
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { educationSchema, type Education } from "@/types/onboarding";
+import { educationStepSchema, type EducationStep as EducationStepType, type Education } from "@/types/onboarding";
 import { Trash2, Plus } from "lucide-react";
 
-const educationFormSchema = z.object({
- education: z.array(educationSchema),
-});
-
-type EducationForm = z.infer<typeof educationFormSchema>;
-
 interface EducationStepProps {
- initialData?: Education[];
- onNext: (data: Education[]) => void;
+ initialData?: Partial<EducationStepType>;
+ onNext: (data: EducationStepType) => void;
  onBack: () => void;
  onSkip: () => void;
 }
 
 export function EducationStep({
- initialData = [],
+ initialData,
  onNext,
  onBack,
  onSkip,
@@ -30,11 +23,15 @@ export function EducationStep({
   control,
   handleSubmit,
   watch,
+  setValue,
   formState: { errors, isSubmitting },
- } = useForm<EducationForm>({
-  resolver: zodResolver(educationFormSchema),
+ } = useForm<EducationStepType>({
+  resolver: zodResolver(educationStepSchema),
   defaultValues: {
-   education: initialData.length > 0 ? initialData : [getEmptyEducation()],
+   education: initialData?.education && initialData.education.length > 0
+    ? initialData.education
+    : [getEmptyEducation()],
+   noEducation: initialData?.noEducation || false,
   },
  });
 
@@ -42,6 +39,12 @@ export function EducationStep({
   control,
   name: "education",
  });
+
+ const noEducation = watch("noEducation");
+
+ const handleNoEducationChange = (checked: boolean) => {
+  setValue("noEducation", checked, { shouldValidate: true });
+ };
 
  const inputClass =
   "w-full px-4 py-3 rounded-lg border border-slate-700/70 bg-slate-900/70 text-slate-100 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:border-transparent transition";
@@ -55,25 +58,48 @@ export function EducationStep({
  const neutralButtonClass =
   "flex-1 px-6 py-3 border border-slate-700 text-slate-200 font-medium rounded-lg hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900";
 
- const onSubmit = (data: EducationForm) => {
-  onNext(data.education);
+ const onSubmit = (data: EducationStepType) => {
+  onNext(data);
  };
 
  return (
   <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-slate-100">
    <div className="mb-4">
-    <h3 className="text-lg font-semibold text-slate-100">Formação Acadêmica</h3>
+    <h3 className="text-lg font-semibold text-slate-100">
+     Formação Acadêmica <span className="text-slate-400">(opcional)</span>
+    </h3>
     <p className="text-sm text-slate-300 mt-1">
-     Adicione sua formação acadêmica. Você pode pular esta etapa e adicionar
-     depois.
+     Adicione sua formação acadêmica. Você pode pular esta etapa e adicionar depois.
     </p>
    </div>
 
-   {fields.map((field, index) => {
-    const isCurrent = watch(`education.${index}.isCurrent`);
+   {/* No Education Option */}
+   <div className="bg-slate-800/40 border border-slate-700 rounded-lg p-4">
+    <label className="flex items-start gap-3 cursor-pointer">
+     <input
+      type="checkbox"
+      checked={noEducation}
+      onChange={(e) => handleNoEducationChange(e.target.checked)}
+      className="mt-1 h-5 w-5 rounded border-slate-600 bg-slate-900 text-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 transition"
+     />
+     <div>
+      <span className="text-slate-200 font-medium">
+       Não tenho formação acadêmica formal
+      </span>
+      <p className="text-sm text-slate-400 mt-1">
+       Sem problema! Você pode adicionar cursos e certificações mais tarde.
+      </p>
+     </div>
+    </label>
+   </div>
 
-    return (
-     <div key={field.id} className={cardClass}>
+   {!noEducation && (
+    <>
+     {fields.map((field, index) => {
+      const isCurrent = watch(`education.${index}.isCurrent`);
+
+      return (
+       <div key={field.id} className={cardClass}>
       {fields.length > 1 && (
        <button
         type="button"
@@ -203,14 +229,16 @@ export function EducationStep({
     );
    })}
 
-   <button
-    type="button"
-    onClick={() => append(getEmptyEducation())}
-    className="w-full px-4 py-3 border-2 border-dashed border-slate-600 text-slate-300 font-medium rounded-lg hover:border-indigo-500 hover:text-indigo-300 transition-colors flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
-   >
-    <Plus size={20} />
-    Adicionar Outra Formação
-   </button>
+     <button
+      type="button"
+      onClick={() => append(getEmptyEducation())}
+      className="w-full px-4 py-3 border-2 border-dashed border-slate-600 text-slate-300 font-medium rounded-lg hover:border-indigo-500 hover:text-indigo-300 transition-colors flex items-center justify-center gap-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900"
+     >
+      <Plus size={20} />
+      Adicionar Outra Formação
+     </button>
+    </>
+   )}
 
    <div className="flex gap-4">
     <button type="button" onClick={onBack} className={neutralButtonClass}>

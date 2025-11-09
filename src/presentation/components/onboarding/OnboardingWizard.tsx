@@ -7,23 +7,37 @@ import { ONBOARDING_STEPS, canSkipStep } from "@/types/onboarding";
 import type {
  PersonalInfo,
  ProfessionalProfile,
- Experience,
- Education,
+ SkillsStep,
+ ExperiencesStep,
+ EducationStep as EducationStepType,
+ Language,
+ Project,
+ Certification,
+ Award,
+ Interest,
  TemplateSelection,
  OnboardingData,
 } from "@/types/onboarding";
 
 import { PersonalInfoStep } from "./PersonalInfoStep";
 import { ProfessionalProfileStep } from "./ProfessionalProfileStep";
+import { SkillsStep as SkillsStepComponent } from "./SkillsStep";
 import { ExperienceStep } from "./ExperienceStep";
 import { EducationStep } from "./EducationStep";
+import { LanguagesStep } from "./LanguagesStep";
 import { TemplateSelectionStep } from "./TemplateSelectionStep";
 
 interface OnboardingState {
  personalInfo?: PersonalInfo;
  professionalProfile?: ProfessionalProfile;
- experiences?: Experience[];
- education?: Education[];
+ skillsStep?: SkillsStep;
+ experiencesStep?: ExperiencesStep;
+ educationStep?: EducationStepType;
+ languages?: Language[];
+ projects?: Project[];
+ certifications?: Certification[];
+ awards?: Award[];
+ interests?: Interest[];
  templateSelection?: TemplateSelection;
 }
 
@@ -46,13 +60,23 @@ export function OnboardingWizard() {
   setCurrentStep((prev) => prev + 1);
  };
 
- const handleExperienceNext = (data: Experience[]) => {
-  setOnboardingData((prev) => ({ ...prev, experiences: data }));
+ const handleSkillsNext = (data: SkillsStep) => {
+  setOnboardingData((prev) => ({ ...prev, skillsStep: data }));
   setCurrentStep((prev) => prev + 1);
  };
 
- const handleEducationNext = (data: Education[]) => {
-  setOnboardingData((prev) => ({ ...prev, education: data }));
+ const handleExperienceNext = (data: ExperiencesStep) => {
+  setOnboardingData((prev) => ({ ...prev, experiencesStep: data }));
+  setCurrentStep((prev) => prev + 1);
+ };
+
+ const handleEducationNext = (data: EducationStepType) => {
+  setOnboardingData((prev) => ({ ...prev, educationStep: data }));
+  setCurrentStep((prev) => prev + 1);
+ };
+
+ const handleLanguagesNext = (data: Language[]) => {
+  setOnboardingData((prev) => ({ ...prev, languages: data }));
   setCurrentStep((prev) => prev + 1);
  };
 
@@ -76,8 +100,10 @@ export function OnboardingWizard() {
   console.log("🟢 [ONBOARDING] Data to submit:", {
    personalInfo: finalData.personalInfo,
    professionalProfile: finalData.professionalProfile,
-   experiencesCount: finalData.experiences?.length || 0,
-   educationCount: finalData.education?.length || 0,
+   skillsStep: finalData.skillsStep,
+   experiencesCount: finalData.experiencesStep?.experiences?.length || 0,
+   educationCount: finalData.educationStep?.education?.length || 0,
+   languagesCount: finalData.languages?.length || 0,
    template: finalData.templateSelection?.template,
    palette: finalData.templateSelection?.palette,
   });
@@ -205,22 +231,37 @@ export function OnboardingWizard() {
         />
        )}
        {currentStep === 2 && (
+        <SkillsStepComponent
+         initialData={onboardingData.skillsStep}
+         onNext={handleSkillsNext}
+         onBack={handleBack}
+        />
+       )}
+       {currentStep === 3 && (
         <ExperienceStep
-         initialData={onboardingData.experiences}
+         initialData={onboardingData.experiencesStep}
          onNext={handleExperienceNext}
          onBack={handleBack}
          onSkip={handleSkip}
         />
        )}
-       {currentStep === 3 && (
+       {currentStep === 4 && (
         <EducationStep
-         initialData={onboardingData.education}
+         initialData={onboardingData.educationStep}
          onNext={handleEducationNext}
          onBack={handleBack}
          onSkip={handleSkip}
         />
        )}
-       {currentStep === 4 && (
+       {currentStep === 5 && (
+        <LanguagesStep
+         initialData={onboardingData.languages}
+         onNext={handleLanguagesNext}
+         onBack={handleBack}
+         onSkip={handleSkip}
+        />
+       )}
+       {currentStep === 10 && (
         <TemplateSelectionStep
          initialData={onboardingData.templateSelection}
          onNext={handleTemplateSelectionNext}
