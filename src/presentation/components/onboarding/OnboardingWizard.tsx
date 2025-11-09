@@ -261,7 +261,7 @@ export function OnboardingWizard() {
          onSkip={handleSkip}
         />
        )}
-       {currentStep === 10 && (
+       {currentStep === 6 && (
         <TemplateSelectionStep
          initialData={onboardingData.templateSelection}
          onNext={handleTemplateSelectionNext}
