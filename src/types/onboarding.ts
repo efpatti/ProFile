@@ -36,7 +36,7 @@ export const professionalProfileSchema = z.object({
 
 export type ProfessionalProfile = z.infer<typeof professionalProfileSchema>;
 
-// Step 3: Experience (OPTIONAL - min 1 recomendado)
+// Step 3: Experience (OPTIONAL - can have "No experience")
 export const experienceSchema = z.object({
  company: z.string().min(1, "Empresa é obrigatória"),
  position: z.string().min(1, "Cargo é obrigatório"),
@@ -55,7 +55,14 @@ export const experienceSchema = z.object({
 
 export type Experience = z.infer<typeof experienceSchema>;
 
-// Step 4: Education (OPTIONAL - min 1 recomendado)
+export const experiencesStepSchema = z.object({
+ experiences: z.array(experienceSchema).optional(),
+ noExperience: z.boolean().default(false),
+});
+
+export type ExperiencesStep = z.infer<typeof experiencesStepSchema>;
+
+// Step 4: Education (OPTIONAL - can have "No formal education")
 export const educationSchema = z.object({
  institution: z.string().min(1, "Instituição é obrigatória"),
  degree: z.string().min(1, "Grau é obrigatório"),
@@ -72,9 +79,96 @@ export const educationSchema = z.object({
 
 export type Education = z.infer<typeof educationSchema>;
 
-// Step 5: Template Selection (REQUIRED)
+export const educationStepSchema = z.object({
+ education: z.array(educationSchema).optional(),
+ noEducation: z.boolean().default(false),
+});
+
+export type EducationStep = z.infer<typeof educationStepSchema>;
+
+// Step 5: Skills (REQUIRED - but can select "No specific skills")
+export const skillSchema = z.object({
+ name: z.string().min(1, "Nome da habilidade é obrigatório"),
+ category: z.string().min(1, "Categoria é obrigatória"),
+ level: z.number().min(1).max(5).optional(),
+});
+
+export type Skill = z.infer<typeof skillSchema>;
+
+export const skillsStepSchema = z.object({
+ skills: z.array(skillSchema).min(0),
+ noSkills: z.boolean().default(false),
+});
+
+export type SkillsStep = z.infer<typeof skillsStepSchema>;
+
+// Step 6: Languages (OPTIONAL)
+export const languageSchema = z.object({
+ name: z.string().min(1, "Nome do idioma é obrigatório"),
+ level: z.enum(["básico", "intermediário", "avançado", "fluente", "nativo"]),
+});
+
+export type Language = z.infer<typeof languageSchema>;
+
+// Step 7: Projects (OPTIONAL)
+export const projectSchema = z.object({
+ name: z.string().min(1, "Nome do projeto é obrigatório"),
+ description: z.string().optional(),
+ url: z.string().url("URL inválida").optional().or(z.literal("")),
+ startDate: z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Data inicial inválida (use YYYY-MM-DD)")
+  .optional(),
+ endDate: z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Data final inválida (use YYYY-MM-DD)")
+  .optional(),
+ isCurrent: z.boolean().default(false),
+ technologies: z.array(z.string()).optional(),
+});
+
+export type Project = z.infer<typeof projectSchema>;
+
+// Step 8: Certifications (OPTIONAL)
+export const certificationSchema = z.object({
+ name: z.string().min(1, "Nome da certificação é obrigatório"),
+ issuer: z.string().min(1, "Emissor é obrigatório"),
+ issueDate: z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Data de emissão inválida (use YYYY-MM-DD)"),
+ expiryDate: z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Data de expiração inválida (use YYYY-MM-DD)")
+  .optional(),
+ credentialId: z.string().optional(),
+ credentialUrl: z.string().url("URL inválida").optional().or(z.literal("")),
+});
+
+export type Certification = z.infer<typeof certificationSchema>;
+
+// Step 9: Awards (OPTIONAL)
+export const awardSchema = z.object({
+ title: z.string().min(1, "Título do prêmio é obrigatório"),
+ issuer: z.string().min(1, "Emissor é obrigatório"),
+ date: z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Data inválida (use YYYY-MM-DD)"),
+ description: z.string().optional(),
+});
+
+export type Award = z.infer<typeof awardSchema>;
+
+// Step 10: Interests (OPTIONAL)
+export const interestSchema = z.object({
+ name: z.string().min(1, "Nome do interesse é obrigatório"),
+ description: z.string().optional(),
+});
+
+export type Interest = z.infer<typeof interestSchema>;
+
+// Step 11: Template Selection (REQUIRED - Professional only for onboarding)
 export const templateSelectionSchema = z.object({
- template: z.enum(["professional", "modern", "minimalist"]),
+ template: z.literal("professional"), // Only professional template in onboarding
  palette: z.string().min(1, "Selecione uma paleta de cores"),
 });
 
@@ -84,8 +178,14 @@ export type TemplateSelection = z.infer<typeof templateSelectionSchema>;
 export const onboardingDataSchema = z.object({
  personalInfo: personalInfoSchema,
  professionalProfile: professionalProfileSchema,
- experiences: z.array(experienceSchema).optional(),
- education: z.array(educationSchema).optional(),
+ skillsStep: skillsStepSchema,
+ experiencesStep: experiencesStepSchema.optional(),
+ educationStep: educationStepSchema.optional(),
+ languages: z.array(languageSchema).optional(),
+ projects: z.array(projectSchema).optional(),
+ certifications: z.array(certificationSchema).optional(),
+ awards: z.array(awardSchema).optional(),
+ interests: z.array(interestSchema).optional(),
  templateSelection: templateSelectionSchema,
 });
 
@@ -98,6 +198,7 @@ export interface StepConfig {
  description: string;
  required: boolean;
  minItems?: number; // Para arrays (experiences, education)
+ allowNoOption?: boolean; // Para permitir "Não tenho X"
 }
 
 export const ONBOARDING_STEPS: StepConfig[] = [
@@ -114,23 +215,36 @@ export const ONBOARDING_STEPS: StepConfig[] = [
   required: true,
  },
  {
+  id: "skills",
+  title: "Habilidades",
+  description: "Quais são suas competências?",
+  required: true,
+  allowNoOption: true, // Can select "Ainda desenvolvendo minhas habilidades"
+ },
+ {
   id: "experience",
-  title: "Experiência",
+  title: "Experiência Profissional",
   description: "Suas conquistas anteriores (opcional)",
   required: false,
-  minItems: 1, // Recomendado ter pelo menos 1
+  allowNoOption: true, // Can skip or say "No experience"
  },
  {
   id: "education",
-  title: "Formação",
-  description: "Sua jornada acadêmica (opcional)",
+  title: "Formação Acadêmica",
+  description: "Sua jornada de aprendizado (opcional)",
   required: false,
-  minItems: 1, // Recomendado ter pelo menos 1
+  allowNoOption: true, // Can skip or say "No formal education"
+ },
+ {
+  id: "languages",
+  title: "Idiomas",
+  description: "Quais idiomas você domina? (opcional)",
+  required: false,
  },
  {
   id: "template",
-  title: "Escolha seu Estilo",
-  description: "Qual design combina com você?",
+  title: "Revise seu Currículo",
+  description: "Visualize como ficou seu currículo profissional",
   required: true,
  },
 ];

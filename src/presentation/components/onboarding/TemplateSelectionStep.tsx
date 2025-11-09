@@ -150,13 +150,10 @@ export function TemplateSelectionStep({
  onNext,
  onBack,
 }: TemplateSelectionStepProps) {
- const [selectedTemplate, setSelectedTemplate] = useState(
-  initialData?.template || "professional"
- );
  const [selectedPalette, setSelectedPalette] = useState(
   initialData?.palette || "ocean"
  );
- const [showPreview, setShowPreview] = useState(false);
+ const [showPreview, setShowPreview] = useState(true); // Show preview by default
 
  const {
   handleSubmit,
@@ -165,111 +162,43 @@ export function TemplateSelectionStep({
  } = useForm<TemplateSelection>({
   resolver: zodResolver(templateSelectionSchema),
   defaultValues: {
-   template: initialData?.template || "professional",
+   template: "professional", // Always professional
    palette: initialData?.palette || "ocean",
   },
  });
 
- const handleTemplateSelect = (templateId: string) => {
-  setSelectedTemplate(templateId as TemplateSelection["template"]);
-  setValue("template", templateId as TemplateSelection["template"], {
-   shouldValidate: true,
-  });
- };
-
  const handlePaletteSelect = (paletteId: string) => {
   setSelectedPalette(paletteId);
   setValue("palette", paletteId, { shouldValidate: true });
+  setValue("template", "professional"); // Always set to professional
  };
 
- const currentTemplate = TEMPLATES.find((t) => t.id === selectedTemplate);
- const mockResume = createMockResume(selectedTemplate, selectedPalette);
+ // Always use professional template
+ const currentTemplate = TEMPLATES.find((t) => t.id === "professional");
+ const mockResume = createMockResume("professional", selectedPalette);
 
  return (
   <div className="space-y-8 text-slate-100">
-   {/* Preview Toggle */}
    <div className="flex justify-between items-center">
     <div>
-     <h2 className="text-2xl font-bold text-slate-100">Choose Your Style</h2>
+     <h2 className="text-2xl font-bold text-slate-100">Revise seu Currículo</h2>
      <p className="text-slate-300 mt-1">
-      Select a template and color palette for your resume
+      Visualize seu currículo profissional e escolha uma paleta de cores
      </p>
     </div>
-    <button
-     type="button"
-     onClick={() => setShowPreview(!showPreview)}
-     className="flex items-center gap-2 px-4 py-2 bg-indigo-600/20 text-indigo-300 rounded-lg hover:bg-indigo-600/30 border border-indigo-700 transition-colors"
-    >
-     <Sparkles size={18} />
-     {showPreview ? "Hide Preview" : "Show Preview"}
-    </button>
    </div>
 
    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-    {/* Left Column - Selection */}
+    {/* Left Column - Color Selection */}
     <form onSubmit={handleSubmit(onNext)} className="space-y-8">
-     {/* Template Selection */}
-     <div>
-      <h3 className="text-lg font-semibold text-slate-100 mb-2">
-       Template <span className="text-red-500">*</span>
+     {/* Info Card */}
+     <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-lg p-4">
+      <h3 className="text-sm font-semibold text-indigo-300 mb-1">
+       Template Profissional
       </h3>
-      <p className="text-sm text-slate-300 mb-4">
-       Choose the layout that best fits your professional style
+      <p className="text-xs text-slate-300">
+       Seu currículo está no formato profissional, otimizado para ATS (sistemas de rastreamento de candidatos) e recrutadores.
       </p>
-
-      <div className="space-y-3">
-       {TEMPLATES.map((template) => (
-        <motion.button
-         key={template.id}
-         type="button"
-         onClick={() => handleTemplateSelect(template.id)}
-         whileHover={{ scale: 1.02 }}
-         whileTap={{ scale: 0.98 }}
-         className={`
-          w-full p-4 border-2 rounded-xl text-left transition-all
-          ${
-           selectedTemplate === template.id
-            ? "border-indigo-500 bg-indigo-500/10 shadow-md"
-            : "border-slate-700 bg-slate-800/50 hover:border-slate-600 hover:shadow-sm"
-          }
-         `}
-        >
-         <div className="flex items-start justify-between">
-          <div className="flex-1">
-           <div className="flex items-center gap-2 mb-1">
-            <h4 className="font-bold text-slate-100">{template.name}</h4>
-            {template.metadata.recommended && (
-             <span className="px-2 py-0.5 bg-yellow-400/20 text-yellow-300 text-xs font-medium rounded border border-yellow-500/30">
-              ⭐ Recommended
-             </span>
-            )}
-           </div>
-           <p className="text-sm text-slate-300 mb-2">{template.description}</p>
-           <div className="flex flex-wrap gap-1">
-            {template.metadata.features.slice(0, 3).map((feature, idx) => (
-             <span
-              key={idx}
-              className="text-xs text-slate-300 bg-slate-800/80 px-2 py-1 rounded border border-slate-700"
-             >
-              {feature}
-             </span>
-            ))}
-           </div>
-          </div>
-
-          {selectedTemplate === template.id && (
-           <div className="ml-3 bg-indigo-600 text-white rounded-full p-1.5 flex-shrink-0">
-            <Check size={16} />
-           </div>
-          )}
-         </div>
-        </motion.button>
-       ))}
-      </div>
-
-      {errors.template && (
-       <p className="mt-2 text-sm text-red-400">{errors.template.message}</p>
-      )}
      </div>
 
      {/* Palette Selection */}

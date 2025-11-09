@@ -100,15 +100,35 @@ export async function POST(request: NextRequest) {
    return date;
   };
 
-  // 5. Save experiences (if any)
-  if (validatedData.experiences && validatedData.experiences.length > 0) {
+  // 5. Save skills (if any and not "noSkills")
+  if (validatedData.skillsStep && !validatedData.skillsStep.noSkills && validatedData.skillsStep.skills && validatedData.skillsStep.skills.length > 0) {
+   // Delete existing skills
+   await prisma.skill.deleteMany({
+    where: { resumeId: resume.id },
+   });
+
+   // Create new skills
+   await prisma.skill.createMany({
+    data: validatedData.skillsStep.skills.map((skill, index) => ({
+     resumeId: resume.id,
+     name: skill.name,
+     category: skill.category,
+     level: skill.level,
+     order: index,
+    })),
+   });
+   console.log(`[Onboarding] Created ${validatedData.skillsStep.skills.length} skills`);
+  }
+
+  // 6. Save experiences (if any and not "noExperience")
+  if (validatedData.experiencesStep && !validatedData.experiencesStep.noExperience && validatedData.experiencesStep.experiences && validatedData.experiencesStep.experiences.length > 0) {
    // Delete existing experiences
    await prisma.experience.deleteMany({
     where: { resumeId: resume.id },
    });
 
    // Filter and validate dates before creating
-   const validExperiences = validatedData.experiences
+   const validExperiences = validatedData.experiencesStep.experiences
     .map((exp) => {
      const startDate = toUTCDate(exp.startDate);
      const endDate = exp.isCurrent ? null : toUTCDate(exp.endDate);
@@ -141,12 +161,13 @@ export async function POST(request: NextRequest) {
    }
   }
 
-  if (validatedData.education && validatedData.education.length > 0) {
+  // 7. Save education (if any and not "noEducation")
+  if (validatedData.educationStep && !validatedData.educationStep.noEducation && validatedData.educationStep.education && validatedData.educationStep.education.length > 0) {
    await prisma.education.deleteMany({
     where: { resumeId: resume.id },
    });
 
-   const validEducation = validatedData.education
+   const validEducation = validatedData.educationStep.education
     .map((edu) => {
      const startDate = toUTCDate(edu.startDate);
      const endDate = edu.isCurrent ? null : toUTCDate(edu.endDate);
@@ -180,6 +201,23 @@ export async function POST(request: NextRequest) {
    }
   }
 
+  // 8. Save languages (if any)
+  if (validatedData.languages && validatedData.languages.length > 0) {
+   await prisma.language.deleteMany({
+    where: { resumeId: resume.id },
+   });
+
+   await prisma.language.createMany({
+    data: validatedData.languages.map((lang, index) => ({
+     resumeId: resume.id,
+     name: lang.name,
+     level: lang.level,
+     order: index,
+    })),
+   });
+   console.log(`[Onboarding] Created ${validatedData.languages.length} languages`);
+  }
+
   console.log("[ONBOARDING] Marking onboarding as complete...");
   await prisma.user.update({
    where: { id: user.id },
@@ -192,8 +230,10 @@ export async function POST(request: NextRequest) {
 
   console.log("[ONBOARDING] ✅ SUCCESS CHECKLIST:");
   console.log("  - Resume ID:", resume.id);
-  console.log("  - Experiences:", validatedData.experiences?.length || 0);
-  console.log("  - Education:", validatedData.education?.length || 0);
+  console.log("  - Skills:", validatedData.skillsStep?.skills?.length || 0);
+  console.log("  - Experiences:", validatedData.experiencesStep?.experiences?.length || 0);
+  console.log("  - Education:", validatedData.educationStep?.education?.length || 0);
+  console.log("  - Languages:", validatedData.languages?.length || 0);
   console.log("  - Template:", validatedData.templateSelection.template);
   console.log("  - Palette:", validatedData.templateSelection.palette);
   console.log("  - User onboarding flag:", true);
