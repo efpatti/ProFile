@@ -36,61 +36,68 @@ export async function POST(request: NextRequest) {
 
   console.log("[ONBOARDING] User found:", user.id);
 
-  // 4. Create or update Resume with onboarding data
-  // First, try to find existing resume
-  const existingResume = await prisma.resume.findFirst({
-   where: { userId: user.id },
+  // 🎯 FIX #2: Use upsert pattern to prevent duplicates
+  // Handle both OAuth users (may have existing resume) and new users
+  const resume = await prisma.resume.upsert({
+   where: {
+    // Use userId as unique constraint (assumes one resume per user for onboarding)
+    // If user can have multiple resumes, this should find the "main" one
+    id:
+     (await prisma.resume.findFirst({ where: { userId: user.id } }))?.id ||
+     "nonexistent",
+   },
+   update: {
+    // Update existing resume with onboarding data
+    fullName: validatedData.personalInfo.fullName,
+    emailContact: validatedData.personalInfo.email,
+    phone: validatedData.personalInfo.phone,
+    location: validatedData.personalInfo.location,
+    jobTitle: validatedData.professionalProfile.jobTitle,
+    summary: validatedData.professionalProfile.summary,
+    linkedin: validatedData.professionalProfile.linkedin,
+    github: validatedData.professionalProfile.github,
+    website: validatedData.professionalProfile.website,
+    template: validatedData.templateSelection.template,
+   },
+   create: {
+    // Create new resume
+    userId: user.id,
+    fullName: validatedData.personalInfo.fullName,
+    emailContact: validatedData.personalInfo.email,
+    phone: validatedData.personalInfo.phone,
+    location: validatedData.personalInfo.location,
+    jobTitle: validatedData.professionalProfile.jobTitle,
+    summary: validatedData.professionalProfile.summary,
+    linkedin: validatedData.professionalProfile.linkedin,
+    github: validatedData.professionalProfile.github,
+    website: validatedData.professionalProfile.website,
+    template: validatedData.templateSelection.template,
+   },
   });
 
-  const resume = existingResume
-   ? await prisma.resume.update({
-      where: { id: existingResume.id },
-      data: {
-       fullName: validatedData.personalInfo.fullName,
-       emailContact: validatedData.personalInfo.email,
-       phone: validatedData.personalInfo.phone,
-       location: validatedData.personalInfo.location,
-       jobTitle: validatedData.professionalProfile.jobTitle,
-       summary: validatedData.professionalProfile.summary,
-       linkedin: validatedData.professionalProfile.linkedin,
-       github: validatedData.professionalProfile.github,
-       website: validatedData.professionalProfile.website,
-       template: validatedData.templateSelection.template,
-      },
-     })
-   : await prisma.resume.create({
-      data: {
-       userId: user.id,
-       fullName: validatedData.personalInfo.fullName,
-       emailContact: validatedData.personalInfo.email,
-       phone: validatedData.personalInfo.phone,
-       location: validatedData.personalInfo.location,
-       jobTitle: validatedData.professionalProfile.jobTitle,
-       summary: validatedData.professionalProfile.summary,
-       linkedin: validatedData.professionalProfile.linkedin,
-       github: validatedData.professionalProfile.github,
-       website: validatedData.professionalProfile.website,
-       template: validatedData.templateSelection.template,
-      },
-     });
-
-  // Helper: robust UTC date parsing for YYYY-MM-DD and ISO strings
+  // 🎯 FIX #1: Robust UTC date parsing with validation
   const toUTCDate = (value: string | null | undefined): Date | null => {
-   if (!value) return null;
-   const s = String(value).trim();
-   // Remove any mistakenly prefixed timezone like "+02"
-   const cleaned = s.replace(/^\+\d{2}/, "");
-   // Handle plain date "YYYY-MM-DD" as UTC midnight
-   const m = cleaned.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-   if (m) {
-    const year = Number(m[1]);
-    const month = Number(m[2]) - 1; // 0-based
-    const day = Number(m[3]);
-    return new Date(Date.UTC(year, month, day, 0, 0, 0, 0));
+   if (!value?.trim()) return null;
+
+   // Strict YYYY-MM-DD validation
+   const dateMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+   if (!dateMatch) {
+    console.warn(`[Onboarding] ⚠️ Invalid date format: "${value}"`);
+    return null; // Fail gracefully
    }
-   // Otherwise, let Date parse (supports ISO with timezone)
-   const d = new Date(cleaned);
-   return isNaN(d.getTime()) ? null : d;
+
+   const [_, year, month, day] = dateMatch;
+   const date = new Date(Date.UTC(+year, +month - 1, +day));
+
+   // Validate the date is actually valid (no overflow like 2023-13-40)
+   if (isNaN(date.getTime())) {
+    console.warn(
+     `[Onboarding] ⚠️ Invalid date values: ${year}-${month}-${day}`
+    );
+    return null;
+   }
+
+   return date;
   };
 
   // 5. Save experiences (if any)
@@ -100,19 +107,38 @@ export async function POST(request: NextRequest) {
     where: { resumeId: resume.id },
    });
 
-   // Create new experiences
-   await prisma.experience.createMany({
-    data: validatedData.experiences.map((exp) => ({
-     resumeId: resume.id,
-     company: exp.company,
-     position: exp.position,
-     startDate: toUTCDate(exp.startDate)!,
-     endDate: exp.isCurrent ? null : toUTCDate(exp.endDate),
-     isCurrent: exp.isCurrent,
-     description: exp.description,
-     location: exp.location,
-    })),
-   });
+   // Filter and validate dates before creating
+   const validExperiences = validatedData.experiences
+    .map((exp) => {
+     const startDate = toUTCDate(exp.startDate);
+     const endDate = exp.isCurrent ? null : toUTCDate(exp.endDate);
+
+     if (!startDate) {
+      console.warn(
+       `[Onboarding] Skipping experience with invalid start date: ${exp.company}`
+      );
+      return null;
+     }
+
+     return {
+      resumeId: resume.id,
+      company: exp.company,
+      position: exp.position,
+      startDate,
+      endDate,
+      isCurrent: exp.isCurrent,
+      description: exp.description,
+      location: exp.location,
+     };
+    })
+    .filter(Boolean);
+
+   if (validExperiences.length > 0) {
+    await prisma.experience.createMany({
+     data: validExperiences as any,
+    });
+    console.log(`[Onboarding] Created ${validExperiences.length} experiences`);
+   }
   }
 
   // 6. Save education (if any)
@@ -122,18 +148,39 @@ export async function POST(request: NextRequest) {
     where: { resumeId: resume.id },
    });
 
-   // Create new education
-   await prisma.education.createMany({
-    data: validatedData.education.map((edu) => ({
-     resumeId: resume.id,
-     institution: edu.institution,
-     degree: edu.degree,
-     field: edu.field,
-     startDate: toUTCDate(edu.startDate)!,
-     endDate: edu.isCurrent ? null : toUTCDate(edu.endDate),
-     isCurrent: edu.isCurrent,
-    })),
-   });
+   // Filter and validate dates before creating
+   const validEducation = validatedData.education
+    .map((edu) => {
+     const startDate = toUTCDate(edu.startDate);
+     const endDate = edu.isCurrent ? null : toUTCDate(edu.endDate);
+
+     if (!startDate) {
+      console.warn(
+       `[Onboarding] Skipping education with invalid start date: ${edu.institution}`
+      );
+      return null;
+     }
+
+     return {
+      resumeId: resume.id,
+      institution: edu.institution,
+      degree: edu.degree,
+      field: edu.field,
+      startDate,
+      endDate,
+      isCurrent: edu.isCurrent,
+     };
+    })
+    .filter(Boolean);
+
+   if (validEducation.length > 0) {
+    await prisma.education.createMany({
+     data: validEducation as any,
+    });
+    console.log(
+     `[Onboarding] Created ${validEducation.length} education entries`
+    );
+   }
   }
 
   // 7. Mark onboarding as complete and save palette preference
@@ -146,7 +193,16 @@ export async function POST(request: NextRequest) {
     palette: validatedData.templateSelection.palette,
    },
   });
-  console.log("[ONBOARDING] ✅ Onboarding completed successfully!");
+
+  // 🎯 FIX: Success checklist for debugging
+  console.log("[ONBOARDING] ✅ SUCCESS CHECKLIST:");
+  console.log("  - Resume ID:", resume.id);
+  console.log("  - Experiences:", validatedData.experiences?.length || 0);
+  console.log("  - Education:", validatedData.education?.length || 0);
+  console.log("  - Template:", validatedData.templateSelection.template);
+  console.log("  - Palette:", validatedData.templateSelection.palette);
+  console.log("  - User onboarding flag:", true);
+  console.log("[ONBOARDING] ===== COMPLETE =====");
 
   return NextResponse.json({
    success: true,

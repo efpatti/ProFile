@@ -86,12 +86,41 @@ export async function middleware(request: NextRequest) {
 
  if (!hasCompletedOnboarding) {
   console.log("[MIDDLEWARE] ⛔ ONBOARDING INCOMPLETE → FORCING to /onboarding");
-  return NextResponse.redirect(new URL(ONBOARDING_ROUTE, request.url));
+
+  // 🎯 FIX #3: Escape hatch to prevent infinite loop
+  const attempts = parseInt(
+   request.cookies.get("onboarding_attempts")?.value || "0"
+  );
+
+  if (attempts >= 3) {
+   console.warn(
+    `[MIDDLEWARE] ⚠️ User stuck in onboarding loop (${attempts} attempts)`
+   );
+   // Clear attempts and allow access (user can manually retry later)
+   const response = NextResponse.next();
+   response.cookies.set("onboarding_attempts", "0", { maxAge: 0 });
+   // You could also redirect to /auth/onboarding-help or force logout
+   return response;
+  }
+
+  const response = NextResponse.redirect(
+   new URL(ONBOARDING_ROUTE, request.url)
+  );
+  response.cookies.set("onboarding_attempts", String(attempts + 1), {
+   maxAge: 3600, // 1 hour expiry
+   httpOnly: true,
+   sameSite: "lax",
+  });
+  return response;
  }
 
  // 7. All checks passed, allow access
  console.log("[MIDDLEWARE] ✅ AUTHORIZED → Allowing access");
- return NextResponse.next();
+
+ // Clear onboarding attempts on successful access
+ const response = NextResponse.next();
+ response.cookies.set("onboarding_attempts", "0", { maxAge: 0 });
+ return response;
 }
 
 export const config = {
