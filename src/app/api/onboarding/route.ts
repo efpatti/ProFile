@@ -101,7 +101,12 @@ export async function POST(request: NextRequest) {
   };
 
   // 5. Save skills (if any and not "noSkills")
-  if (validatedData.skillsStep && !validatedData.skillsStep.noSkills && validatedData.skillsStep.skills && validatedData.skillsStep.skills.length > 0) {
+  if (
+   validatedData.skillsStep &&
+   !validatedData.skillsStep.noSkills &&
+   validatedData.skillsStep.skills &&
+   validatedData.skillsStep.skills.length > 0
+  ) {
    // Delete existing skills
    await prisma.skill.deleteMany({
     where: { resumeId: resume.id },
@@ -117,11 +122,22 @@ export async function POST(request: NextRequest) {
      order: index,
     })),
    });
-   console.log(`[Onboarding] Created ${validatedData.skillsStep.skills.length} skills`);
+   console.log(
+    `[Onboarding] Created ${validatedData.skillsStep.skills.length} skills`
+   );
+  } else if (validatedData.skillsStep?.noSkills) {
+   console.log(
+    "[Onboarding] User selected 'noSkills' - skipping skills creation"
+   );
   }
 
   // 6. Save experiences (if any and not "noExperience")
-  if (validatedData.experiencesStep && !validatedData.experiencesStep.noExperience && validatedData.experiencesStep.experiences && validatedData.experiencesStep.experiences.length > 0) {
+  if (
+   validatedData.experiencesStep &&
+   !validatedData.experiencesStep.noExperience &&
+   validatedData.experiencesStep.experiences &&
+   validatedData.experiencesStep.experiences.length > 0
+  ) {
    // Delete existing experiences
    await prisma.experience.deleteMany({
     where: { resumeId: resume.id },
@@ -162,7 +178,12 @@ export async function POST(request: NextRequest) {
   }
 
   // 7. Save education (if any and not "noEducation")
-  if (validatedData.educationStep && !validatedData.educationStep.noEducation && validatedData.educationStep.education && validatedData.educationStep.education.length > 0) {
+  if (
+   validatedData.educationStep &&
+   !validatedData.educationStep.noEducation &&
+   validatedData.educationStep.education &&
+   validatedData.educationStep.education.length > 0
+  ) {
    await prisma.education.deleteMany({
     where: { resumeId: resume.id },
    });
@@ -215,7 +236,9 @@ export async function POST(request: NextRequest) {
      order: index,
     })),
    });
-   console.log(`[Onboarding] Created ${validatedData.languages.length} languages`);
+   console.log(
+    `[Onboarding] Created ${validatedData.languages.length} languages`
+   );
   }
 
   console.log("[ONBOARDING] Marking onboarding as complete...");
@@ -231,8 +254,14 @@ export async function POST(request: NextRequest) {
   console.log("[ONBOARDING] ✅ SUCCESS CHECKLIST:");
   console.log("  - Resume ID:", resume.id);
   console.log("  - Skills:", validatedData.skillsStep?.skills?.length || 0);
-  console.log("  - Experiences:", validatedData.experiencesStep?.experiences?.length || 0);
-  console.log("  - Education:", validatedData.educationStep?.education?.length || 0);
+  console.log(
+   "  - Experiences:",
+   validatedData.experiencesStep?.experiences?.length || 0
+  );
+  console.log(
+   "  - Education:",
+   validatedData.educationStep?.education?.length || 0
+  );
   console.log("  - Languages:", validatedData.languages?.length || 0);
   console.log("  - Template:", validatedData.templateSelection.template);
   console.log("  - Palette:", validatedData.templateSelection.palette);

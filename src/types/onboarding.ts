@@ -95,10 +95,30 @@ export const skillSchema = z.object({
 
 export type Skill = z.infer<typeof skillSchema>;
 
-export const skillsStepSchema = z.object({
- skills: z.array(skillSchema).min(0),
- noSkills: z.boolean().default(false),
-});
+export const skillsStepSchema = z
+ .object({
+  skills: z.array(skillSchema).optional().default([]),
+  noSkills: z.boolean().default(false),
+ })
+ .refine(
+  (data) => {
+   // If noSkills is true, no validation needed for skills
+   if (data.noSkills) {
+    return true;
+   }
+   // If noSkills is false, must have at least one valid skill with name
+   return (
+    data.skills &&
+    data.skills.length > 0 &&
+    data.skills.some((skill) => skill.name.trim().length > 0)
+   );
+  },
+  {
+   message:
+    "Adicione pelo menos uma habilidade ou marque 'Ainda estou desenvolvendo minhas habilidades'",
+   path: ["skills"],
+  }
+ );
 
 export type SkillsStep = z.infer<typeof skillsStepSchema>;
 

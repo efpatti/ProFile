@@ -41,6 +41,7 @@ export async function middleware(request: NextRequest) {
   pathname.startsWith("/api/user") || // permitir user preferences e settings
   pathname.startsWith("/api/resume") || // permitir resume operations
   pathname.startsWith("/api/export") || // permitir exports
+  pathname.startsWith("/api/refresh-session") || // permitir refresh de sessão
   pathname.includes(".") // arquivos estáticos
  ) {
   console.log("[MIDDLEWARE] Static/API route, allowing");
@@ -60,10 +61,12 @@ export async function middleware(request: NextRequest) {
  });
 
  console.log("[MIDDLEWARE] Token exists:", !!token);
+ console.log("[MIDDLEWARE] Token ID:", token?.id);
  console.log(
   "[MIDDLEWARE] Has completed onboarding:",
   token?.hasCompletedOnboarding
  );
+ console.log("[MIDDLEWARE] Token keys:", token ? Object.keys(token) : "N/A");
 
  // 4. If not authenticated → sign-in
  if (!token) {
@@ -76,7 +79,10 @@ export async function middleware(request: NextRequest) {
  // 5. If on onboarding route, always allow (authenticated users can access onboarding)
  if (pathname === ONBOARDING_ROUTE) {
   console.log("[MIDDLEWARE] ✅ Onboarding route, allowing");
-  return NextResponse.next();
+  // Clear attempts cookie when entering onboarding
+  const response = NextResponse.next();
+  response.cookies.set("onboarding_attempts", "0", { maxAge: 0 });
+  return response;
  }
 
  // 6. CRITICAL: If onboarding NOT completed → FORCE to onboarding

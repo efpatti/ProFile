@@ -2,7 +2,11 @@
 
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { skillsStepSchema, type SkillsStep, type Skill } from "@/types/onboarding";
+import {
+ skillsStepSchema,
+ type SkillsStep,
+ type Skill,
+} from "@/types/onboarding";
 import { Trash2, Plus } from "lucide-react";
 
 interface SkillsStepProps {
@@ -38,13 +42,15 @@ export function SkillsStep({ initialData, onNext, onBack }: SkillsStepProps) {
   handleSubmit,
   watch,
   setValue,
+  clearErrors,
   formState: { errors, isSubmitting },
  } = useForm<SkillsStep>({
   resolver: zodResolver(skillsStepSchema),
   defaultValues: {
-   skills: initialData?.skills && initialData.skills.length > 0 
-    ? initialData.skills 
-    : [getEmptySkill()],
+   skills:
+    initialData?.skills && initialData.skills.length > 0
+     ? initialData.skills
+     : [getEmptySkill()],
    noSkills: initialData?.noSkills || false,
   },
  });
@@ -58,8 +64,30 @@ export function SkillsStep({ initialData, onNext, onBack }: SkillsStepProps) {
 
  const handleNoSkillsChange = (checked: boolean) => {
   setValue("noSkills", checked, { shouldValidate: true });
-  if (checked && fields.length === 0) {
+
+  if (checked) {
+   // When "no skills" is checked, clear all skills and errors
+   // Remove in reverse order to avoid index shifting issues
+   const length = fields.length;
+   for (let i = length - 1; i >= 0; i--) {
+    remove(i);
+   }
+   clearErrors("skills");
+   clearErrors("noSkills");
+  } else if (fields.length === 0) {
+   // When unchecked and no skills exist, add an empty one
    append(getEmptySkill());
+  }
+ };
+
+ const onSubmit = (data: SkillsStep) => {
+  console.log("🔵 [SKILLS_STEP] Submitting data:", data);
+
+  // If noSkills is true, ensure skills array is empty
+  if (data.noSkills) {
+   onNext({ ...data, skills: [] });
+  } else {
+   onNext(data);
   }
  };
 
@@ -70,7 +98,7 @@ export function SkillsStep({ initialData, onNext, onBack }: SkillsStepProps) {
   "p-6 border border-slate-700/70 bg-slate-900/60 rounded-xl space-y-4 relative shadow-sm";
 
  return (
-  <form onSubmit={handleSubmit(onNext)} className="space-y-6 text-slate-100">
+  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 text-slate-100">
    <div className="mb-4">
     <h3 className="text-lg font-semibold text-slate-100">
      Habilidades <span className="text-red-500">*</span>
@@ -81,7 +109,13 @@ export function SkillsStep({ initialData, onNext, onBack }: SkillsStepProps) {
    </div>
 
    {/* No Skills Option */}
-   <div className="bg-slate-800/40 border border-slate-700 rounded-lg p-4">
+   <div
+    className={`border rounded-lg p-4 transition-all ${
+     noSkills
+      ? "bg-indigo-900/20 border-indigo-600/50 ring-2 ring-indigo-500/30"
+      : "bg-slate-800/40 border-slate-700"
+    }`}
+   >
     <label className="flex items-start gap-3 cursor-pointer">
      <input
       type="checkbox"
@@ -89,13 +123,26 @@ export function SkillsStep({ initialData, onNext, onBack }: SkillsStepProps) {
       onChange={(e) => handleNoSkillsChange(e.target.checked)}
       className="mt-1 h-5 w-5 rounded border-slate-600 bg-slate-900 text-indigo-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 transition"
      />
-     <div>
+     <div className="flex-1">
       <span className="text-slate-200 font-medium">
        Ainda estou desenvolvendo minhas habilidades
       </span>
       <p className="text-sm text-slate-400 mt-1">
-       Não tem problema! Você pode adicionar habilidades mais tarde no seu perfil.
+       Não tem problema! Você pode adicionar habilidades mais tarde no seu
+       perfil.
       </p>
+      {noSkills && (
+       <p className="text-xs text-indigo-400 mt-2 flex items-center gap-1">
+        <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+         <path
+          fillRule="evenodd"
+          d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+          clipRule="evenodd"
+         />
+        </svg>
+        Você pode prosseguir sem adicionar habilidades agora
+       </p>
+      )}
      </div>
     </label>
    </div>
