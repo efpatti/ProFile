@@ -56,39 +56,70 @@ export const authOptions: NextAuthOptions = {
  ],
  callbacks: {
   async jwt({ token, user, account, trigger }) {
+   console.log("[AUTH JWT] Callback triggered:", {
+    trigger,
+    userId: token.id || user?.id,
+    currentHasCompletedOnboarding: token.hasCompletedOnboarding,
+   });
+
+   // Fresh login - always fetch from DB
    if (user) {
     token.id = user.id;
 
-    // Fetch user data including onboarding status
     const userData = await prisma.user.findUnique({
      where: { id: user.id },
      select: { hasCompletedOnboarding: true },
     });
 
     token.hasCompletedOnboarding = userData?.hasCompletedOnboarding ?? false;
+    console.log(
+     "[AUTH JWT] Fresh login - hasCompletedOnboarding:",
+     token.hasCompletedOnboarding
+    );
    }
-
-   // Refresh onboarding status on token refresh
-   if (trigger === "update" && token.id) {
+   // Session update requested or token doesn't have the status - fetch from DB
+   else if (
+    trigger === "update" ||
+    token.hasCompletedOnboarding === undefined
+   ) {
+    console.log("[AUTH JWT] Refreshing onboarding status for user:", token.id);
     const userData = await prisma.user.findUnique({
      where: { id: token.id as string },
      select: { hasCompletedOnboarding: true },
     });
 
-    token.hasCompletedOnboarding = userData?.hasCompletedOnboarding ?? false;
+    const newStatus = userData?.hasCompletedOnboarding ?? false;
+    console.log("[AUTH JWT] Updated hasCompletedOnboarding:", newStatus);
+    token.hasCompletedOnboarding = newStatus;
    }
 
    if (account) {
     token.accessToken = account.access_token;
    }
+
+   console.log("[AUTH JWT] Final token state:", {
+    hasCompletedOnboarding: token.hasCompletedOnboarding,
+   });
+
    return token;
   },
   async session({ session, token }) {
+   console.log("[AUTH SESSION] Building session:", {
+    userId: token.id,
+    hasCompletedOnboarding: token.hasCompletedOnboarding,
+   });
+
    if (session.user) {
     session.user.id = token.id as string;
     session.user.hasCompletedOnboarding =
      token.hasCompletedOnboarding as boolean;
    }
+
+   console.log("[AUTH SESSION] Final session:", {
+    userId: session.user?.id,
+    hasCompletedOnboarding: session.user?.hasCompletedOnboarding,
+   });
+
    return session;
   },
  },

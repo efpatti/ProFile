@@ -2,6 +2,7 @@
 
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useSession } from "next-auth/react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ONBOARDING_STEPS, canSkipStep } from "@/types/onboarding";
 import type {
@@ -47,6 +48,7 @@ export function OnboardingWizard() {
  const [isSubmitting, setIsSubmitting] = useState(false);
  const [error, setError] = useState<string | null>(null);
  const router = useRouter();
+ const { update: updateSession } = useSession();
 
  const currentStepConfig = ONBOARDING_STEPS[currentStep];
 
@@ -147,9 +149,60 @@ export function OnboardingWizard() {
 
    const data = await response.json();
    console.log("🟢 [ONBOARDING] Success response:", data);
-   console.log("🟢 [ONBOARDING] Redirecting to /protected/resume...");
 
-   router.push("/protected/resume");
+   // 🎯 CRITICAL FIX: Force NextAuth session/token refresh with retry mechanism
+   console.log("🟢 [ONBOARDING] Updating NextAuth session...");
+
+   let sessionUpdated = false;
+   let retries = 0;
+   const maxRetries = 3;
+
+   while (!sessionUpdated && retries < maxRetries) {
+    try {
+     retries++;
+     console.log(
+      `🟢 [ONBOARDING] Session update attempt ${retries}/${maxRetries}`
+     );
+
+     // Trigger NextAuth to re-fetch and update the JWT token
+     await updateSession();
+
+     // Wait a bit for the update to propagate
+     await new Promise((resolve) => setTimeout(resolve, 800));
+
+     // Verify the session was updated by checking with the API
+     const verifyResponse = await fetch("/api/auth/session");
+     const sessionData = await verifyResponse.json();
+
+     console.log("� [ONBOARDING] Session verification:", sessionData);
+
+     if (sessionData?.user?.hasCompletedOnboarding) {
+      sessionUpdated = true;
+      console.log("🟢 [ONBOARDING] ✅ Session update confirmed!");
+     } else {
+      console.log(
+       `🟡 [ONBOARDING] Session not yet updated, retry ${retries}/${maxRetries}`
+      );
+      await new Promise((resolve) => setTimeout(resolve, 500));
+     }
+    } catch (updateErr) {
+     console.warn(
+      `🟡 [ONBOARDING] Session update attempt ${retries} failed:`,
+      updateErr
+     );
+     if (retries >= maxRetries) {
+      console.error(
+       "🔴 [ONBOARDING] All session update attempts failed, proceeding anyway"
+      );
+     }
+    }
+   }
+
+   // Use window.location for hard redirect to ensure middleware gets fresh token
+   console.log(
+    "🟢 [ONBOARDING] Performing hard redirect to /protected/resume..."
+   );
+   window.location.href = "/protected/resume";
   } catch (err) {
    console.error("🔴 [ONBOARDING] Catch error:", err);
    setError(err instanceof Error ? err.message : "Erro desconhecido");

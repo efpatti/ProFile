@@ -2,7 +2,11 @@
 
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { experiencesStepSchema, type ExperiencesStep, type Experience } from "@/types/onboarding";
+import {
+ experiencesStepSchema,
+ type ExperiencesStep,
+ type Experience,
+} from "@/types/onboarding";
 import { Trash2, Plus } from "lucide-react";
 
 interface ExperienceStepProps {
@@ -24,13 +28,15 @@ export function ExperienceStep({
   handleSubmit,
   watch,
   setValue,
+  clearErrors,
   formState: { errors, isSubmitting },
  } = useForm<ExperiencesStep>({
   resolver: zodResolver(experiencesStepSchema),
   defaultValues: {
-   experiences: initialData?.experiences && initialData.experiences.length > 0 
-    ? initialData.experiences 
-    : [getEmptyExperience()],
+   experiences:
+    initialData?.experiences && initialData.experiences.length > 0
+     ? initialData.experiences
+     : [getEmptyExperience()],
    noExperience: initialData?.noExperience || false,
   },
  });
@@ -44,8 +50,21 @@ export function ExperienceStep({
 
  const handleNoExperienceChange = (checked: boolean) => {
   setValue("noExperience", checked, { shouldValidate: true });
- };
 
+  if (checked) {
+   // Clear all experiences and errors when "no experience" is selected
+   // Remove in reverse order to avoid index shifting issues
+   const length = fields.length;
+   for (let i = length - 1; i >= 0; i--) {
+    remove(i);
+   }
+   clearErrors("experiences");
+   clearErrors("noExperience");
+  } else if (fields.length === 0) {
+   // Add empty experience when unchecking
+   append(getEmptyExperience());
+  }
+ };
  const inputClass =
   "w-full px-4 py-3 rounded-lg border border-slate-700/70 bg-slate-900/70 text-slate-100 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:border-transparent transition";
  const textAreaClass =
@@ -59,7 +78,14 @@ export function ExperienceStep({
   "flex-1 px-6 py-3 border border-slate-700 text-slate-200 font-medium rounded-lg hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900";
 
  const onSubmit = (data: ExperiencesStep) => {
-  onNext(data);
+  console.log("🔵 [EXPERIENCE_STEP] Submitting data:", data);
+
+  // If noExperience is true, ensure experiences array is empty
+  if (data.noExperience) {
+   onNext({ ...data, experiences: [] });
+  } else {
+   onNext(data);
+  }
  };
 
  return (
@@ -69,7 +95,8 @@ export function ExperienceStep({
      Experiência Profissional <span className="text-slate-400">(opcional)</span>
     </h3>
     <p className="text-sm text-slate-300 mt-1">
-     Adicione suas experiências mais relevantes. Você pode pular esta etapa e adicionar depois.
+     Adicione suas experiências mais relevantes. Você pode pular esta etapa e
+     adicionar depois.
     </p>
    </div>
 
@@ -87,7 +114,8 @@ export function ExperienceStep({
        Ainda não tenho experiência profissional
       </span>
       <p className="text-sm text-slate-400 mt-1">
-       Sem problema! Você pode adicionar suas experiências mais tarde no seu perfil.
+       Sem problema! Você pode adicionar suas experiências mais tarde no seu
+       perfil.
       </p>
      </div>
     </label>
@@ -100,137 +128,149 @@ export function ExperienceStep({
 
       return (
        <div key={field.id} className={cardClass}>
-      {fields.length > 1 && (
-       <button
-        type="button"
-        onClick={() => remove(index)}
-        className="absolute top-4 right-4 text-rose-400 hover:text-rose-300 transition-colors"
-        aria-label="Remover experiência"
-       >
-        <Trash2 size={20} />
-       </button>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-       <div>
-        <label htmlFor={`experiences.${index}.company`} className={labelClass}>
-         Empresa <span className="text-red-500">*</span>
-        </label>
-        <input
-         id={`experiences.${index}.company`}
-         type="text"
-         {...register(`experiences.${index}.company`)}
-         className={inputClass}
-         placeholder="Nome da Empresa"
-        />
-        {errors.experiences?.[index]?.company && (
-         <p className="mt-1 text-sm text-red-400">
-          {errors.experiences[index]?.company?.message}
-         </p>
+        {fields.length > 1 && (
+         <button
+          type="button"
+          onClick={() => remove(index)}
+          className="absolute top-4 right-4 text-rose-400 hover:text-rose-300 transition-colors"
+          aria-label="Remover experiência"
+         >
+          <Trash2 size={20} />
+         </button>
         )}
-       </div>
 
-       <div>
-        <label htmlFor={`experiences.${index}.position`} className={labelClass}>
-         Cargo <span className="text-red-500">*</span>
-        </label>
-        <input
-         id={`experiences.${index}.position`}
-         type="text"
-         {...register(`experiences.${index}.position`)}
-         className={inputClass}
-         placeholder="Senior Developer"
-        />
-        {errors.experiences?.[index]?.position && (
-         <p className="mt-1 text-sm text-red-400">
-          {errors.experiences[index]?.position?.message}
-         </p>
-        )}
-       </div>
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+         <div>
+          <label
+           htmlFor={`experiences.${index}.company`}
+           className={labelClass}
+          >
+           Empresa <span className="text-red-500">*</span>
+          </label>
+          <input
+           id={`experiences.${index}.company`}
+           type="text"
+           {...register(`experiences.${index}.company`)}
+           className={inputClass}
+           placeholder="Nome da Empresa"
+          />
+          {errors.experiences?.[index]?.company && (
+           <p className="mt-1 text-sm text-red-400">
+            {errors.experiences[index]?.company?.message}
+           </p>
+          )}
+         </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-       <div>
-        <label
-         htmlFor={`experiences.${index}.startDate`}
-         className={labelClass}
-        >
-         Data Início <span className="text-red-500">*</span>
-        </label>
-        <input
-         id={`experiences.${index}.startDate`}
-         type="date"
-         {...register(`experiences.${index}.startDate`)}
-         className={inputClass}
-        />
-        {errors.experiences?.[index]?.startDate && (
-         <p className="mt-1 text-sm text-red-400">
-          {errors.experiences[index]?.startDate?.message}
-         </p>
-        )}
-       </div>
+         <div>
+          <label
+           htmlFor={`experiences.${index}.position`}
+           className={labelClass}
+          >
+           Cargo <span className="text-red-500">*</span>
+          </label>
+          <input
+           id={`experiences.${index}.position`}
+           type="text"
+           {...register(`experiences.${index}.position`)}
+           className={inputClass}
+           placeholder="Senior Developer"
+          />
+          {errors.experiences?.[index]?.position && (
+           <p className="mt-1 text-sm text-red-400">
+            {errors.experiences[index]?.position?.message}
+           </p>
+          )}
+         </div>
+        </div>
 
-       <div>
-        <label htmlFor={`experiences.${index}.endDate`} className={labelClass}>
-         Data Fim {isCurrent && "(Atual)"}
-        </label>
-        <input
-         id={`experiences.${index}.endDate`}
-         type="date"
-         {...register(`experiences.${index}.endDate`)}
-         disabled={isCurrent}
-         className={`${inputClass} disabled:bg-slate-800/60 disabled:text-slate-500 disabled:cursor-not-allowed`}
-        />
-        {errors.experiences?.[index]?.endDate && (
-         <p className="mt-1 text-sm text-red-400">
-          {errors.experiences[index]?.endDate?.message}
-         </p>
-        )}
-       </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+         <div>
+          <label
+           htmlFor={`experiences.${index}.startDate`}
+           className={labelClass}
+          >
+           Data Início <span className="text-red-500">*</span>
+          </label>
+          <input
+           id={`experiences.${index}.startDate`}
+           type="date"
+           {...register(`experiences.${index}.startDate`)}
+           className={inputClass}
+          />
+          {errors.experiences?.[index]?.startDate && (
+           <p className="mt-1 text-sm text-red-400">
+            {errors.experiences[index]?.startDate?.message}
+           </p>
+          )}
+         </div>
 
-       <div className="flex items-center pt-8">
-        <label className="flex items-center space-x-2 cursor-pointer text-slate-200">
+         <div>
+          <label
+           htmlFor={`experiences.${index}.endDate`}
+           className={labelClass}
+          >
+           Data Fim {isCurrent && "(Atual)"}
+          </label>
+          <input
+           id={`experiences.${index}.endDate`}
+           type="date"
+           {...register(`experiences.${index}.endDate`)}
+           disabled={isCurrent}
+           className={`${inputClass} disabled:bg-slate-800/60 disabled:text-slate-500 disabled:cursor-not-allowed`}
+          />
+          {errors.experiences?.[index]?.endDate && (
+           <p className="mt-1 text-sm text-red-400">
+            {errors.experiences[index]?.endDate?.message}
+           </p>
+          )}
+         </div>
+
+         <div className="flex items-center pt-8">
+          <label className="flex items-center space-x-2 cursor-pointer text-slate-200">
+           <input
+            type="checkbox"
+            {...register(`experiences.${index}.isCurrent`)}
+            className={checkboxClass}
+           />
+           <span className="text-sm">Trabalho atual</span>
+          </label>
+         </div>
+        </div>
+
+        <div>
+         <label
+          htmlFor={`experiences.${index}.location`}
+          className={labelClass}
+         >
+          Localização <span className="text-slate-400">(opcional)</span>
+         </label>
          <input
-          type="checkbox"
-          {...register(`experiences.${index}.isCurrent`)}
-          className={checkboxClass}
+          id={`experiences.${index}.location`}
+          type="text"
+          {...register(`experiences.${index}.location`)}
+          className={inputClass}
+          placeholder="São Paulo, SP"
          />
-         <span className="text-sm">Trabalho atual</span>
-        </label>
+        </div>
+
+        <div>
+         <label
+          htmlFor={`experiences.${index}.description`}
+          className={labelClass}
+         >
+          Descrição <span className="text-slate-400">(opcional)</span>
+         </label>
+         <textarea
+          id={`experiences.${index}.description`}
+          rows={3}
+          {...register(`experiences.${index}.description`)}
+          className={textAreaClass}
+          placeholder="Suas responsabilidades e conquistas..."
+         />
+        </div>
        </div>
-      </div>
-
-      <div>
-       <label htmlFor={`experiences.${index}.location`} className={labelClass}>
-        Localização <span className="text-slate-400">(opcional)</span>
-       </label>
-       <input
-        id={`experiences.${index}.location`}
-        type="text"
-        {...register(`experiences.${index}.location`)}
-        className={inputClass}
-        placeholder="São Paulo, SP"
-       />
-      </div>
-
-      <div>
-       <label
-        htmlFor={`experiences.${index}.description`}
-        className={labelClass}
-       >
-        Descrição <span className="text-slate-400">(opcional)</span>
-       </label>
-       <textarea
-        id={`experiences.${index}.description`}
-        rows={3}
-        {...register(`experiences.${index}.description`)}
-        className={textAreaClass}
-        placeholder="Suas responsabilidades e conquistas..."
-       />
-      </div>
-     </div>
-    );
-   })}
+      );
+     })}
 
      <button
       type="button"

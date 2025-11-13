@@ -2,7 +2,11 @@
 
 import { useFieldArray, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { educationStepSchema, type EducationStep as EducationStepType, type Education } from "@/types/onboarding";
+import {
+ educationStepSchema,
+ type EducationStep as EducationStepType,
+ type Education,
+} from "@/types/onboarding";
 import { Trash2, Plus } from "lucide-react";
 
 interface EducationStepProps {
@@ -24,13 +28,15 @@ export function EducationStep({
   handleSubmit,
   watch,
   setValue,
+  clearErrors,
   formState: { errors, isSubmitting },
  } = useForm<EducationStepType>({
   resolver: zodResolver(educationStepSchema),
   defaultValues: {
-   education: initialData?.education && initialData.education.length > 0
-    ? initialData.education
-    : [getEmptyEducation()],
+   education:
+    initialData?.education && initialData.education.length > 0
+     ? initialData.education
+     : [getEmptyEducation()],
    noEducation: initialData?.noEducation || false,
   },
  });
@@ -44,8 +50,21 @@ export function EducationStep({
 
  const handleNoEducationChange = (checked: boolean) => {
   setValue("noEducation", checked, { shouldValidate: true });
- };
 
+  if (checked) {
+   // Clear all education entries and errors when "no education" is selected
+   // Remove in reverse order to avoid index shifting issues
+   const length = fields.length;
+   for (let i = length - 1; i >= 0; i--) {
+    remove(i);
+   }
+   clearErrors("education");
+   clearErrors("noEducation");
+  } else if (fields.length === 0) {
+   // Add empty education when unchecking
+   append(getEmptyEducation());
+  }
+ };
  const inputClass =
   "w-full px-4 py-3 rounded-lg border border-slate-700/70 bg-slate-900/70 text-slate-100 placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900 focus-visible:border-transparent transition";
  const selectClass =
@@ -59,7 +78,14 @@ export function EducationStep({
   "flex-1 px-6 py-3 border border-slate-700 text-slate-200 font-medium rounded-lg hover:bg-slate-800 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-2 focus-visible:ring-offset-slate-900";
 
  const onSubmit = (data: EducationStepType) => {
-  onNext(data);
+  console.log("🔵 [EDUCATION_STEP] Submitting data:", data);
+
+  // If noEducation is true, ensure education array is empty
+  if (data.noEducation) {
+   onNext({ ...data, education: [] });
+  } else {
+   onNext(data);
+  }
  };
 
  return (
@@ -69,7 +95,8 @@ export function EducationStep({
      Formação Acadêmica <span className="text-slate-400">(opcional)</span>
     </h3>
     <p className="text-sm text-slate-300 mt-1">
-     Adicione sua formação acadêmica. Você pode pular esta etapa e adicionar depois.
+     Adicione sua formação acadêmica. Você pode pular esta etapa e adicionar
+     depois.
     </p>
    </div>
 
@@ -100,134 +127,137 @@ export function EducationStep({
 
       return (
        <div key={field.id} className={cardClass}>
-      {fields.length > 1 && (
-       <button
-        type="button"
-        onClick={() => remove(index)}
-        className="absolute top-4 right-4 text-rose-400 hover:text-rose-300 transition-colors"
-        aria-label="Remover formação"
-       >
-        <Trash2 size={20} />
-       </button>
-      )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-       <div>
-        <label
-         htmlFor={`education.${index}.institution`}
-         className={labelClass}
-        >
-         Instituição <span className="text-red-500">*</span>
-        </label>
-        <input
-         id={`education.${index}.institution`}
-         type="text"
-         {...register(`education.${index}.institution`)}
-         className={inputClass}
-         placeholder="Universidade de São Paulo"
-        />
-        {errors.education?.[index]?.institution && (
-         <p className="mt-1 text-sm text-red-400">
-          {errors.education[index]?.institution?.message}
-         </p>
+        {fields.length > 1 && (
+         <button
+          type="button"
+          onClick={() => remove(index)}
+          className="absolute top-4 right-4 text-rose-400 hover:text-rose-300 transition-colors"
+          aria-label="Remover formação"
+         >
+          <Trash2 size={20} />
+         </button>
         )}
-       </div>
 
-       <div>
-        <label htmlFor={`education.${index}.degree`} className={labelClass}>
-         Grau <span className="text-red-500">*</span>
-        </label>
-        <select
-         id={`education.${index}.degree`}
-         {...register(`education.${index}.degree`)}
-         className={selectClass}
-        >
-         <option value="">Selecione...</option>
-         <option value="Bacharelado">Bacharelado</option>
-         <option value="Licenciatura">Licenciatura</option>
-         <option value="Tecnólogo">Tecnólogo</option>
-         <option value="Mestrado">Mestrado</option>
-         <option value="Doutorado">Doutorado</option>
-         <option value="Pós-Doutorado">Pós-Doutorado</option>
-         <option value="MBA">MBA</option>
-         <option value="Especialização">Especialização</option>
-        </select>
-        {errors.education?.[index]?.degree && (
-         <p className="mt-1 text-sm text-red-400">
-          {errors.education[index]?.degree?.message}
-         </p>
-        )}
-       </div>
-      </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+         <div>
+          <label
+           htmlFor={`education.${index}.institution`}
+           className={labelClass}
+          >
+           Instituição <span className="text-red-500">*</span>
+          </label>
+          <input
+           id={`education.${index}.institution`}
+           type="text"
+           {...register(`education.${index}.institution`)}
+           className={inputClass}
+           placeholder="Universidade de São Paulo"
+          />
+          {errors.education?.[index]?.institution && (
+           <p className="mt-1 text-sm text-red-400">
+            {errors.education[index]?.institution?.message}
+           </p>
+          )}
+         </div>
 
-      <div>
-       <label htmlFor={`education.${index}.field`} className={labelClass}>
-        Área de Estudo <span className="text-red-500">*</span>
-       </label>
-       <input
-        id={`education.${index}.field`}
-        type="text"
-        {...register(`education.${index}.field`)}
-        className={inputClass}
-        placeholder="Ciência da Computação"
-       />
-       {errors.education?.[index]?.field && (
-        <p className="mt-1 text-sm text-red-400">
-         {errors.education[index]?.field?.message}
-        </p>
-       )}
-      </div>
+         <div>
+          <label htmlFor={`education.${index}.degree`} className={labelClass}>
+           Grau <span className="text-red-500">*</span>
+          </label>
+          <select
+           id={`education.${index}.degree`}
+           {...register(`education.${index}.degree`)}
+           className={selectClass}
+          >
+           <option value="">Selecione...</option>
+           <option value="Bacharelado">Bacharelado</option>
+           <option value="Licenciatura">Licenciatura</option>
+           <option value="Tecnólogo">Tecnólogo</option>
+           <option value="Mestrado">Mestrado</option>
+           <option value="Doutorado">Doutorado</option>
+           <option value="Pós-Doutorado">Pós-Doutorado</option>
+           <option value="MBA">MBA</option>
+           <option value="Especialização">Especialização</option>
+          </select>
+          {errors.education?.[index]?.degree && (
+           <p className="mt-1 text-sm text-red-400">
+            {errors.education[index]?.degree?.message}
+           </p>
+          )}
+         </div>
+        </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-       <div>
-        <label htmlFor={`education.${index}.startDate`} className={labelClass}>
-         Data Início <span className="text-red-500">*</span>
-        </label>
-        <input
-         id={`education.${index}.startDate`}
-         type="date"
-         {...register(`education.${index}.startDate`)}
-         className={inputClass}
-        />
-        {errors.education?.[index]?.startDate && (
-         <p className="mt-1 text-sm text-red-400">
-          {errors.education[index]?.startDate?.message}
-         </p>
-        )}
-       </div>
-
-       <div>
-        <label htmlFor={`education.${index}.endDate`} className={labelClass}>
-         Data Conclusão {isCurrent && "(Em andamento)"}
-        </label>
-        <input
-         id={`education.${index}.endDate`}
-         type="date"
-         {...register(`education.${index}.endDate`)}
-         disabled={isCurrent}
-         className={`${inputClass} disabled:bg-slate-800/60 disabled:text-slate-500 disabled:border-slate-700/60 disabled:cursor-not-allowed`}
-        />
-        {errors.education?.[index]?.endDate && (
-         <p className="mt-1 text-sm text-red-400">
-          {errors.education[index]?.endDate?.message}
-         </p>
-        )}
-       </div>
-
-       <div className="flex items-center pt-8">
-        <label className="flex items-center space-x-2 cursor-pointer">
+        <div>
+         <label htmlFor={`education.${index}.field`} className={labelClass}>
+          Área de Estudo <span className="text-red-500">*</span>
+         </label>
          <input
-          type="checkbox"
-          {...register(`education.${index}.isCurrent`)}
-          className={checkboxClass}
+          id={`education.${index}.field`}
+          type="text"
+          {...register(`education.${index}.field`)}
+          className={inputClass}
+          placeholder="Ciência da Computação"
          />
-         <span className="text-sm text-slate-300">Em andamento</span>
-        </label>
+         {errors.education?.[index]?.field && (
+          <p className="mt-1 text-sm text-red-400">
+           {errors.education[index]?.field?.message}
+          </p>
+         )}
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+         <div>
+          <label
+           htmlFor={`education.${index}.startDate`}
+           className={labelClass}
+          >
+           Data Início <span className="text-red-500">*</span>
+          </label>
+          <input
+           id={`education.${index}.startDate`}
+           type="date"
+           {...register(`education.${index}.startDate`)}
+           className={inputClass}
+          />
+          {errors.education?.[index]?.startDate && (
+           <p className="mt-1 text-sm text-red-400">
+            {errors.education[index]?.startDate?.message}
+           </p>
+          )}
+         </div>
+
+         <div>
+          <label htmlFor={`education.${index}.endDate`} className={labelClass}>
+           Data Conclusão {isCurrent && "(Em andamento)"}
+          </label>
+          <input
+           id={`education.${index}.endDate`}
+           type="date"
+           {...register(`education.${index}.endDate`)}
+           disabled={isCurrent}
+           className={`${inputClass} disabled:bg-slate-800/60 disabled:text-slate-500 disabled:border-slate-700/60 disabled:cursor-not-allowed`}
+          />
+          {errors.education?.[index]?.endDate && (
+           <p className="mt-1 text-sm text-red-400">
+            {errors.education[index]?.endDate?.message}
+           </p>
+          )}
+         </div>
+
+         <div className="flex items-center pt-8">
+          <label className="flex items-center space-x-2 cursor-pointer">
+           <input
+            type="checkbox"
+            {...register(`education.${index}.isCurrent`)}
+            className={checkboxClass}
+           />
+           <span className="text-sm text-slate-300">Em andamento</span>
+          </label>
+         </div>
+        </div>
        </div>
-      </div>
-     </div>
-    );
-   })}
+      );
+     })}
 
      <button
       type="button"
