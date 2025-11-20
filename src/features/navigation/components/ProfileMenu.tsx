@@ -126,6 +126,14 @@ export const ProfileMenu = ({ user }: { user: UserWithProfile | null }) => {
       >
        My Profile
       </Link>
+      <Link
+       href="/protected/settings/profile"
+       className="w-full text-center text-xs font-medium rounded-lg px-4 py-2 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition focus:outline-none focus-ring"
+       onClick={() => setOpen(false)}
+       role="menuitem"
+      >
+       Settings
+      </Link>
       <button
        onClick={signOut}
        className="w-full text-center text-xs font-medium rounded-lg px-4 py-2 bg-white/5 hover:bg-white/10 text-white/70 hover:text-white transition focus:outline-none focus-ring"

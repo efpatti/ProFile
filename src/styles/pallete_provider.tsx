@@ -92,33 +92,62 @@ export const PaletteProvider: React.FC<{
   let ignore = false;
   const fetchPalette = async () => {
    try {
-    const response = await fetch("/api/user/preferences");
-    if (response.ok) {
-     const data = await response.json();
-     // Validate palette id against supported tokens
-     const paletteId = data?.palette as string | undefined;
-     const isValidPalette =
-      paletteId && paletteId in (colorPalettes as Record<string, unknown>);
-     if (!ignore)
-      setPalette(
-       (isValidPalette
-        ? (paletteId as PaletteName)
-        : "darkGreen") as PaletteName
-      );
+    // Try new preferences API first
+    const fullPrefsResponse = await fetch("/api/user/preferences/full");
+    if (fullPrefsResponse.ok) {
+     const fullData = await fullPrefsResponse.json();
+     const settingsPaletteId = fullData.preferences?.palette;
+     const settingsBannerColor = fullData.preferences?.bannerColor;
 
-     // Validate banner color id against supported bg colors
-     const bannerId = data?.bannerColor as string | undefined;
+     // Map settings palette ID to internal palette name
+     if (settingsPaletteId) {
+      const { getInternalPaletteName } = await import("@/lib/theme-utils");
+      const internalPalette = getInternalPaletteName(settingsPaletteId);
+      if (!ignore) setPalette(internalPalette);
+     } else if (!ignore) {
+      setPalette("darkGreen");
+     }
+
+     // Banner color uses same ID system
      const isValidBanner =
-      bannerId && bannerId in (bgBannerColor as Record<string, unknown>);
-     if (!ignore)
+      settingsBannerColor && settingsBannerColor in (bgBannerColor as Record<string, unknown>);
+     if (!ignore) {
       setBannerColor(
        (isValidBanner
-        ? (bannerId as BannerColorName)
+        ? (settingsBannerColor as BannerColorName)
         : "pureWhite") as BannerColorName
       );
+     }
     } else {
-     if (!ignore) setPalette("darkGreen");
-     if (!ignore) setBannerColor("pureWhite");
+     // Fallback to legacy API
+     const response = await fetch("/api/user/preferences");
+     if (response.ok) {
+      const data = await response.json();
+      // Validate palette id against supported tokens
+      const paletteId = data?.palette as string | undefined;
+      const isValidPalette =
+       paletteId && paletteId in (colorPalettes as Record<string, unknown>);
+      if (!ignore)
+       setPalette(
+        (isValidPalette
+         ? (paletteId as PaletteName)
+         : "darkGreen") as PaletteName
+       );
+
+      // Validate banner color id against supported bg colors
+      const bannerId = data?.bannerColor as string | undefined;
+      const isValidBanner =
+       bannerId && bannerId in (bgBannerColor as Record<string, unknown>);
+      if (!ignore)
+       setBannerColor(
+        (isValidBanner
+         ? (bannerId as BannerColorName)
+         : "pureWhite") as BannerColorName
+       );
+     } else {
+      if (!ignore) setPalette("darkGreen");
+      if (!ignore) setBannerColor("pureWhite");
+     }
     }
    } catch (error) {
     console.error("Error fetching palette:", error);
