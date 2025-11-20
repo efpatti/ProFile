@@ -43,6 +43,8 @@ backend/dist/
 backend/build/
 backend/.nest/
 backend/node_modules
+frontend/.env.docker
+.env.docker
 
 # ===================================
 # Testing
