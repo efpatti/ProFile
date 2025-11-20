@@ -55,28 +55,75 @@ model User {
   emailVerified DateTime?
   image         String?
   password      String?   // Hashed password for credentials auth
-  
+
   accounts      Account[]
   sessions      Session[]
 
+  // Profile fields
   username      String?   @unique
   displayName   String?
   photoURL      String?
+  bio           String?   @db.Text
+  location      String?
+  phone         String?
+  website       String?
+  linkedin      String?
+  github        String?
+
+  // Legacy preference fields (kept for backward compatibility during migration)
   bannerColor   String?
   palette       String?
-  
+
   // Onboarding tracking
   hasCompletedOnboarding Boolean @default(false)
   onboardingCompletedAt  DateTime?
-  
+
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 
   resumes       Resume[]
-  
+  preferences   UserPreferences?
+
   @@index([username])
   @@index([email])
   @@index([hasCompletedOnboarding])
+}
+
+model UserPreferences {
+  id            String   @id @default(cuid())
+  userId        String   @unique
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  // Appearance
+  theme         String   @default("dark") // "light" | "dark" | "auto"
+  palette       String   @default("ocean")
+  bannerColor   String?
+
+  // Localization
+  language      String   @default("en") // "en" | "pt-br" | "es"
+  dateFormat    String   @default("MM/DD/YYYY") // "MM/DD/YYYY" | "DD/MM/YYYY" | "YYYY-MM-DD"
+  timezone      String   @default("UTC")
+
+  // Notifications
+  emailNotifications      Boolean @default(true)
+  resumeExpiryAlerts      Boolean @default(true)
+  weeklyDigest            Boolean @default(false)
+  marketingEmails         Boolean @default(false)
+
+  // Privacy
+  profileVisibility       String  @default("private") // "public" | "private" | "unlisted"
+  showEmail               Boolean @default(false)
+  showPhone               Boolean @default(false)
+  allowSearchEngineIndex  Boolean @default(false)
+
+  // Export defaults
+  defaultExportFormat     String  @default("pdf") // "pdf" | "docx" | "json"
+  includePhotoInExport    Boolean @default(true)
+
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Resume {
