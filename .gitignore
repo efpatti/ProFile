@@ -1,7 +1,10 @@
 # See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
 
-# dependencies
-/node_modules
+# ===================================
+# Dependencies
+# ===================================
+node_modules/
+**/node_modules/
 /.pnp
 .pnp.*
 .yarn/*
@@ -9,47 +12,112 @@
 !.yarn/plugins
 !.yarn/releases
 !.yarn/versions
-.copilot
 
-# testing
-/coverage
+# ===================================
+# Environment Variables
+# ===================================
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env*.local
+!.env.example
+!.env.local.example
+!.env.docker.example
 
-# next.js
-/.next/
-/out/
+# ===================================
+# Frontend (Next.js)
+# ===================================
+frontend/.next/
+frontend/out/
+frontend/build/
+frontend/.vercel
+frontend/next-env.d.ts
+frontend/.turbo
 
-# production
-/build
+# ===================================
+# Backend (NestJS)
+# ===================================
+backend/dist/
+backend/build/
+backend/.nest/
+backend/node_modules
 
-# misc
-.DS_Store
-*.pem
+# ===================================
+# Testing
+# ===================================
+coverage/
+**/coverage/
+.nyc_output
+*.lcov
 
-# debug
+# ===================================
+# Logs
+# ===================================
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 pglite-debug.log
+lerna-debug.log*
+*.log
 
-# env files (can opt-in for committing if needed)
-.env*
-!.env.local.example
-!.env.docker.example
-.vscode
+# ===================================
+# OS Files
+# ===================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
 
-# vercel
-.vercel
+# ===================================
+# IDE & Editors
+# ===================================
+.vscode/
+.idea/
+*.iml
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.copilot
 
-# typescript
+# ===================================
+# TypeScript
+# ===================================
 *.tsbuildinfo
-next-env.d.ts
+*.tsbuildinfo.*
+dist/
+build/
 
+# ===================================
 # Docker
+# ===================================
 volumes/
 .docker/
 docker-compose.override.yml
 
+# ===================================
 # Prisma
+# ===================================
+# Keep migrations but ignore database files
 prisma/*.db
 prisma/*.db-journal
+**/prisma/*.db
+**/prisma/*.db-journal
+
+# ===================================
+# Misc
+# ===================================
+*.pem
+.vercel
+.turbo

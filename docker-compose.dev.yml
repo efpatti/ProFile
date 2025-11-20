@@ -6,19 +6,19 @@ services:
   # ==================================
   postgres:
     image: postgres:16-alpine
-    container_name: profile-postgres
+    container_name: profile-postgres-dev
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres}
-      POSTGRES_DB: ${POSTGRES_DB:-profile}
+      POSTGRES_DB: ${POSTGRES_DB:-profile_dev}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
       - "${POSTGRES_PORT:-5432}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_dev_data:/var/lib/postgresql/data
     networks:
-      - profile-network
+      - profile-dev-network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 10s
@@ -30,15 +30,15 @@ services:
   # ==================================
   redis:
     image: redis:7-alpine
-    container_name: profile-redis
+    container_name: profile-redis-dev
     restart: unless-stopped
     command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-redis}
     ports:
       - "${REDIS_PORT:-6379}:6379"
     volumes:
-      - redis_data:/data
+      - redis_dev_data:/data
     networks:
-      - profile-network
+      - profile-dev-network
     healthcheck:
       test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
       interval: 10s
@@ -46,100 +46,106 @@ services:
       retries: 5
 
   # ==================================
-  # Backend (NestJS)
+  # Backend (NestJS) - Development Mode
   # ==================================
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: profile-backend
+      target: builder  # Use builder stage for development
+    container_name: profile-backend-dev
     restart: unless-stopped
+    command: npm run start:dev  # Development mode with hot-reload
     environment:
-      NODE_ENV: ${NODE_ENV:-production}
+      NODE_ENV: development
       PORT: ${BACKEND_PORT:-3001}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-profile}?schema=public
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-profile_dev}?schema=public
       REDIS_HOST: redis
       REDIS_PORT: 6379
       REDIS_PASSWORD: ${REDIS_PASSWORD:-redis}
-      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      JWT_SECRET: ${JWT_SECRET:-dev-secret-key}
       JWT_EXPIRATION: ${JWT_EXPIRATION:-7d}
       FRONTEND_URL: ${FRONTEND_URL:-http://localhost:3000}
+      LOG_LEVEL: debug
     ports:
       - "${BACKEND_PORT:-3001}:3001"
+      # Debug port
+      - "9229:9229"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
     networks:
-      - profile-network
+      - profile-dev-network
     volumes:
-      # For development - mount source code
-      # - ./backend/src:/app/src
-      # For logs
-      - backend_logs:/app/logs
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 40s
+      # Mount source code for hot-reload
+      - ./backend/src:/app/src:delegated
+      - ./backend/test:/app/test:delegated
+      # Don't mount node_modules
+      - /app/node_modules
+      # Logs
+      - ./backend/logs:/app/logs
 
   # ==================================
-  # Frontend (Next.js)
+  # Frontend (Next.js) - Development Mode
   # ==================================
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: profile-frontend
+      target: deps  # Use deps stage for development
+    container_name: profile-frontend-dev
     restart: unless-stopped
+    command: npm run dev  # Development mode with hot-reload
     environment:
-      NODE_ENV: ${NODE_ENV:-production}
+      NODE_ENV: development
       PORT: ${FRONTEND_PORT:-3000}
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:3001}
       NEXTAUTH_URL: ${NEXTAUTH_URL:-http://localhost:3000}
-      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-your-nextauth-secret-change-in-production}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-profile}?schema=public
+      NEXTAUTH_SECRET: ${NEXTAUTH_SECRET:-dev-nextauth-secret}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@postgres:5432/${POSTGRES_DB:-profile_dev}?schema=public
+      NEXT_TELEMETRY_DISABLED: 1
+      # Enable Fast Refresh
+      WATCHPACK_POLLING: "true"
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     depends_on:
       postgres:
         condition: service_healthy
       backend:
-        condition: service_healthy
+        condition: service_started
     networks:
-      - profile-network
+      - profile-dev-network
     volumes:
-      # For development - mount source code
-      # - ./frontend/src:/app/src
-      # - ./frontend/public:/app/public
-      # For logs
-      - frontend_logs:/app/logs
-    healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3000/api/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
-      interval: 30s
-      timeout: 3s
-      retries: 3
-      start_period: 40s
+      # Mount source code for hot-reload
+      - ./frontend/src:/app/src:delegated
+      - ./frontend/public:/app/public:delegated
+      - ./frontend/prisma:/app/prisma:delegated
+      # Config files
+      - ./frontend/next.config.ts:/app/next.config.ts:delegated
+      - ./frontend/tailwind.config.js:/app/tailwind.config.js:delegated
+      - ./frontend/postcss.config.mjs:/app/postcss.config.mjs:delegated
+      - ./frontend/tsconfig.json:/app/tsconfig.json:delegated
+      # Don't mount these
+      - /app/node_modules
+      - /app/.next
+      # Logs
+      - ./frontend/logs:/app/logs
 
 # ==================================
 # Networks
 # ==================================
 networks:
-  profile-network:
+  profile-dev-network:
     driver: bridge
-    name: profile-network
+    name: profile-dev-network
 
 # ==================================
 # Volumes
 # ==================================
 volumes:
-  postgres_data:
-    name: profile-postgres-data
-  redis_data:
-    name: profile-redis-data
-  backend_logs:
-    name: profile-backend-logs
-  frontend_logs:
-    name: profile-frontend-logs
+  postgres_dev_data:
+    name: profile-postgres-dev-data
+  redis_dev_data:
+    name: profile-redis-dev-data
