@@ -2,44 +2,37 @@ import {
   Injectable,
   ConflictException,
   UnauthorizedException,
-  Logger,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcryptjs';
 import { PrismaService } from '../prisma/prisma.service';
+import { LoggerService } from '../common/logger/logger.service';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
+import { APP_CONSTANTS, ERROR_MESSAGES } from '../common/constants/app.constants';
 
 @Injectable()
 export class AuthService {
-  private readonly logger = new Logger(AuthService.name);
-
   constructor(
-    private prisma: PrismaService,
-    private jwtService: JwtService,
+    private readonly prisma: PrismaService,
+    private readonly jwtService: JwtService,
+    private readonly logger: LoggerService,
   ) {}
 
   async signup(signupDto: SignupDto) {
     const { email, password, name } = signupDto;
 
-    this.logger.log(`[SIGNUP] Received request for: ${email}`);
-
-    // Check if user already exists
     const existingUser = await this.prisma.user.findUnique({
       where: { email },
     });
 
     if (existingUser) {
-      this.logger.warn(`[SIGNUP] User already exists: ${email}`);
-      throw new ConflictException('User with this email already exists');
+      this.logger.warn(`Signup attempt for existing email`, 'AuthService', { email });
+      throw new ConflictException(ERROR_MESSAGES.EMAIL_ALREADY_EXISTS);
     }
 
-    // Hash password
-    this.logger.log('[SIGNUP] Hashing password...');
-    const hashedPassword = await bcrypt.hash(password, 12);
+    const hashedPassword = await bcrypt.hash(password, APP_CONSTANTS.BCRYPT_ROUNDS);
 
-    // Create user
-    this.logger.log(`[SIGNUP] Creating user: ${email}`);
     const user = await this.prisma.user.create({
       data: {
         email,
@@ -49,9 +42,8 @@ export class AuthService {
       },
     });
 
-    this.logger.log(`[SIGNUP] User created successfully: ${user.id}`);
+    this.logger.log(`User registered successfully`, 'AuthService', { userId: user.id, email });
 
-    // Generate JWT token
     const token = this.generateToken({
       id: user.id,
       email: user.email!,
@@ -71,41 +63,39 @@ export class AuthService {
   }
 
   async validateUser(email: string, password: string): Promise<any> {
-    this.logger.log(`[VALIDATE] Validating user: ${email}`);
-
     const user = await this.prisma.user.findUnique({
       where: { email },
     });
 
     if (!user || !user.password) {
-      this.logger.warn(`[VALIDATE] User not found or no password: ${email}`);
+      this.logger.warn(`Failed login attempt - user not found`, 'AuthService', { email });
       return null;
     }
 
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      this.logger.warn(`[VALIDATE] Invalid password for: ${email}`);
+      this.logger.warn(`Failed login attempt - invalid password`, 'AuthService', { email });
       return null;
     }
 
-    this.logger.log(`[VALIDATE] User validated successfully: ${email}`);
     const { password: _, ...result } = user;
     return result;
   }
 
   async login(loginDto: LoginDto) {
-    this.logger.log(`[LOGIN] Login attempt for: ${loginDto.email}`);
-
     const user = await this.validateUser(loginDto.email, loginDto.password);
 
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(ERROR_MESSAGES.INVALID_CREDENTIALS);
     }
 
     const token = this.generateToken(user);
 
-    this.logger.log(`[LOGIN] Login successful for: ${user.email}`);
+    this.logger.log(`User logged in successfully`, 'AuthService', {
+      userId: user.id,
+      email: user.email,
+    });
 
     return {
       success: true,
@@ -120,8 +110,6 @@ export class AuthService {
   }
 
   async refreshToken(userId: string) {
-    this.logger.log(`[REFRESH] Refreshing token for user: ${userId}`);
-
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
@@ -133,7 +121,8 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      this.logger.warn(`Token refresh failed - user not found`, 'AuthService', { userId });
+      throw new UnauthorizedException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
     const token = this.generateToken({
@@ -142,7 +131,7 @@ export class AuthService {
       hasCompletedOnboarding: user.hasCompletedOnboarding,
     });
 
-    this.logger.log(`[REFRESH] Token refreshed for: ${user.email}`);
+    this.logger.debug(`Token refreshed`, 'AuthService', { userId });
 
     return {
       success: true,

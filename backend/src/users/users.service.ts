@@ -1,38 +1,40 @@
-import { Injectable, NotFoundException, Logger } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { UsersRepository } from './users.repository';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { UpdatePreferencesDto } from './dto/update-preferences.dto';
 import { UpdateFullPreferencesDto } from './dto/update-full-preferences.dto';
+import { LoggerService } from '../common/logger/logger.service';
+import { ERROR_MESSAGES } from '../common/constants/app.constants';
 
 @Injectable()
 export class UsersService {
-  private readonly logger = new Logger(UsersService.name);
-
-  constructor(private readonly usersRepository: UsersRepository) {}
+  constructor(
+    private readonly usersRepository: UsersRepository,
+    private readonly logger: LoggerService,
+  ) {}
 
   async getProfile(userId: string) {
-    this.logger.log(`Getting profile for user: ${userId}`);
     const profile = await this.usersRepository.getUserProfile(userId);
 
     if (!profile) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
     return profile;
   }
 
   async updateProfile(userId: string, updateProfileDto: UpdateProfileDto) {
-    this.logger.log(`Updating profile for user: ${userId}`);
-
     const user = await this.usersRepository.getUser(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
     const updatedUser = await this.usersRepository.updateUserProfile(
       userId,
       updateProfileDto,
     );
+
+    this.logger.debug(`User profile updated`, 'UsersService', { userId });
 
     return {
       success: true,
@@ -50,11 +52,10 @@ export class UsersService {
   }
 
   async getPreferences(userId: string) {
-    this.logger.log(`Getting preferences for user: ${userId}`);
     const preferences = await this.usersRepository.getUserPreferences(userId);
 
     if (!preferences) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
     return preferences;
@@ -64,17 +65,17 @@ export class UsersService {
     userId: string,
     updatePreferencesDto: UpdatePreferencesDto,
   ) {
-    this.logger.log(`Updating preferences for user: ${userId}`);
-
     const user = await this.usersRepository.getUser(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
     await this.usersRepository.updateUserPreferences(
       userId,
       updatePreferencesDto,
     );
+
+    this.logger.debug(`User preferences updated`, 'UsersService', { userId });
 
     return {
       success: true,
@@ -83,7 +84,6 @@ export class UsersService {
   }
 
   async getFullPreferences(userId: string) {
-    this.logger.log(`Getting full preferences for user: ${userId}`);
     const preferences =
       await this.usersRepository.getFullUserPreferences(userId);
 
@@ -94,17 +94,18 @@ export class UsersService {
     userId: string,
     updateFullPreferencesDto: UpdateFullPreferencesDto,
   ) {
-    this.logger.log(`Updating full preferences for user: ${userId}`);
 
     const user = await this.usersRepository.getUser(userId);
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(ERROR_MESSAGES.USER_NOT_FOUND);
     }
 
     const preferences = await this.usersRepository.upsertFullUserPreferences(
       userId,
       updateFullPreferencesDto,
     );
+
+    this.logger.debug(`User full preferences updated`, 'UsersService', { userId });
 
     return {
       success: true,

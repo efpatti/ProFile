@@ -11,7 +11,7 @@ export interface ApiResponse<T> {
   error?: ApiError;
 }
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api';
 
 class ApiClient {
   private baseUrl: string;
@@ -26,9 +26,9 @@ class ApiClient {
   ): Promise<ApiResponse<T>> {
     const session = getSession();
 
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...(options.headers as Record<string, string>),
     };
 
     if (session?.accessToken) {
@@ -79,12 +79,13 @@ class ApiClient {
 
   private async refreshAccessToken(refreshToken: string): Promise<boolean> {
     try {
+      // Backend expects JWT token in Authorization header for refresh
       const response = await fetch(`${this.baseUrl}/auth/refresh`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${refreshToken}`,
         },
-        body: JSON.stringify({ refreshToken }),
       });
 
       if (!response.ok) {
@@ -93,12 +94,13 @@ class ApiClient {
 
       const data = await response.json();
 
-      if (data.accessToken) {
+      // Backend returns { success: true, token: "...", user: {...} }
+      if (data.token) {
         const session = getSession();
         if (session) {
           saveSession({
             ...session,
-            accessToken: data.accessToken,
+            accessToken: data.token,
           });
         }
         return true;
@@ -106,7 +108,7 @@ class ApiClient {
 
       return false;
     } catch (error) {
-      console.error('Failed to refresh token:', error);
+      // Silent fail - will be handled by clearing session
       return false;
     }
   }

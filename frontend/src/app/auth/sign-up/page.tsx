@@ -3,10 +3,9 @@
 import { motion } from "framer-motion";
 import { FaGithub, FaGoogle } from "react-icons/fa";
 import { useState, useEffect } from "react";
-import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { authService } from "@/lib/api/auth.service";
+import { useAuth } from "@/hooks/useAuth";
 
 const containerVariants = {
  hidden: { opacity: 0 },
@@ -27,7 +26,7 @@ const itemVariants = {
 
 export default function SignUpPage() {
  const router = useRouter();
- const { data: session, status } = useSession();
+ const { isAuthenticated, signup, error: authError, clearError } = useAuth();
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState("");
  const [email, setEmail] = useState("");
@@ -35,10 +34,17 @@ export default function SignUpPage() {
  const [confirmPassword, setConfirmPassword] = useState("");
 
  useEffect(() => {
-  if (status === "authenticated") {
+  if (isAuthenticated) {
    router.push("/onboarding");
   }
- }, [status, router]);
+ }, [isAuthenticated, router]);
+
+ useEffect(() => {
+  if (authError) {
+   setError(authError);
+   clearError();
+  }
+ }, [authError, clearError]);
 
  const handleEmailSignUp = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -57,13 +63,17 @@ export default function SignUpPage() {
    setLoading(true);
    setError("");
 
-   const response = await authService.signup({ email, password, name: email.split('@')[0] });
+   const success = await signup({
+    email,
+    password,
+    name: email.split('@')[0]
+   });
 
-   if (response.error) {
-    throw new Error(response.error.message || "Failed to create account");
+   if (success) {
+    router.push("/onboarding");
+   } else {
+    setError("Failed to create account. Please try again.");
    }
-
-   router.push("/onboarding");
   } catch (err) {
    setError(
     err instanceof Error ? err.message : "Failed to sign up. Please try again."
@@ -74,26 +84,10 @@ export default function SignUpPage() {
   }
  };
 
+ // OAuth is not implemented in the current backend
  const handleOAuthSignUp = async (provider: "google" | "github") => {
-  try {
-   setLoading(true);
-   setError("");
-   await signIn(provider, { callbackUrl: "/onboarding" });
-  } catch (err) {
-   setError("Failed to sign up. Please try again.");
-   console.error("Sign-up error:", err);
-  } finally {
-   setLoading(false);
-  }
+  setError("OAuth sign-up is not available yet. Please use email and password.");
  };
-
- if (status === "loading") {
-  return (
-   <div className="flex items-center justify-center min-h-screen bg-zinc-900">
-    <div className="text-white">Loading...</div>
-   </div>
-  );
- }
 
  return (
   <div className="flex items-center justify-center min-h-screen bg-zinc-900 p-4">
@@ -155,6 +149,7 @@ export default function SignUpPage() {
         onChange={(e) => setPassword(e.target.value)}
         required
         minLength={8}
+        autoComplete="new-password"
         className="w-full px-4 py-3 rounded-xl bg-zinc-700 border border-zinc-600 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         placeholder="••••••••"
        />
@@ -174,6 +169,7 @@ export default function SignUpPage() {
         onChange={(e) => setConfirmPassword(e.target.value)}
         required
         minLength={8}
+        autoComplete="new-password"
         className="w-full px-4 py-3 rounded-xl bg-zinc-700 border border-zinc-600 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         placeholder="••••••••"
        />

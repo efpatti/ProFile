@@ -15,7 +15,6 @@ export class DateUtils {
     // Strict YYYY-MM-DD validation
     const dateMatch = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     if (!dateMatch) {
-      console.warn(`[DateUtils] Invalid date format: "${value}"`);
       return null; // Fail gracefully
     }
 
@@ -24,7 +23,6 @@ export class DateUtils {
 
     // Validate the date is actually valid (no overflow like 2023-13-40)
     if (isNaN(date.getTime())) {
-      console.warn(`[DateUtils] Invalid date values: ${year}-${month}-${day}`);
       return null;
     }
 

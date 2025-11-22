@@ -7,8 +7,9 @@ import { getSession, clearSession } from '@/lib/api/session';
 
 interface User {
   id: string;
-  email: string;
-  name: string;
+  email: string | null;
+  name: string | null;
+  hasCompletedOnboarding?: boolean;
 }
 
 interface AuthState {

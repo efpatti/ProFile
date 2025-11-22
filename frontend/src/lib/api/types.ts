@@ -7,16 +7,28 @@ export interface LoginCredentials {
 export interface SignupData {
   email: string;
   password: string;
-  name: string;
+  name?: string;
 }
 
 export interface AuthResponse {
-  accessToken: string;
-  refreshToken: string;
+  success: true;
+  token: string;
   user: {
     id: string;
-    email: string;
-    name: string;
+    email: string | null;
+    name: string | null;
+    hasCompletedOnboarding: boolean;
+  };
+}
+
+export interface RefreshTokenResponse {
+  success: true;
+  token: string;
+  user: {
+    id: string;
+    email: string | null;
+    name: string | null;
+    hasCompletedOnboarding: boolean;
   };
 }
 
@@ -204,7 +216,7 @@ export interface OnboardingData {
   }>;
   languages?: Array<{
     name: string;
-    proficiency: string;
+    level: 'básico' | 'intermediário' | 'avançado' | 'fluente' | 'nativo';
   }>;
   template?: {
     palette: string;

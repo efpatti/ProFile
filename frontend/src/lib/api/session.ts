@@ -3,8 +3,9 @@ export interface Session {
   refreshToken: string;
   user: {
     id: string;
-    email: string;
-    name: string;
+    email: string | null;
+    name: string | null;
+    hasCompletedOnboarding?: boolean;
   };
 }
 

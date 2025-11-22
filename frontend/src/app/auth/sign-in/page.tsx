@@ -3,9 +3,9 @@
 import { motion } from "framer-motion";
 import { FaGithub, FaGoogle } from "react-icons/fa";
 import { useState, useEffect } from "react";
-import { signIn, useSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/hooks/useAuth";
 
 const containerVariants = {
  hidden: { opacity: 0 },
@@ -26,17 +26,24 @@ const itemVariants = {
 
 export default function SignInPage() {
  const router = useRouter();
- const { data: session, status } = useSession();
+ const { isAuthenticated, login, error: authError, clearError } = useAuth();
  const [loading, setLoading] = useState(false);
  const [error, setError] = useState("");
  const [email, setEmail] = useState("");
  const [password, setPassword] = useState("");
 
  useEffect(() => {
-  if (status === "authenticated") {
+  if (isAuthenticated) {
    router.push("/protected/resume");
   }
- }, [status, router]);
+ }, [isAuthenticated, router]);
+
+ useEffect(() => {
+  if (authError) {
+   setError(authError);
+   clearError();
+  }
+ }, [authError, clearError]);
 
  const handleEmailSignIn = async (e: React.FormEvent) => {
   e.preventDefault();
@@ -44,16 +51,12 @@ export default function SignInPage() {
    setLoading(true);
    setError("");
 
-   const result = await signIn("credentials", {
-    email,
-    password,
-    redirect: false,
-   });
+   const success = await login({ email, password });
 
-   if (result?.error) {
-    setError("Invalid email or password");
-   } else if (result?.ok) {
+   if (success) {
     router.push("/protected/resume");
+   } else {
+    setError("Invalid email or password");
    }
   } catch (err) {
    setError("Failed to sign in. Please try again.");
@@ -63,26 +66,10 @@ export default function SignInPage() {
   }
  };
 
+ // OAuth is not implemented in the current backend
  const handleOAuthSignIn = async (provider: "google" | "github") => {
-  try {
-   setLoading(true);
-   setError("");
-   await signIn(provider, { callbackUrl: "/protected/resume" });
-  } catch (err) {
-   setError("Failed to sign in. Please try again.");
-   console.error("Sign-in error:", err);
-  } finally {
-   setLoading(false);
-  }
+  setError("OAuth sign-in is not available yet. Please use email and password.");
  };
-
- if (status === "loading") {
-  return (
-   <div className="flex items-center justify-center min-h-screen bg-zinc-900">
-    <div className="text-white">Loading...</div>
-   </div>
-  );
- }
 
  return (
   <div className="flex items-center justify-center min-h-screen bg-zinc-900 p-4">
@@ -141,6 +128,7 @@ export default function SignInPage() {
         value={password}
         onChange={(e) => setPassword(e.target.value)}
         required
+        autoComplete="current-password"
         className="w-full px-4 py-3 rounded-xl bg-zinc-700 border border-zinc-600 text-white placeholder-zinc-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         placeholder="••••••••"
        />

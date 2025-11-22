@@ -27,6 +27,9 @@ COPY --from=deps /app/node_modules ./node_modules
 # Copy all source files
 COPY . .
 
+# Generate Prisma Client
+RUN npx prisma generate
+
 # Build NestJS application
 RUN npm run build
 
@@ -48,6 +51,7 @@ RUN adduser --system --uid 1001 nestjs
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/package.json ./package.json
+COPY --from=builder /app/prisma ./prisma
 
 # Change ownership to nestjs user
 RUN chown -R nestjs:nodejs /app
@@ -55,15 +59,16 @@ RUN chown -R nestjs:nodejs /app
 # Switch to nestjs user
 USER nestjs
 
-# Expose port 3001 (backend typically runs on different port than frontend)
-EXPOSE 3001
+# Expose backend port
+ARG PORT=3001
+EXPOSE ${PORT}
 
-ENV PORT=3001
+ENV PORT=${PORT}
 ENV HOSTNAME="0.0.0.0"
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=40s --retries=3 \
-  CMD node -e "require('http').get('http://localhost:3001/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
+  CMD node -e "const port = process.env.PORT || 3001; require('http').get(\`http://localhost:\${port}/api/health\`, (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"
 
 # Start the application
 CMD ["node", "dist/main"]

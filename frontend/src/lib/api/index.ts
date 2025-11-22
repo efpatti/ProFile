@@ -6,3 +6,4 @@ export * from './users.service';
 export * from './resumes.service';
 export * from './onboarding.service';
 export * from './export.service';
+export * from './upload.service';

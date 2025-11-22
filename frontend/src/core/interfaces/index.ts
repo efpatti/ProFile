@@ -5,7 +5,6 @@
 
 // Repository Interfaces
 export type { IResumeRepository } from "./IResumeRepository";
-export type { IUserRepository, UserPreferences } from "./IUserRepository";
 
 // Service Interfaces
 export type { IExportService } from "./IExportService";
